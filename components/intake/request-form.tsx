@@ -5,7 +5,6 @@ import { upload } from "@vercel/blob/client";
 import { submitRequest } from "@/app/(app)/solicitar/actions";
 import { Alert } from "@/components/arc/alert/alert";
 import { Button } from "@/components/arc/button/button";
-import { EmptyState } from "@/components/arc/empty-state/empty-state";
 import { DatePicker } from "@/components/arc/date-picker/date-picker";
 import {
   FileUpload,
@@ -38,7 +37,6 @@ import {
 } from "@/lib/intake/uploads";
 import { EstimatePanel } from "./estimate-panel";
 import { stepErrors, type Draft } from "./validation";
-import styles from "./request-form.module.css";
 
 const AREA_HINT: Record<Area, string> = {
   web: "Landings, cambios, tracking y accesos",
@@ -104,7 +102,6 @@ function RequestWizard({
   const uploaded = useRef(new Map<File, { url: string; name: string }>());
   // Kept across retries of the same submission so monday never creates the item twice.
   const submissionKey = useRef<string | null>(null);
-  const website = useRef<HTMLInputElement>(null);
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -169,11 +166,7 @@ function RequestWizard({
       attachments,
     };
     try {
-      const response = await submitRequest(
-        payload,
-        submissionKey.current,
-        website.current?.value ?? "",
-      );
+      const response = await submitRequest(payload, submissionKey.current);
       if (!response.success) {
         setErrors(response.fieldErrors ?? {});
         setSubmitError(
@@ -197,240 +190,218 @@ function RequestWizard({
   const subtypes = area ? SUBTYPES[area] : [];
 
   return (
-    <div className={styles.layout}>
-      <div className={styles.main}>
-        <MultiStepForm
-          formLabel="Nueva solicitud"
-          completeLabel="Enviar solicitud"
-          onStepContinue={onStepContinue}
-          onComplete={onComplete}
-          successTitle="Solicitud enviada"
-          successNote={
-            sent &&
-            `Entrega estimada: ${formatDay(sent.date)} (${sent.days} días hábiles). ${
-              sent.initialStage === "ready"
-                ? "Quedó lista para arrancar y el responsable del área ya la ve en monday."
-                : "Quedó en Nuevas: el responsable del área la revisará y te escribirá si falta algo."
-            }`
-          }
-          successAction={
-            <Button variant="secondary" type="button" onClick={onAnother}>
-              Enviar otra solicitud
-            </Button>
-          }
-          steps={[
-            {
-              id: "area",
-              title: "Área",
-              description: "¿Qué equipo necesitas?",
-              content: (
-                <div className={styles.fields}>
-                  <RadioCards
-                    name="area"
-                    required
-                    minColumnWidth={260}
-                    value={draft.area || null}
-                    onValueChange={(value) => {
-                      setDraft((current) => ({
-                        ...current,
-                        area: value as Area,
-                        subtype: "",
-                        landingSubtype: "",
-                      }));
-                      setErrors({});
-                    }}
-                    options={AREAS.map((value) => ({
+    <MultiStepForm
+      surface="none"
+      formLabel="Nueva solicitud"
+      completeLabel="Enviar solicitud"
+      onStepContinue={onStepContinue}
+      onComplete={onComplete}
+      successTitle="Solicitud enviada"
+      successNote={
+        sent &&
+        `Entrega estimada: ${formatDay(sent.date)} (${sent.days} días hábiles). ${
+          sent.initialStage === "ready"
+            ? "Quedó lista para arrancar y el responsable del área ya la ve en monday."
+            : "Quedó en Nuevas: el responsable del área la revisará y te escribirá si falta algo."
+        }`
+      }
+      successAction={
+        <Button variant="secondary" type="button" onClick={onAnother}>
+          Enviar otra solicitud
+        </Button>
+      }
+      steps={[
+        {
+          id: "area",
+          title: "Área",
+          description: "¿Qué equipo necesitas?",
+          content: (
+            <>
+              <RadioCards
+                name="area"
+                required
+                minColumnWidth={220}
+                value={draft.area || null}
+                onValueChange={(value) => {
+                  setDraft((current) => ({
+                    ...current,
+                    area: value as Area,
+                    subtype: "",
+                    landingSubtype: "",
+                  }));
+                  setErrors({});
+                }}
+                options={AREAS.map((value) => ({
+                  value,
+                  label: AREA_LABEL[value],
+                  description: AREA_HINT[value],
+                }))}
+              />
+              {errors.area && <Alert tone="danger" title={errors.area} />}
+            </>
+          ),
+        },
+        {
+          id: "brief",
+          title: "Brief",
+          description: area ? BRIEF_HINT[area] : undefined,
+          content: (
+            <>
+              <Input
+                label="Título"
+                placeholder="Landing webinar de oro, octubre"
+                value={draft.title}
+                onChange={(event) => set("title", event.target.value)}
+                error={errors.title}
+                maxLength={120}
+              />
+              <>
+                <Select
+                  label="Tipo de pieza"
+                  placeholder="Elige uno"
+                  options={subtypes.map(({ value, label }) => ({
+                    value,
+                    label,
+                  }))}
+                  value={draft.subtype}
+                  onValueChange={(value) => {
+                    set("subtype", value);
+                    set("landingSubtype", "");
+                  }}
+                  description={errors.subtype}
+                />
+                {area === "web" && draft.subtype === "landing" && (
+                  <Select
+                    label="Tipo de landing"
+                    placeholder="Elige uno"
+                    options={LANDING_SUBTYPES.map(({ value, label }) => ({
                       value,
-                      label: AREA_LABEL[value],
-                      description: AREA_HINT[value],
+                      label,
                     }))}
+                    value={draft.landingSubtype}
+                    onValueChange={(value) => set("landingSubtype", value)}
+                    description={errors.landingSubtype}
                   />
-                  {errors.area && <Alert tone="danger" title={errors.area} />}
-                </div>
-              ),
-            },
-            {
-              id: "brief",
-              title: "Brief",
-              description: area ? BRIEF_HINT[area] : undefined,
-              content: (
-                <div className={styles.fields}>
-                  <Input
-                    label="Título"
-                    placeholder="Landing webinar de oro, octubre"
-                    value={draft.title}
-                    onChange={(event) => set("title", event.target.value)}
-                    error={errors.title}
-                    maxLength={120}
-                  />
-                  <div className={styles.row}>
-                    <Select
-                      label="Tipo de pieza"
-                      placeholder="Elige uno"
-                      options={subtypes.map(({ value, label }) => ({
-                        value,
-                        label,
-                      }))}
-                      value={draft.subtype}
-                      onValueChange={(value) => {
-                        set("subtype", value);
-                        set("landingSubtype", "");
-                      }}
-                      description={errors.subtype}
-                    />
-                    {area === "web" && draft.subtype === "landing" && (
-                      <Select
-                        label="Tipo de landing"
-                        placeholder="Elige uno"
-                        options={LANDING_SUBTYPES.map(({ value, label }) => ({
-                          value,
-                          label,
-                        }))}
-                        value={draft.landingSubtype}
-                        onValueChange={(value) => set("landingSubtype", value)}
-                        description={errors.landingSubtype}
-                      />
-                    )}
-                  </div>
-                  <Textarea
-                    label="Descripción y especificaciones"
-                    error={errors.brief}
-                    rows={7}
-                    value={draft.brief}
-                    onChange={(event) => set("brief", event.target.value)}
-                    maxLength={5000}
-                  />
-                  {area === "web" && (
-                    <Textarea
-                      label="Bloqueadores"
-                      description="Lo que falta para poder empezar: copy, logos, accesos. Déjalo vacío si no falta nada."
-                      rows={3}
-                      value={draft.blockers}
-                      onChange={(event) => set("blockers", event.target.value)}
-                      maxLength={2000}
-                    />
-                  )}
-                </div>
-              ),
-            },
-            {
-              id: "cuando",
-              title: "Fecha y prioridad",
-              content: (
-                <div className={styles.fields}>
-                  <div className={styles.row}>
-                    <DatePicker
-                      label="Fecha requerida"
-                      locale="es-MX"
-                      value={draft.dueDate}
-                      onChange={(date) => set("dueDate", date)}
-                      minDate={new Date(`${today}T00:00:00`)}
-                      description={errors.dueDate}
-                      placeholder="Elige una fecha"
-                    />
-                    <Select
-                      label="Mercado"
-                      placeholder="Elige uno"
-                      options={MARKETS.map((value) => ({
-                        value,
-                        label: value,
-                      }))}
-                      value={draft.market}
-                      onValueChange={(value) => set("market", value)}
-                      description={errors.market}
-                    />
-                  </div>
-                  <RadioGroup
-                    label="Prioridad"
-                    name="priority"
-                    value={draft.priority}
-                    onValueChange={(value) =>
-                      set("priority", value as Priority)
-                    }
-                    options={PRIORITIES.map((value) => ({
-                      value,
-                      label: PRIORITY_LABEL[value],
-                    }))}
-                  />
-                </div>
-              ),
-            },
-            {
-              id: "material",
-              title: "Material",
-              description: "Opcional, pero acorta la entrega.",
-              content: (
-                <div className={styles.fields}>
-                  <Input
-                    label="Carpeta Drive"
-                    type="url"
-                    inputMode="url"
-                    placeholder="https://drive.google.com/..."
-                    value={draft.drive}
-                    onChange={(event) => set("drive", event.target.value)}
-                    error={errors.drive}
-                  />
-                  <FileUpload
-                    label="Adjuntos"
-                    description={`Hasta ${MAX_FILES} archivos de ${MAX_UPLOAD_BYTES / 1024 / 1024} MB: imágenes, PDF, Office o CSV.`}
-                    accept={ACCEPTED_TYPES.join(",")}
-                    maxSize={MAX_UPLOAD_BYTES}
-                    value={files}
-                    onChange={(next) => setFiles(next.slice(0, MAX_FILES))}
-                    onUpload={uploadFile}
-                  />
-                  {errors.attachments && (
-                    <Alert tone="warning" title={errors.attachments} />
-                  )}
-                </div>
-              ),
-            },
-            {
-              id: "revision",
-              title: "Revisión",
-              description: `Se enviará como ${requester}.`,
-              content: (
-                <div className={styles.fields}>
-                  {preview?.tight && (
-                    <Alert
-                      tone="warning"
-                      title="La fecha requerida es anterior a la estimada"
-                    >
-                      El equipo revisará si es posible. Completar el brief o
-                      subir la prioridad ayuda.
-                    </Alert>
-                  )}
-                  {submitError && <Alert tone="danger" title={submitError} />}
-                  {!preview?.tight && !submitError && (
-                    <Alert tone="info" title="Todo listo para enviar">
-                      La solicitud llega al tablero del equipo en monday con su
-                      fecha estimada.
-                    </Alert>
-                  )}
-                  <input
-                    ref={website}
-                    name="website"
-                    tabIndex={-1}
-                    autoComplete="off"
-                    aria-hidden="true"
-                    className={styles.honeypot}
-                  />
-                </div>
-              ),
-            },
-          ]}
-        />
-      </div>
-      <aside className={styles.aside} aria-label="Estimación en vivo">
-        {preview ? (
-          <EstimatePanel result={preview} />
-        ) : (
-          <EmptyState
-            title="Elige un área"
-            description="La estimación aparece en cuanto sepamos qué necesitas."
-          />
-        )}
-      </aside>
-    </div>
+                )}
+              </>
+              <Textarea
+                label="Descripción y especificaciones"
+                error={errors.brief}
+                rows={7}
+                value={draft.brief}
+                onChange={(event) => set("brief", event.target.value)}
+                maxLength={5000}
+              />
+              {area === "web" && (
+                <Textarea
+                  label="Bloqueadores"
+                  description="Lo que falta para poder empezar: copy, logos, accesos. Déjalo vacío si no falta nada."
+                  rows={3}
+                  value={draft.blockers}
+                  onChange={(event) => set("blockers", event.target.value)}
+                  maxLength={2000}
+                />
+              )}
+            </>
+          ),
+        },
+        {
+          id: "cuando",
+          title: "Fecha y prioridad",
+          content: (
+            <>
+              <>
+                <DatePicker
+                  label="Fecha requerida"
+                  locale="es-MX"
+                  value={draft.dueDate}
+                  onChange={(date) => set("dueDate", date)}
+                  minDate={new Date(`${today}T00:00:00`)}
+                  description={errors.dueDate}
+                  placeholder="Elige una fecha"
+                />
+                <Select
+                  label="Mercado"
+                  placeholder="Elige uno"
+                  options={MARKETS.map((value) => ({
+                    value,
+                    label: value,
+                  }))}
+                  value={draft.market}
+                  onValueChange={(value) => set("market", value)}
+                  description={errors.market}
+                />
+              </>
+              <RadioGroup
+                label="Prioridad"
+                name="priority"
+                value={draft.priority}
+                onValueChange={(value) => set("priority", value as Priority)}
+                options={PRIORITIES.map((value) => ({
+                  value,
+                  label: PRIORITY_LABEL[value],
+                }))}
+              />
+            </>
+          ),
+        },
+        {
+          id: "material",
+          title: "Material",
+          description: "Opcional, pero acorta la entrega.",
+          content: (
+            <>
+              <Input
+                label="Carpeta Drive"
+                type="url"
+                inputMode="url"
+                placeholder="https://drive.google.com/..."
+                value={draft.drive}
+                onChange={(event) => set("drive", event.target.value)}
+                error={errors.drive}
+              />
+              <FileUpload
+                label="Adjuntos"
+                description={`Hasta ${MAX_FILES} archivos de ${MAX_UPLOAD_BYTES / 1024 / 1024} MB: imágenes, PDF, Office o CSV.`}
+                accept={ACCEPTED_TYPES.join(",")}
+                maxSize={MAX_UPLOAD_BYTES}
+                value={files}
+                onChange={(next) => setFiles(next.slice(0, MAX_FILES))}
+                onUpload={uploadFile}
+              />
+              {errors.attachments && (
+                <Alert tone="warning" title={errors.attachments} />
+              )}
+            </>
+          ),
+        },
+        {
+          id: "revision",
+          title: "Revisión",
+          description: `Se enviará como ${requester}.`,
+          content: (
+            <>
+              {preview && <EstimatePanel result={preview} />}
+              {preview?.tight && (
+                <Alert
+                  tone="warning"
+                  title="La fecha requerida es anterior a la estimada"
+                >
+                  El equipo revisará si es posible. Completar el brief o subir
+                  la prioridad ayuda.
+                </Alert>
+              )}
+              {submitError && <Alert tone="danger" title={submitError} />}
+              {!preview?.tight && !submitError && (
+                <Alert tone="info" title="Todo listo para enviar">
+                  La solicitud llega al tablero del equipo en monday con su
+                  fecha estimada.
+                </Alert>
+              )}
+            </>
+          ),
+        },
+      ]}
+    />
   );
 }

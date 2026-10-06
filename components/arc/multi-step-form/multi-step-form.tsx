@@ -27,6 +27,8 @@ export type MultiStepFormProps = {
   successAction?: ReactNode;
   stepCountLabel?: (step: number, total: number) => string;
   initialStep?: number;
+  /** "none" drops the card surface when the form already sits in a dialog or drawer. */
+  surface?: "card" | "none";
 };
 const exitFade = { duration: motionTokens.duration.instant, ease: [...motionTokens.ease.standard] } as const;
 const stepVariants: Variants = {
@@ -92,6 +94,7 @@ export function MultiStepForm({
   successAction,
   stepCountLabel = defaultCount,
   initialStep = 0,
+  surface = "card",
 }: MultiStepFormProps) {
   const [step, setStep] = useState(Math.min(Math.max(initialStep, 0), Math.max(steps.length - 1, 0)));
   const [direction, setDirection] = useState(1);
@@ -145,7 +148,7 @@ export function MultiStepForm({
       setPending(false);
     }
   }
-  return <form className={styles.form} onSubmit={submit} aria-label={formLabel} noValidate>
+  return <form className={styles.form} data-surface={surface} onSubmit={submit} aria-label={formLabel} noValidate>
     <nav className={styles.progress} aria-label={stepCountLabel(step + 1, steps.length)}>
       <ol className={styles.progressList}>
         {steps.map((item, index) => <li className={`${styles.progressItem} ${index < step || (complete && index === step) ? styles.complete : ""} ${index === step && !complete ? styles.current : ""}`} key={item.id} aria-current={index === step ? "step" : undefined}>

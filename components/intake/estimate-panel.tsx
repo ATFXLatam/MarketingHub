@@ -3,7 +3,6 @@ import { MetricCard } from "@/components/arc/metric-card/metric-card";
 import { Progress } from "@/components/arc/progress/progress";
 import { formatDay } from "@/lib/dates";
 import type { BriefTier, Estimate } from "@/lib/estimate";
-import styles from "./request-form.module.css";
 
 const TIER: Record<BriefTier, { tone: AlertTone; title: string }> = {
   completo: { tone: "success", title: "El brief está completo: se puede arrancar en cuanto haya capacidad." },
@@ -15,12 +14,12 @@ const TIER: Record<BriefTier, { tone: AlertTone; title: string }> = {
 export function EstimatePanel({ result }: { result: Estimate }) {
   const tier = TIER[result.tier];
   return (
-    <div className={styles.estimate} aria-live="polite">
+    <>
       <MetricCard label="Entrega estimada" value={result.days} suffix={" días hábiles"} context={`Lista el ${formatDay(result.date)}`} />
       <Progress label="Calidad del brief" value={result.score} showValue />
       <Alert tone={tier.tone} title={tier.title}>
         {result.missing.length > 0 ? `Para mejorarlo: ${result.missing.join(". ")}.` : undefined}
       </Alert>
-    </div>
+    </>
   );
 }

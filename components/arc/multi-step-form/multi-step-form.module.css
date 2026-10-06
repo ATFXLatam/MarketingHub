@@ -6,6 +6,14 @@
   box-shadow: var(--shadow-resting);
 }
 
+/* Inside a dialog or drawer the panel is already the surface, so the form keeps only its content. */
+.form[data-surface="none"] {
+  border: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
 .progress {
   display: flex;
   align-items: center;
@@ -124,6 +132,20 @@
   padding: 0;
   margin: 0;
 }
+
+.form[data-surface="none"] .progress {
+  margin: 0 0 var(--space-6);
+  padding: 0 0 var(--space-4);
+}
+
+/* Fields in a step stack on one rhythm, so step content needs no layout of its own. */
+.content {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.content > * { min-width: 0; }
 
 /* Content sits one step below the title when a step has no description. */
 .step legend + .content { margin-top: var(--space-5); }
@@ -245,7 +267,7 @@
 .success .successAction { margin-top: var(--space-5); }
 
 @media (max-width: 420px) {
-  .form { padding: var(--space-4); }
+  .form:not([data-surface="none"]) { padding: var(--space-4); }
   .progress {
     align-items: flex-start;
     flex-direction: column;
@@ -253,6 +275,7 @@
     margin: calc(var(--space-4) * -1) calc(var(--space-4) * -1) var(--space-5);
     padding: var(--space-3) var(--space-4);
   }
+  .form[data-surface="none"] .progress { margin: 0 0 var(--space-5); padding: 0 0 var(--space-3); }
   .progressList { width: 100%; gap: var(--space-3); }
   .progressCount { order: -1; }
   .viewport { min-height: 15rem; }

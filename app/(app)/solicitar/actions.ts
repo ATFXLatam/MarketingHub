@@ -22,14 +22,12 @@ export type SubmitResult =
 const isRateLimited = createRateLimiter(10, 60 * 60 * 1000);
 const KeySchema = z.uuid();
 
-export async function submitRequest(input: unknown, idempotencyKey: string, website: string): Promise<SubmitResult> {
+export async function submitRequest(input: unknown, idempotencyKey: string): Promise<SubmitResult> {
   const user = await currentUser();
   const email = user?.primaryEmailAddress?.emailAddress;
   if (!user || !email || !isAllowedEmail(email)) {
     return { success: false, error: "Tu cuenta no tiene acceso a este formulario." };
   }
-  // Bots fill every field; answering success keeps them from learning which one gave them away.
-  if (website) return { success: true, data: { itemId: "", estimate: emptyEstimate() } };
   if (isRateLimited(user.id)) {
     return { success: false, error: "Enviaste varias solicitudes seguidas. Espera unos minutos y vuelve a intentar." };
   }
@@ -71,8 +69,4 @@ export async function submitRequest(input: unknown, idempotencyKey: string, webs
     const wait = error instanceof MondayError && error.retryInSeconds ? ` en ${error.retryInSeconds} segundos` : "";
     return { success: false, error: `monday no respondió. Tu solicitud no se perdió: vuelve a enviarla${wait}.` };
   }
-}
-
-function emptyEstimate(): Estimate {
-  return { score: 0, tier: "incompleto", missing: [], days: 0, date: "", tight: false, initialStage: "nueva" };
 }

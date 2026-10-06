@@ -16,23 +16,3 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
 }
-
-/* The one page container: every page fills it, nothing inside adds its own gutter. */
-.page {
-  width: 100%;
-  max-width: 1200px;
-  margin-inline: auto;
-  padding: 32px clamp(16px, 4vw, 32px);
-  display: grid;
-  gap: 24px;
-  box-sizing: border-box;
-}
-.page > * {
-  min-width: 0;
-}
-
-/* Forms read best at a narrower measure; same container, only the max width changes. */
-.narrow {
-  width: 100%;
-  max-width: 720px;
-}
