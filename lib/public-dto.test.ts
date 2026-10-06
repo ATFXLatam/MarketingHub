@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { COLUMNS } from "./board-config";
-import { ownerIds, toPublicEvent, toPublicTask, visibleTasks, type RawItem } from "./public-dto";
+import { ownerIds, ownerPhoto, toPublicEvent, toPublicTask, visibleTasks, type RawItem } from "./public-dto";
 
 const item: RawItem = {
   id: "1",
@@ -41,10 +41,19 @@ describe("toPublicTask", () => {
 
 describe("owners", () => {
   it("maps assigned people to name and photo, skipping teams and anyone the lookup did not return", () => {
-    const people = new Map([["11", { id: "11", name: "Ana", photo: null }]]);
+    const people = new Map([["11", { id: "11", name: "Ana", photo: null, title: "Diseño", timeZone: "America/Lima" }]]);
     expect(ownerIds([item])).toEqual(["11"]);
-    expect(toPublicTask(item, people).owners).toEqual([{ id: "11", name: "Ana", photo: null }]);
+    expect(toPublicTask(item, people).owners).toEqual([{ id: "11", name: "Ana", photo: null, title: "Diseño", timeZone: "America/Lima" }]);
     expect(toPublicTask(item).owners).toEqual([]);
+  });
+});
+
+describe("ownerPhoto", () => {
+  it("keeps uploaded monday photos and drops anything next/image would refuse", () => {
+    expect(ownerPhoto("https://files.monday.com/use1/photos/1/thumb_small/1.png?1")).toBe("https://files.monday.com/use1/photos/1/thumb_small/1.png?1");
+    expect(ownerPhoto("https://cdn1.monday.com/dapulse_default_photo.png")).toBeNull();
+    expect(ownerPhoto("http://files.monday.com/use1/photos/1.png")).toBeNull();
+    expect(ownerPhoto(null)).toBeNull();
   });
 });
 
@@ -70,7 +79,7 @@ describe("toPublicEvent", () => {
     const event = toPublicEvent(
       log({ pulse_id: 1, pulse_name: "Reel promo", column_id: COLUMNS.status, value: { label: { index: 1, text: "Hecha" } }, user_id: 5 }),
     );
-    expect(event).toEqual({ id: "a1", taskTitle: "Reel promo", stage: "hecha", at: "2025-10-05T16:00:00.000Z" });
+    expect(event).toEqual({ id: "a1", taskId: "1", taskTitle: "Reel promo", stage: "hecha", at: "2025-10-05T16:00:00.000Z" });
   });
 
   it("drops other columns, other events and malformed data", () => {

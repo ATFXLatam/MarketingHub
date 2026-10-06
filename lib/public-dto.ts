@@ -19,6 +19,10 @@ export interface PublicOwner {
   id: string;
   name: string;
   photo: string | null;
+  /** Job title from the monday profile, such as "Web Developer". */
+  title: string | null;
+  /** IANA zone from the monday profile, for the member's local time. */
+  timeZone: string | null;
 }
 
 export interface PublicTask {
@@ -38,6 +42,7 @@ export interface PublicTask {
 
 export interface PublicEvent {
   id: string;
+  taskId: string;
   taskTitle: string;
   stage: Stage;
   at: string;
@@ -90,6 +95,19 @@ function stageFrom(labelId: number | null | undefined, text: string | null): Sta
 }
 
 const nonEmpty = (value: string | null | undefined) => (value && value.trim() ? value.trim() : null);
+
+const PHOTO_HOST = "files.monday.com";
+
+/** Only uploaded photos on monday's file CDN, the host next.config allows; default avatars live elsewhere and fall back to initials. */
+export function ownerPhoto(value: string | null): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && url.hostname === PHOTO_HOST && url.pathname.includes("/photos/") ? url.href : null;
+  } catch {
+    return null;
+  }
+}
 
 /** Person ids assigned on any item, so the board can look their names and photos up in one request. */
 export function ownerIds(items: RawItem[]): string[] {
@@ -166,6 +184,7 @@ export function toPublicEvent(log: RawActivity): PublicEvent | null {
   const label = parsed.data.value.label;
   return {
     id: log.id,
+    taskId: String(parsed.data.pulse_id),
     taskTitle: parsed.data.pulse_name,
     stage: stageFrom(label.index, label.text ?? null),
     at: activityTime(log.created_at),

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { BOARD_ID } from "../board-config";
 import {
   ownerIds,
+  ownerPhoto,
   PUBLIC_COLUMN_IDS,
   RawActivitySchema,
   RawItemSchema,
@@ -37,17 +38,27 @@ const NextPageSchema = z.object({
 });
 
 const UsersSchema = z.object({
-  users: z.array(z.object({ id: z.union([z.string(), z.number()]), name: z.string(), photo_thumb_small: z.string().nullable() })).nullable(),
+  users: z
+    .array(
+      z.object({
+        id: z.union([z.string(), z.number()]),
+        name: z.string(),
+        title: z.string().nullable(),
+        time_zone_identifier: z.string().nullable(),
+        photo_thumb_small: z.string().nullable(),
+      }),
+    )
+    .nullable(),
 });
 
 /** Names and photos of the assigned people; their emails are never requested. */
 async function fetchOwners(ids: string[]): Promise<Map<string, PublicOwner>> {
   if (ids.length === 0) return new Map();
   const { users } = UsersSchema.parse(
-    await mondayQuery(`query ($ids: [ID!]) { users(ids: $ids) { id name photo_thumb_small } }`, { ids }),
+    await mondayQuery(`query ($ids: [ID!]) { users(ids: $ids) { id name title time_zone_identifier photo_thumb_small } }`, { ids }),
   );
   return new Map(
-    (users ?? []).map((user) => [String(user.id), { id: String(user.id), name: user.name, photo: user.photo_thumb_small }]),
+    (users ?? []).map((user) => [String(user.id), { id: String(user.id), name: user.name, photo: ownerPhoto(user.photo_thumb_small), title: user.title?.trim() || null, timeZone: user.time_zone_identifier }]),
   );
 }
 

@@ -44,6 +44,7 @@
 .due { margin-left: auto; white-space: nowrap; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .due[data-soon] { color: var(--warning); }
 .card h4 { margin: 6px 0 0; font: 500 var(--text-sm)/var(--leading-body) var(--font-body); letter-spacing: var(--tracking-body); overflow-wrap: anywhere; }
+.card[role="button"] { cursor: pointer; }
 .card[data-done] h4 { color: var(--text-secondary); }
 .cardBottom { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
 /* The footer takes the slot the move buttons had: the far end of the bottom row. */
@@ -52,6 +53,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .card:hover { box-shadow: 0 1px 3px oklch(0% 0 0 / .05); }
+  .card[role="button"]:hover { border-color: var(--border); }
   .filters button:hover { color: var(--foreground); }
 }
 

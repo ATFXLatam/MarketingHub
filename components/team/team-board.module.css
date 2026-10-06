@@ -1,0 +1,4 @@
+.root { display: flex; min-width: 0; flex-direction: column; gap: 16px; }
+.head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
+.heading { margin: 0; font: 500 var(--text-xl)/var(--leading-display) var(--font-display); letter-spacing: var(--tracking-display); }
+.toolbar { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 12px; }

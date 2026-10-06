@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
+import { useId, useState, type KeyboardEvent, type ReactNode } from "react";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/react";
 import { Avatar } from "../../avatar/avatar";
 import { AvatarGroup } from "../../avatar-group/avatar-group";
@@ -50,16 +50,18 @@ export interface ProjectBoardProps {
   tasks: ProjectBoardTask[];
   /** The stage that counts as finished for the progress bar. */
   doneStage: string;
-  /** The first filter shows everything. */
-  filters: ProjectBoardFilter[];
+  /** The first filter shows everything. Leave it out when the page filters the tasks itself. */
+  filters?: ProjectBoardFilter[];
   emptyLabel?: string;
+  /** Opens a card's details; without it cards are not interactive. */
+  onSelect?: (id: string) => void;
 }
 
-export function ProjectBoard({ title, team, stages, tasks, doneStage, filters, emptyLabel = "Sin solicitudes" }: ProjectBoardProps) {
+export function ProjectBoard({ title, team, stages, tasks, doneStage, filters = [], emptyLabel = "Sin solicitudes", onSelect }: ProjectBoardProps) {
   const reduce = useReducedMotion();
   const groupId = useId();
   const [filter, setFilter] = useState(filters[0]?.value ?? "");
-  const shown = filter === filters[0]?.value ? tasks : tasks.filter((task) => task.filterKey === filter);
+  const shown = filters.length < 2 || filter === filters[0]?.value ? tasks : tasks.filter((task) => task.filterKey === filter);
   const completed = shown.filter((task) => task.stage === doneStage).length;
   const spring = reduce ? { duration: 0 } : motionTokens.spring.gentle;
 
@@ -71,12 +73,12 @@ export function ProjectBoard({ title, team, stages, tasks, doneStage, filters, e
       </div>
       <div className={styles.headerActions}>
         {team.length > 0 && <div className={styles.people}><AvatarGroup members={team} max={4} size="sm" label="Equipo" /></div>}
-        <div className={styles.filters} role="group" aria-label="Filtrar por área">
+        {filters.length > 1 && <div className={styles.filters} role="group" aria-label="Filtrar por área">
           {filters.map(({ value, label }) => <button type="button" key={value} aria-pressed={filter === value} onClick={() => setFilter(value)}>
             {filter === value && <motion.span layoutId="filter" className={styles.filterHighlight} transition={reduce ? { duration: 0 } : motionTokens.spring.snappy} aria-hidden="true" />}
             <span>{label}</span>
           </button>)}
-        </div>
+        </div>}
       </div>
     </header>
     <div className={styles.progress} aria-hidden="true"><motion.span initial={false} animate={{ scaleX: shown.length ? completed / shown.length : 0 }} transition={spring} /></div>
@@ -89,7 +91,8 @@ export function ProjectBoard({ title, team, stages, tasks, doneStage, filters, e
             <div className={styles.stageHead}><h3>{stage.label}</h3><span className={styles.stageCount}>{cards.length}</span></div>
             <div className={styles.cardStack}>
               <AnimatePresence mode="popLayout" initial={false}>
-                {cards.map((task) => <motion.article key={task.id} layoutId={reduce ? undefined : `task-${task.id}`} layoutCrossfade={false} initial={reduce ? false : { opacity: 0, scale: .98 }} animate={{ opacity: 1, scale: 1 }} exit={reduce ? { opacity: 0 } : { opacity: 0, scale: .98 }} transition={spring} className={styles.card} data-done={stage.id === doneStage || undefined}>
+                {cards.map((task) => <motion.article key={task.id} layoutId={reduce ? undefined : `task-${task.id}`} layoutCrossfade={false} initial={reduce ? false : { opacity: 0, scale: .98 }} animate={{ opacity: 1, scale: 1 }} exit={reduce ? { opacity: 0 } : { opacity: 0, scale: .98 }} transition={spring} className={styles.card} data-done={stage.id === doneStage || undefined}
+                  {...(onSelect ? { role: "button", tabIndex: 0, "aria-label": `${task.title}, ver detalle`, onClick: () => onSelect(task.id), onKeyDown: (event: KeyboardEvent<HTMLElement>) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelect(task.id); } } } : {})}>
                   <div className={styles.cardTop}><span>{task.project}</span>{task.due && <span className={styles.due} data-soon={task.dueSoon && stage.id !== doneStage ? "" : undefined}>{task.due}</span>}</div>
                   <h4>{task.title}</h4>
                   {(task.owners.length > 0 || task.footer) && <div className={styles.cardBottom}>
