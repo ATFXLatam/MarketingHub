@@ -5,12 +5,10 @@ import type { FocusEvent, ReactNode, UIEvent } from "react";
 import * as DropdownPrimitive from "@radix-ui/react-dropdown-menu";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion, type Transition, type Variants } from "motion/react";
-import { Check, ChevronRight, Circle, CircleAlert, CircleCheck, CircleDashed, Ellipsis } from "lucide-react";
+import { Check, ChevronRight, CircleAlert, Ellipsis } from "lucide-react";
 import { AnimatedCounter } from "../../animated-counter/animated-counter";
-import { Avatar } from "../../avatar/avatar";
 import { Badge, type BadgeTone } from "../../badge/badge";
 import { Button } from "../../button/button";
-import { Progress } from "../../progress/progress";
 import { motionTokens } from "../../lib/motion-tokens";
 import styles from "./page-header.module.css";
 
@@ -88,37 +86,6 @@ function OverflowMenu({ actions, reduce, onResult }: { actions: PageHeaderMenuAc
       </DropdownPrimitive.Content>
     </DropdownPrimitive.Portal>
   </DropdownPrimitive.Root>;
-}
-
-const milestoneIcons = { done: CircleCheck, active: CircleDashed, planned: Circle };
-export type OverviewMilestone = { key: string; name: string; note: string; state: keyof typeof milestoneIcons };
-export type OverviewActivity = { key: string; who: string; text: string; time: string };
-
-export interface PageHeaderOverviewProps {
-  progress: { value: number; max: number; label: string };
-  milestonesTitle: string;
-  milestones: OverviewMilestone[];
-  activity?: { title: string; items: OverviewActivity[]; empty: string };
-}
-
-/** The overview panel of the block: progress, a short list of states, and recent activity. */
-export function PageHeaderOverview({ progress, milestonesTitle, milestones, activity }: PageHeaderOverviewProps) {
-  return <div className={styles.overview}>
-    <div className={styles.progress}><Progress value={progress.value} max={progress.max} label={progress.label} showValue /></div>
-    <div>
-      <h3 className={styles.sectionTitle}>{milestonesTitle}</h3>
-      <ol className={styles.milestones}>{milestones.map(item => {
-        const Icon = milestoneIcons[item.state];
-        return <li key={item.key} data-state={item.state}><Icon size={16} strokeWidth={1.75} aria-hidden="true" /><span className={styles.milestoneName}>{item.name}</span><span className={styles.note}>{item.note}</span></li>;
-      })}</ol>
-    </div>
-    {activity && <div>
-      <h3 className={styles.sectionTitle}>{activity.title}</h3>
-      {activity.items.length === 0
-        ? <p className={styles.note}>{activity.empty}</p>
-        : <ul className={styles.activity}>{activity.items.map(item => <li key={item.key}><Avatar name={item.who} size="sm" /><p><strong>{item.who}</strong> {item.text}</p><span className={styles.note}>{item.time}</span></li>)}</ul>}
-    </div>}
-  </div>;
 }
 
 export function PageHeader({ crumbs, title, description, status, meta = [], sections, primaryAction, menuActions = [], trailing }: PageHeaderProps) {

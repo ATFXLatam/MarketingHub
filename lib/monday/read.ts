@@ -3,6 +3,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { z } from "zod";
 import { BOARD_ID } from "../board-config";
 import {
+  ownerIds,
   PUBLIC_COLUMN_IDS,
   RawActivitySchema,
   RawItemSchema,
@@ -10,6 +11,7 @@ import {
   toPublicTask,
   visibleTasks,
   type PublicEvent,
+  type PublicOwner,
   type PublicTask,
 } from "../public-dto";
 import { mondayConfigured, mondayQuery } from "./client";
@@ -20,7 +22,7 @@ const PAGE_SIZE = 500;
 const ACTIVITY_DAYS = 30;
 const ACTIVITY_LIMIT = 60;
 
-const ITEM_FIELDS = `id name created_at updated_at column_values(ids: $columns) { id text ... on StatusValue { index } }`;
+const ITEM_FIELDS = `id name created_at updated_at column_values(ids: $columns) { id text ... on StatusValue { index } ... on PeopleValue { persons_and_teams { id kind } } }`;
 
 const FirstPageSchema = z.object({
   boards: z.array(
@@ -33,6 +35,21 @@ const FirstPageSchema = z.object({
 const NextPageSchema = z.object({
   next_items_page: z.object({ cursor: z.string().nullable(), items: z.array(RawItemSchema) }),
 });
+
+const UsersSchema = z.object({
+  users: z.array(z.object({ id: z.union([z.string(), z.number()]), name: z.string(), photo_thumb_small: z.string().nullable() })).nullable(),
+});
+
+/** Names and photos of the assigned people; their emails are never requested. */
+async function fetchOwners(ids: string[]): Promise<Map<string, PublicOwner>> {
+  if (ids.length === 0) return new Map();
+  const { users } = UsersSchema.parse(
+    await mondayQuery(`query ($ids: [ID!]) { users(ids: $ids) { id name photo_thumb_small } }`, { ids }),
+  );
+  return new Map(
+    (users ?? []).map((user) => [String(user.id), { id: String(user.id), name: user.name, photo: user.photo_thumb_small }]),
+  );
+}
 
 export interface BoardSnapshot {
   configured: boolean;
@@ -83,9 +100,13 @@ export async function getBoardSnapshot(): Promise<BoardSnapshot> {
     cursor = next.next_items_page.cursor;
   }
 
+  const people = await fetchOwners(ownerIds(items));
   return {
     configured: true,
-    tasks: visibleTasks(items.map(toPublicTask), now),
+    tasks: visibleTasks(
+      items.map((item) => toPublicTask(item, people)),
+      now,
+    ),
     activity: (board.activity_logs ?? []).map(toPublicEvent).filter((event): event is PublicEvent => event !== null),
     fetchedAt: new Date(now).toISOString(),
   };

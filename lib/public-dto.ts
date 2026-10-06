@@ -15,9 +15,17 @@ import {
  * never leave the server: they are not read from monday in the first place, and this mapper builds the object field by
  * field instead of spreading the item.
  */
+export interface PublicOwner {
+  id: string;
+  name: string;
+  photo: string | null;
+}
+
 export interface PublicTask {
   id: string;
   title: string;
+  /** The team members responsible: names and photos only, never their emails. */
+  owners: PublicOwner[];
   area: Area | null;
   stage: Stage;
   priority: Priority | null;
@@ -43,12 +51,17 @@ export const PUBLIC_COLUMN_IDS = [
   COLUMNS.dueDate,
   COLUMNS.slaDays,
   COLUMNS.market,
+  COLUMNS.owner,
 ] as const;
 
 const ColumnValueSchema = z.object({
   id: z.string(),
   text: z.string().nullable(),
   index: z.number().nullable().optional(),
+  persons_and_teams: z
+    .array(z.object({ id: z.union([z.string(), z.number()]), kind: z.string() }))
+    .nullable()
+    .optional(),
 });
 
 export const RawItemSchema = z.object({
@@ -78,13 +91,30 @@ function stageFrom(labelId: number | null | undefined, text: string | null): Sta
 
 const nonEmpty = (value: string | null | undefined) => (value && value.trim() ? value.trim() : null);
 
-export function toPublicTask(item: RawItem): PublicTask {
+/** Person ids assigned on any item, so the board can look their names and photos up in one request. */
+export function ownerIds(items: RawItem[]): string[] {
+  const ids = items.flatMap((item) =>
+    item.column_values
+      .filter((value) => value.id === COLUMNS.owner)
+      .flatMap((value) => value.persons_and_teams ?? [])
+      .filter((entry) => entry.kind === "person")
+      .map((entry) => String(entry.id)),
+  );
+  return [...new Set(ids)];
+}
+
+export function toPublicTask(item: RawItem, people: ReadonlyMap<string, PublicOwner> = new Map()): PublicTask {
   const column = (id: string) => item.column_values.find((value) => value.id === id);
+  const owners = (column(COLUMNS.owner)?.persons_and_teams ?? [])
+    .filter((entry) => entry.kind === "person")
+    .map((entry) => people.get(String(entry.id)))
+    .filter((owner): owner is PublicOwner => owner !== undefined);
   const status = column(COLUMNS.status);
   const sla = Number(nonEmpty(column(COLUMNS.slaDays)?.text));
   return {
     id: item.id,
     title: item.name,
+    owners,
     area: byLabelId(AREA_LABEL_ID, column(COLUMNS.area)?.index),
     stage: stageFrom(status?.index, status?.text ?? null),
     priority: byLabelId(PRIORITY_LABEL_ID, column(COLUMNS.priority)?.index),

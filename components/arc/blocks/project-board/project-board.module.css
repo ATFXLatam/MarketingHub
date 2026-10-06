@@ -18,6 +18,7 @@
 .heading h2 { margin: 0; font: 500 var(--text-base)/var(--leading-body) var(--font-body); letter-spacing: var(--tracking-body); }
 .heading p { margin: 2px 0 0; color: var(--text-muted); font-size: var(--text-sm); }
 .headerActions { display: flex; min-width: 0; max-width: 100%; align-items: center; gap: 10px; }
+.people { display: flex; flex: none; }
 
 .filters { display: flex; max-width: 100%; overflow-x: auto; padding: 2px; border-radius: 11px; background: var(--surface-muted); scrollbar-width: none; }
 .filters::-webkit-scrollbar { display: none; }
@@ -45,6 +46,8 @@
 .card h4 { margin: 6px 0 0; font: 500 var(--text-sm)/var(--leading-body) var(--font-body); letter-spacing: var(--tracking-body); overflow-wrap: anywhere; }
 .card[data-done] h4 { color: var(--text-secondary); }
 .cardBottom { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+/* The footer takes the slot the move buttons had: the far end of the bottom row. */
+.footer { margin-left: auto; }
 .empty { display: grid; flex: 1; place-items: center; margin: 0; padding: 20px; color: var(--text-muted); font-size: var(--text-xs); text-align: center; }
 
 @media (hover: hover) and (pointer: fine) {
@@ -54,6 +57,7 @@
 
 @media (max-width: 700px) {
   .header { padding: 14px 16px 12px; }
+  .people { display: none; }
   .progress { margin: 0 16px 12px; }
   .stageScroll { padding: 0 16px 16px; scroll-padding-inline: 16px; }
   .board { contain: paint; }
@@ -64,3 +68,4 @@
 @media (prefers-reduced-motion: reduce) {
   .board * { transition-duration: 0ms !important; }
 }
+

@@ -104,7 +104,8 @@
   white-space: nowrap;
 }
 
-.viewport { display: grid; min-height: 14rem; }
+/* Tracks and steps keep their own height; stretched to the animated shell, a step would report the shell back and never shrink. */
+.viewport { display: grid; min-height: 14rem; align-content: start; align-items: start; }
 
 /* While the shell changes height it clips vertically only, so the sideways step slide is never cut off. */
 .viewport[data-resizing="true"] { overflow: visible clip; }

@@ -2,28 +2,36 @@
 
 import { useId, useState, type ReactNode } from "react";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "motion/react";
+import { Avatar } from "../../avatar/avatar";
+import { AvatarGroup } from "../../avatar-group/avatar-group";
 import { motionTokens } from "../../lib/motion-tokens";
 import styles from "./project-board.module.css";
 
 /**
- * Arc Pro project-board, adapted to a read-only board: stages, filters and cards come from props, and the move and add
- * actions are gone because status is edited in monday.
+ * Arc Pro project-board, adapted to a read-only board: stages, filters, people and cards come from props, and the move
+ * and add actions are gone because status is edited in monday.
  */
 export interface ProjectBoardStage {
   id: string;
   label: string;
 }
 
+export interface ProjectBoardPerson {
+  name: string;
+  src?: string;
+}
+
 export interface ProjectBoardTask {
   id: string;
   title: string;
   stage: string;
+  owners: ProjectBoardPerson[];
   /** Small label at the top left of the card, such as the area. */
   project: string;
   /** Top right, such as the due date. */
   due?: string;
   dueSoon?: boolean;
-  /** Bottom row, such as a priority badge. */
+  /** Bottom row beside the owners, such as a priority badge. */
   footer?: ReactNode;
   /** Key the active filter matches against. */
   filterKey: string;
@@ -36,6 +44,8 @@ export interface ProjectBoardFilter {
 
 export interface ProjectBoardProps {
   title: string;
+  /** Everyone with work on the board, shown in the header. */
+  team: ProjectBoardPerson[];
   stages: ProjectBoardStage[];
   tasks: ProjectBoardTask[];
   /** The stage that counts as finished for the progress bar. */
@@ -45,7 +55,7 @@ export interface ProjectBoardProps {
   emptyLabel?: string;
 }
 
-export function ProjectBoard({ title, stages, tasks, doneStage, filters, emptyLabel = "Sin solicitudes" }: ProjectBoardProps) {
+export function ProjectBoard({ title, team, stages, tasks, doneStage, filters, emptyLabel = "Sin solicitudes" }: ProjectBoardProps) {
   const reduce = useReducedMotion();
   const groupId = useId();
   const [filter, setFilter] = useState(filters[0]?.value ?? "");
@@ -60,6 +70,7 @@ export function ProjectBoard({ title, stages, tasks, doneStage, filters, emptyLa
         <p><span className={styles.tabular}>{completed}</span> de <span className={styles.tabular}>{shown.length}</span> hechas</p>
       </div>
       <div className={styles.headerActions}>
+        {team.length > 0 && <div className={styles.people}><AvatarGroup members={team} max={4} size="sm" label="Equipo" /></div>}
         <div className={styles.filters} role="group" aria-label="Filtrar por área">
           {filters.map(({ value, label }) => <button type="button" key={value} aria-pressed={filter === value} onClick={() => setFilter(value)}>
             {filter === value && <motion.span layoutId="filter" className={styles.filterHighlight} transition={reduce ? { duration: 0 } : motionTokens.spring.snappy} aria-hidden="true" />}
@@ -70,7 +81,7 @@ export function ProjectBoard({ title, stages, tasks, doneStage, filters, emptyLa
     </header>
     <div className={styles.progress} aria-hidden="true"><motion.span initial={false} animate={{ scaleX: shown.length ? completed / shown.length : 0 }} transition={spring} /></div>
 
-    <div className={styles.stageScroll}>
+    <motion.div className={styles.stageScroll} layoutScroll>
       <div className={styles.stages}>
         {stages.map((stage) => {
           const cards = shown.filter((task) => task.stage === stage.id);
@@ -78,10 +89,13 @@ export function ProjectBoard({ title, stages, tasks, doneStage, filters, emptyLa
             <div className={styles.stageHead}><h3>{stage.label}</h3><span className={styles.stageCount}>{cards.length}</span></div>
             <div className={styles.cardStack}>
               <AnimatePresence mode="popLayout" initial={false}>
-                {cards.map((task) => <motion.article key={task.id} layout={!reduce} initial={reduce ? false : { opacity: 0, scale: .98 }} animate={{ opacity: 1, scale: 1 }} exit={reduce ? { opacity: 0 } : { opacity: 0, scale: .98 }} transition={spring} className={styles.card} data-done={stage.id === doneStage || undefined}>
+                {cards.map((task) => <motion.article key={task.id} layoutId={reduce ? undefined : `task-${task.id}`} layoutCrossfade={false} initial={reduce ? false : { opacity: 0, scale: .98 }} animate={{ opacity: 1, scale: 1 }} exit={reduce ? { opacity: 0 } : { opacity: 0, scale: .98 }} transition={spring} className={styles.card} data-done={stage.id === doneStage || undefined}>
                   <div className={styles.cardTop}><span>{task.project}</span>{task.due && <span className={styles.due} data-soon={task.dueSoon && stage.id !== doneStage ? "" : undefined}>{task.due}</span>}</div>
                   <h4>{task.title}</h4>
-                  {task.footer && <div className={styles.cardBottom}>{task.footer}</div>}
+                  {(task.owners.length > 0 || task.footer) && <div className={styles.cardBottom}>
+                    {task.owners.map((owner) => <Avatar key={owner.name} name={owner.name} src={owner.src} size="sm" />)}
+                    {task.footer && <span className={styles.footer}>{task.footer}</span>}
+                  </div>}
                 </motion.article>)}
               </AnimatePresence>
               {cards.length === 0 && <p className={styles.empty}>{emptyLabel}</p>}
@@ -89,7 +103,7 @@ export function ProjectBoard({ title, stages, tasks, doneStage, filters, emptyLa
           </section>;
         })}
       </div>
-    </div>
+    </motion.div>
   </section></LayoutGroup>;
 }
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { COLUMNS } from "./board-config";
-import { toPublicEvent, toPublicTask, visibleTasks, type RawItem } from "./public-dto";
+import { ownerIds, toPublicEvent, toPublicTask, visibleTasks, type RawItem } from "./public-dto";
 
 const item: RawItem = {
   id: "1",
@@ -14,6 +14,7 @@ const item: RawItem = {
     { id: COLUMNS.dueDate, text: "2026-10-20" },
     { id: COLUMNS.slaDays, text: "7" },
     { id: COLUMNS.market, text: "México" },
+    { id: COLUMNS.owner, text: "Ana, Diseño", persons_and_teams: [{ id: 11, kind: "person" }, { id: 5, kind: "team" }] },
     // Private columns, in case a wider query ever returns them.
     { id: COLUMNS.requesterEmail, text: "persona@atfxgm.com" },
     { id: COLUMNS.brief, text: "brief interno" },
@@ -24,7 +25,7 @@ describe("toPublicTask", () => {
   it("returns only whitelisted fields, never requester data or the brief", () => {
     const task = toPublicTask(item);
     expect(Object.keys(task).sort()).toEqual(
-      ["area", "createdAt", "dueDate", "id", "market", "priority", "slaDays", "stage", "title", "updatedAt"].sort(),
+      ["area", "createdAt", "dueDate", "id", "market", "owners", "priority", "slaDays", "stage", "title", "updatedAt"].sort(),
     );
     expect(JSON.stringify(task)).not.toMatch(/persona@|brief interno/);
     expect(task).toMatchObject({ stage: "en-curso", area: "web", priority: "alta", slaDays: 7 });
@@ -35,6 +36,15 @@ describe("toPublicTask", () => {
     const blank = { ...item, column_values: [{ id: COLUMNS.status, text: null, index: null }] };
     expect(toPublicTask(withText).stage).toBe("hecha");
     expect(toPublicTask(blank).stage).toBe("nueva");
+  });
+});
+
+describe("owners", () => {
+  it("maps assigned people to name and photo, skipping teams and anyone the lookup did not return", () => {
+    const people = new Map([["11", { id: "11", name: "Ana", photo: null }]]);
+    expect(ownerIds([item])).toEqual(["11"]);
+    expect(toPublicTask(item, people).owners).toEqual([{ id: "11", name: "Ana", photo: null }]);
+    expect(toPublicTask(item).owners).toEqual([]);
   });
 });
 
