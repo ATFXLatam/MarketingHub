@@ -2,23 +2,23 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { currentUser } from "@clerk/nextjs/server";
 import { Alert } from "@/components/arc/alert/alert";
+import { Skeleton } from "@/components/arc/skeleton/skeleton";
 import { RequestForm } from "@/components/intake/request-form";
 import { isAllowedEmail } from "@/lib/access";
 import { todayIn } from "@/lib/dates";
-import styles from "./page.module.css";
+import { PageTop } from "@/components/theme/page-top";
 
 export const metadata: Metadata = { title: "Nueva solicitud" };
 
 export default function SolicitarPage() {
   return (
     <main className="page">
-      <header className={styles.header}>
-        <h1>Nueva solicitud</h1>
-        <p>Elige el área y completa el brief. Llega directo al tablero del equipo en monday con su fecha estimada.</p>
-      </header>
-      <Suspense>
-        <Gate />
-      </Suspense>
+      <PageTop title="Nueva solicitud" />
+      <div className="narrow">
+        <Suspense fallback={<Skeleton label="Cargando el formulario" lines={6} />}>
+          <Gate />
+        </Suspense>
+      </div>
     </main>
   );
 }

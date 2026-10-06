@@ -1,0 +1,18 @@
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+}
+.title {
+  min-width: 0;
+}
+/* in-view-title puts the class on its wrapper; the heading inside still carries the browser's default margins. */
+.title h1 {
+  margin: 0;
+  font: 500 var(--text-3xl) / 1.15 var(--font-display);
+}
+@media (max-width: 600px) {
+  .title h1 { font-size: var(--text-2xl); }
+}

@@ -1,3 +1,10 @@
+/* Arc components size with border-box; without the reset an input with padding overflows its column. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html {
   background: var(--background);
   color: var(--foreground);
@@ -22,4 +29,10 @@ body {
 }
 .page > * {
   min-width: 0;
+}
+
+/* Forms read best at a narrower measure; same container, only the max width changes. */
+.narrow {
+  width: 100%;
+  max-width: 720px;
 }

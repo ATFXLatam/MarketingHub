@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/arc/skeleton/skeleton";
 import { PublicBoard } from "@/components/board/public-board";
 import { getBoardSnapshot } from "@/lib/monday/read";
 import { safeEqual } from "@/lib/secrets";
-import styles from "./page.module.css";
+import { PageTop } from "@/components/theme/page-top";
 
 // The board is shared by link: anyone with PUBLIC_BOARD_TOKEN sees it, nobody can guess it, and rotating it is an env change.
 export function generateStaticParams() {
@@ -22,10 +22,7 @@ export const metadata: Metadata = {
 export default function PublicBoardPage({ params }: PageProps<"/p/[token]">) {
   return (
     <main className="page">
-      <header className={styles.header}>
-        <h1>Marketing LATAM</h1>
-        <p>Solicitudes del equipo y en qué estado está cada una. Se actualiza cuando cambia algo en monday.</p>
-      </header>
+      <PageTop title="Marketing LATAM" />
       <Suspense fallback={<Skeleton label="Cargando el tablero" lines={6} />}>
         <Board params={params} />
       </Suspense>

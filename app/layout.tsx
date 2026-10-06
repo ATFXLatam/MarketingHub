@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Inter } from "next/font/google";
+import { ThemeScript } from "@/components/theme/theme-script";
 import "@/components/arc/foundation.css";
 import "./globals.css";
 
@@ -13,7 +14,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${geist.variable} ${inter.variable}`}>
+    // The head script sets data-theme before paint, so the server markup and the live attribute differ by design.
+    <html lang="es" className={`${geist.variable} ${inter.variable}`} suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body>{children}</body>
     </html>
   );

@@ -5,6 +5,7 @@ import { safeEqual } from "@/lib/secrets";
 // The board link and monday's webhook carry their own secret in the URL; everything else needs a Clerk session.
 const isBoard = createRouteMatcher(["/p/(.*)"]);
 const isWebhook = createRouteMatcher(["/api/monday/webhook/(.*)"]);
+const isSignIn = createRouteMatcher(["/sign-in(.*)"]);
 
 export default clerkMiddleware(async (auth, request) => {
   if (isBoard(request)) {
@@ -18,11 +19,11 @@ export default clerkMiddleware(async (auth, request) => {
     if (!safeEqual(token, process.env.PUBLIC_BOARD_TOKEN)) return new NextResponse(null, { status: 404 });
     return;
   }
-  if (isWebhook(request)) return;
+  if (isWebhook(request) || isSignIn(request)) return;
   // Redirect instead of auth.protect(): protect() answers 404 to a signed-out visitor, which reads as a broken site.
   const { userId, redirectToSignIn } = await auth();
   if (!userId) return redirectToSignIn({ returnBackUrl: request.url });
-});
+}, { signInUrl: "/sign-in" });
 
 export const config = {
   matcher: [
