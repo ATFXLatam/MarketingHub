@@ -12,4 +12,11 @@ describe("safeDestination", () => {
     expect(safeDestination("//evil.example/phish", "https://hub.example")).toBe("/solicitar");
     expect(safeDestination(null)).toBe("/solicitar");
   });
+
+  it.each(["/.//evil.com", "/..//evil.com", "/%2e//evil.com", "/a/..//evil.com", "//evil.com", "/\\evil.com", "javascript:alert(1)"])(
+    "never returns a protocol-relative or foreign target for %s",
+    (input) => {
+      expect(safeDestination(input, "https://hub.example")).toBe("/solicitar");
+    },
+  );
 });

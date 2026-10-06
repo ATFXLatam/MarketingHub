@@ -7,7 +7,9 @@ export function safeDestination(value: string | null, currentOrigin?: string): s
   try {
     const url = new URL(value, PLACEHOLDER);
     const local = url.origin === PLACEHOLDER || url.origin === currentOrigin;
-    return local ? `${url.pathname}${url.search}` : DEFAULT_DESTINATION;
+    const path = `${url.pathname}${url.search}`;
+    // Dot segments can normalize "/.//evil.com" into "//evil.com", which the router reads as another host.
+    return local && path.startsWith("/") && !path.startsWith("//") ? path : DEFAULT_DESTINATION;
   } catch {
     return DEFAULT_DESTINATION;
   }
