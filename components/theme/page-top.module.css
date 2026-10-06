@@ -5,6 +5,11 @@
   gap: 16px;
   min-width: 0;
 }
+.text {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
 .title {
   min-width: 0;
 }
@@ -12,6 +17,13 @@
 .title h1 {
   margin: 0;
   font: 500 var(--text-3xl) / 1.15 var(--font-display);
+}
+.description {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
 }
 @media (max-width: 600px) {
   .title h1 { font-size: var(--text-2xl); }

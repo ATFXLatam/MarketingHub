@@ -8,15 +8,15 @@ describe("safeDestination", () => {
   });
 
   it("falls back for other origins and protocol-relative tricks", () => {
-    expect(safeDestination("https://evil.example/phish", "https://hub.example")).toBe("/solicitar");
-    expect(safeDestination("//evil.example/phish", "https://hub.example")).toBe("/solicitar");
-    expect(safeDestination(null)).toBe("/solicitar");
+    expect(safeDestination("https://evil.example/phish", "https://hub.example")).toBe("/");
+    expect(safeDestination("//evil.example/phish", "https://hub.example")).toBe("/");
+    expect(safeDestination(null)).toBe("/");
   });
 
   it.each(["/.//evil.com", "/..//evil.com", "/%2e//evil.com", "/a/..//evil.com", "//evil.com", "/\\evil.com", "javascript:alert(1)"])(
     "never returns a protocol-relative or foreign target for %s",
     (input) => {
-      expect(safeDestination(input, "https://hub.example")).toBe("/solicitar");
+      expect(safeDestination(input, "https://hub.example")).toBe("/");
     },
   );
 });

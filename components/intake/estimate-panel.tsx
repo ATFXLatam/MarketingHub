@@ -21,11 +21,6 @@ export function EstimatePanel({ result }: { result: Estimate }) {
       <Alert tone={tier.tone} title={tier.title}>
         {result.missing.length > 0 ? `Para mejorarlo: ${result.missing.join(". ")}.` : undefined}
       </Alert>
-      {result.tight && (
-        <Alert tone="warning" title="La fecha requerida es anterior a la estimada">
-          El equipo revisará si es posible. Completar el brief o subir la prioridad ayuda.
-        </Alert>
-      )}
     </div>
   );
 }

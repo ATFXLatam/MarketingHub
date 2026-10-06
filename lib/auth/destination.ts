@@ -1,4 +1,4 @@
-const DEFAULT_DESTINATION = "/solicitar";
+const DEFAULT_DESTINATION = "/";
 const PLACEHOLDER = "https://placeholder.local";
 
 /** Only same-origin paths, so a crafted ?redirect_url cannot bounce a fresh session to another site. */

@@ -29,3 +29,28 @@
   height: 1px;
   opacity: 0;
 }
+
+/* Twelve columns: the wizard takes eight, the live estimate four and stays in view while the steps scroll. */
+.layout {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+.main {
+  grid-column: span 8;
+  min-width: 0;
+}
+.aside {
+  grid-column: span 4;
+  min-width: 0;
+  position: sticky;
+  top: 0;
+}
+@media (max-width: 1024px) {
+  .main,
+  .aside {
+    grid-column: 1 / -1;
+    position: static;
+  }
+}

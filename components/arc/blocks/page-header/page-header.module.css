@@ -1,6 +1,7 @@
-.frame { --pad: 28px; position: relative; display: flex; width: min(100%, 980px); height: 640px; min-width: 0; flex-direction: column; margin-inline: auto; overflow: hidden; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); color: var(--foreground); font-family: var(--font-body); font-size: var(--text-sm); letter-spacing: var(--tracking-body); line-height: var(--leading-body); container: page-header / inline-size; }
+/* App frame: fills the viewport, and the pad grows past 1200px so header, tabs and panels share one centered column. */
+.frame { --pad: max(clamp(16px, 4vw, 32px), calc((100vw - 1200px) / 2)); position: relative; display: flex; width: 100%; height: 100dvh; min-width: 0; flex-direction: column; overflow: hidden; background: var(--background); color: var(--foreground); font-family: var(--font-body); font-size: var(--text-sm); letter-spacing: var(--tracking-body); line-height: var(--leading-body); container: page-header / inline-size; }
 
-.header { position: relative; z-index: 1; flex: none; padding: 16px var(--pad) 0; background: var(--surface); box-shadow: inset 0 -1px 0 var(--border); }
+.header { position: relative; z-index: 1; flex: none; padding: 16px var(--pad) 0; background: var(--background); box-shadow: inset 0 -1px 0 var(--border); }
 .bar { display: grid; min-height: var(--control-height-sm); grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16px; }
 /* Breadcrumbs and the compact title share one cell and trade places when the header condenses. */
 .lead { display: grid; min-width: 0; align-items: center; }
@@ -51,7 +52,7 @@
 
 .scroller { position: relative; flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: 28px var(--pad) 84px; scrollbar-color: var(--border-strong) transparent; scrollbar-width: thin; }
 /* Every panel is taller than the condensed viewport, so condensing never clamps the scroll back to the top. */
-.panel { min-height: 600px; }
+.panel { min-height: calc(100dvh - 120px); }
 .sectionTitle { margin: 0 0 8px; font-size: var(--text-sm); font-weight: 500; }
 .note { color: var(--text-muted); font-size: var(--text-xs); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
@@ -130,7 +131,7 @@
 /* Before the first measurement, narrow frames already hide the actions that will fold, so nothing flashes on load. */
 @container page-header (max-width: 719px) { .frame:not([data-measured]) .secondary { width: 0 !important; opacity: 0 !important; } }
 @container page-header (max-width: 559px) {
-  .header, .scroller { --pad: 18px; }
+  .header, .scroller { --pad: 16px; }
   .crumbs .rootCrumb, .compact .compactBadge { display: none; }
   /* The tab row scrolls sideways here; its far edge fades so the next tab reads as more to come. */
   .tabs { padding-right: calc(var(--pad) + 14px); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
@@ -151,8 +152,6 @@
   .createText { display: none; }
   .actions .create { width: var(--control-height-sm); padding-inline: 0; }
 }
-/* On a phone the frame is the screen, so it takes most of it rather than stopping short with the body cut mid list. */
-@media (max-width: 560px) { .frame { height: clamp(560px, calc(100svh - 48px), 760px); border-radius: 14px; } }
 
 @media (prefers-reduced-motion: reduce) {
   .crumb, .compact, .tab, .tab::before, .check, .issueTitle { transition: none; }

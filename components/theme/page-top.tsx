@@ -2,12 +2,21 @@ import { InViewTitle } from "@/components/arc/in-view-title/in-view-title";
 import { ThemeToggle } from "./theme-toggle";
 import styles from "./page-top.module.css";
 
-/** Page title and the theme switch, shared by every page so the toggle always sits in the same place. */
-export function PageTop({ title }: { title: string }) {
+interface PageTopProps {
+  title: string;
+  description?: string;
+  /** Pages inside the app shell already offer the theme in the account menu. */
+  showToggle?: boolean;
+}
+
+export function PageTop({ title, description, showToggle = true }: PageTopProps) {
   return (
     <header className={styles.top}>
-      <InViewTitle as="h1" text={title} variant="blur" className={styles.title} />
-      <ThemeToggle />
+      <div className={styles.text}>
+        <InViewTitle as="h1" text={title} variant="blur" className={styles.title} />
+        {description && <p className={styles.description}>{description}</p>}
+      </div>
+      {showToggle && <ThemeToggle />}
     </header>
   );
 }
