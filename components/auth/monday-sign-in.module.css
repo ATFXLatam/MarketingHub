@@ -16,7 +16,7 @@
   color: var(--on-media);
 }
 .media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 30% 50%; }
-.overlay { position: absolute; inset: 0; background: linear-gradient(to top, oklch(10% .02 255 / .88) 0%, oklch(10% .02 255 / .62) 45%, oklch(10% .02 255 / .4) 100%); }
+.overlay { position: absolute; inset: 0; background: linear-gradient(to top, oklch(10% .02 255 / .94) 0%, oklch(10% .02 255 / .8) 45%, oklch(10% .02 255 / .58) 100%); }
 .copy { position: relative; display: grid; gap: var(--space-5); }
 .lead { max-width: 22ch; margin: 0; font: 500 var(--text-3xl)/var(--leading-display) var(--font-display); letter-spacing: var(--tracking-display); text-wrap: balance; }
 .points { display: grid; max-width: 44ch; gap: 10px; margin: 0; padding: 0; list-style: none; color: var(--on-media-muted); font-size: var(--text-sm); }
