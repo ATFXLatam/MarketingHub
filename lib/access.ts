@@ -15,8 +15,19 @@ function allowedDomains(): string[] {
 export function isAllowedEmail(email?: string | null): boolean {
   if (!email) return false;
   const domains = allowedDomains();
-  // A forgotten variable must not open the door in production; locally it would only block development.
-  if (domains.length === 0) return process.env.VERCEL_ENV !== "production";
+  // A forgotten variable keeps the door shut on every deployment, previews included: they hold the real monday token.
+  if (domains.length === 0) return process.env.NODE_ENV === "development";
   const domain = email.trim().toLowerCase().split("@")[1];
   return Boolean(domain) && domains.includes(domain);
+}
+
+interface ClerkLikeUser {
+  primaryEmailAddress?: { emailAddress: string; verification?: { status?: string | null } | null } | null;
+}
+
+/** The user's email when it is verified and allowed; an unverified address could be anyone's claim to the domain. */
+export function allowedEmail(user: ClerkLikeUser | null | undefined): string | null {
+  const address = user?.primaryEmailAddress;
+  if (!address || address.verification?.status !== "verified") return null;
+  return isAllowedEmail(address.emailAddress) ? address.emailAddress : null;
 }

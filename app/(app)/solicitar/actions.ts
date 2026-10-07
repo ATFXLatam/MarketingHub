@@ -3,7 +3,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { updateTag } from "next/cache";
 import { z } from "zod";
-import { isAllowedEmail } from "@/lib/access";
+import { allowedEmail } from "@/lib/access";
 import { estimate, type Estimate } from "@/lib/estimate";
 import { createRateLimiter } from "@/lib/intake/rate-limit";
 import { blobStoreHost, ownBlobHref } from "@/lib/intake/blob-url";
@@ -24,8 +24,8 @@ const KeySchema = z.uuid();
 
 export async function submitRequest(input: unknown, idempotencyKey: string): Promise<SubmitResult> {
   const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress;
-  if (!user || !email || !isAllowedEmail(email)) {
+  const email = allowedEmail(user);
+  if (!user || !email) {
     return { success: false, error: "Tu cuenta no tiene acceso a este formulario." };
   }
   if (isRateLimited(user.id)) {

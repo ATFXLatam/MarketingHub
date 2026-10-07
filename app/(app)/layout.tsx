@@ -3,7 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { currentUser } from "@clerk/nextjs/server";
 import { Alert } from "@/components/arc/alert/alert";
 import { Skeleton } from "@/components/arc/skeleton/skeleton";
-import { isAllowedEmail } from "@/lib/access";
+import { allowedEmail } from "@/lib/access";
 import styles from "./layout.module.css";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
@@ -18,8 +18,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
 
 async function Gate({ children }: { children: React.ReactNode }) {
   const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress;
-  if (!user || !email || !isAllowedEmail(email)) {
+  if (!user || !allowedEmail(user)) {
     return (
       <div className={styles.center}>
         <Alert tone="warning" title="Tu cuenta no tiene acceso">

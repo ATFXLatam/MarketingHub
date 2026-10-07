@@ -10,6 +10,7 @@ import { AREA_LABEL, PRIORITY_LABEL, STAGE_LABEL, type Stage } from "@/lib/board
 import { formatDay, TEAM_TIME_ZONE } from "@/lib/dates";
 import type { PublicEvent, PublicTask } from "@/lib/public-dto";
 import { daysUntil } from "@/lib/team";
+import { TaskConversation } from "./task-conversation";
 import { dueText } from "./team-overview";
 import styles from "./task-drawer.module.css";
 
@@ -75,6 +76,8 @@ function TaskDetail({ task, history, now, today }: { task: PublicTask; history: 
       </div>
 
       <Stepper steps={steps} current={current} details="all" label="Avance de la solicitud" completeLabel="Entregada" />
+
+      <TaskConversation key={task.id} taskId={task.id} />
 
       {task.owners.length > 0 && (
         <section className={styles.section} aria-labelledby={`${task.id}-owners`}>
