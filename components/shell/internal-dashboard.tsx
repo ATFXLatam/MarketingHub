@@ -6,6 +6,7 @@ import { Check, Link2, Plus } from "lucide-react";
 import { Button } from "@/components/arc/button/button";
 import { UserMenu } from "@/components/arc/user-menu/user-menu";
 import { RequestFlow } from "@/components/intake/request-flow";
+import { BoardAssistant } from "@/components/team/board-assistant";
 import { TeamPage, type TeamPageProps } from "@/components/team/team-page";
 import type { AreaOwner } from "@/lib/area-owners";
 import type { Area } from "@/lib/board-config";
@@ -65,6 +66,7 @@ export function InternalDashboard({ user, publicPath, requestOpen = false, areaO
         {...page}
         actions={
           <>
+            <BoardAssistant tasks={page.tasks} roster={page.roster} today={page.today} />
             {publicPath && (
               <Button variant="secondary" size="sm" onClick={copyLink}>
                 {copied === "done" ? <Check {...icon} /> : <Link2 {...icon} />}

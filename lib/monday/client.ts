@@ -26,7 +26,7 @@ interface GraphQLResponse<T> {
 export async function mondayQuery<T>(
   query: string,
   variables: Record<string, unknown> = {},
-  options: { idempotencyKey?: string; token?: string } = {},
+  options: { idempotencyKey?: string; token?: string; apiVersion?: string } = {},
 ): Promise<T> {
   // A person's own token runs the call with their monday permissions; without one the call uses the app's fixed token.
   const token = options.token ?? process.env.MONDAY_API_TOKEN;
@@ -37,7 +37,7 @@ export async function mondayQuery<T>(
     headers: {
       "Content-Type": "application/json",
       Authorization: token,
-      "API-Version": API_VERSION,
+      "API-Version": options.apiVersion ?? API_VERSION,
       ...(options.idempotencyKey ? { "Idempotency-Key": options.idempotencyKey } : {}),
     },
     body: JSON.stringify({ query, variables }),

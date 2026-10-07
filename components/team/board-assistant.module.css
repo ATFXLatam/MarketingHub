@@ -1,0 +1,4 @@
+.overlay { position: fixed; inset: 0; z-index: 50; display: grid; padding: var(--space-4); background: color-mix(in oklab, var(--background) 70%, transparent); backdrop-filter: blur(6px); }
+.stage { display: grid; min-height: 0; transform-origin: 50% 40%; }
+/* Two classes so the page-filling size wins over the block's fixed demo height. */
+.frame.frame { height: 100%; box-shadow: var(--shadow-resting); }
