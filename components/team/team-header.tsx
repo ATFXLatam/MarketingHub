@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { TeamDirectory, type DirectoryPerson } from "@/components/arc/blocks/team-directory/team-directory";
+import { AtfxLogo } from "@/components/brand/atfx-logo";
 import { InViewTitle } from "@/components/arc/in-view-title/in-view-title";
 import { TextShimmer } from "@/components/arc/text-shimmer/text-shimmer";
 import { AREA_LABEL, STAGE_LABEL, type Area } from "@/lib/board-config";
@@ -55,6 +56,7 @@ export function TeamHeader({ title, description, members, actions }: TeamHeaderP
     <header className={styles.root}>
       <div className={styles.top}>
         <div className={styles.heading}>
+          <AtfxLogo height={22} />
           <InViewTitle as="h1" variant="blur" text={title} className={styles.title} />
           <p className={styles.description}>{description}</p>
         </div>

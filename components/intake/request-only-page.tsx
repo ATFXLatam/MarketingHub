@@ -1,8 +1,8 @@
 "use client";
 
-import { Megaphone } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
+import { AtfxLogo } from "@/components/brand/atfx-logo";
 import { UserMenu } from "@/components/arc/user-menu/user-menu";
 import type { AreaOwner } from "@/lib/area-owners";
 import type { Area } from "@/lib/board-config";
@@ -27,8 +27,8 @@ export function RequestOnlyPage({ user, areaOwners, today }: RequestOnlyPageProp
     <div className={styles.page}>
       <header className={styles.top}>
         <span className={styles.brand}>
-          <Megaphone size={18} strokeWidth={1.75} aria-hidden="true" />
-          Marketing LATAM
+          <AtfxLogo height={22} />
+          <span className={styles.brandName}>Marketing LATAM</span>
         </span>
         <UserMenu
           user={user}

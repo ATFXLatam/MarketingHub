@@ -1,10 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Megaphone } from "lucide-react";
 import type { PublicEvent, PublicOwner, PublicTask } from "@/lib/public-dto";
 import { TEAM_TIME_ZONE } from "@/lib/dates";
 import { teamMembers } from "@/lib/team";
+import { AtfxLogo } from "@/components/brand/atfx-logo";
 import { SiteFooter } from "@/components/arc/blocks/site-footer/site-footer";
 import { TeamActivity } from "./team-activity";
 import { TeamBoard } from "./team-board";
@@ -24,6 +24,21 @@ export interface TeamPageProps {
   today: string;
   actions: ReactNode;
 }
+
+// Same links for the team and for clients: the board in monday checks its own permissions.
+const FOOTER_COLUMNS = [
+  {
+    title: "Requests",
+    links: [
+      { label: "New request", href: "/request" },
+      { label: "Board in monday", href: "https://atfx.monday.com/boards/18424308173" },
+    ],
+  },
+  {
+    title: "Brand",
+    links: [{ label: "atfx.com", href: "https://www.atfx.com" }],
+  },
+];
 
 const UPDATED = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
@@ -62,13 +77,10 @@ export function TeamPage({
         />
       </main>
       <SiteFooter
-        variant="minimal"
-        brand={{
-          name: "ATFX Marketing LATAM",
-          mark: <Megaphone size={18} strokeWidth={1.75} aria-hidden="true" />,
-        }}
-        tagline={`monday data as of ${UPDATED.format(now)}`}
-        links={[]}
+        variant="columns"
+        brand={{ name: "Marketing LATAM", mark: <AtfxLogo height={20} /> }}
+        tagline={`Requests, load and deliveries of the ATFX LATAM marketing team. monday data as of ${UPDATED.format(now)}.`}
+        columns={FOOTER_COLUMNS}
         legal={[]}
         socials={[]}
         newsletter={null}

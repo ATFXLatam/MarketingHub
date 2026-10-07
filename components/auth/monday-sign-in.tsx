@@ -4,7 +4,7 @@ import { useReducedMotion } from "motion/react";
 import { useSearchParams } from "next/navigation";
 import { LoginSplit } from "@/components/arc/blocks/login-split/login-split";
 import { signInMessage } from "@/lib/access";
-import { AtfxLogo } from "./atfx-logo";
+import { AtfxLogo } from "@/components/brand/atfx-logo";
 import { MondayMark } from "./monday-mark";
 import styles from "./monday-sign-in.module.css";
 

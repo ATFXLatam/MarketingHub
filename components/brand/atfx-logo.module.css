@@ -1,0 +1,5 @@
+.logo { display: inline-grid; flex: none; }
+.logo > * { grid-area: 1 / 1; width: auto; height: 100%; }
+.dark { display: none; }
+:global(:root[data-theme="dark"]) .light { display: none; }
+:global(:root[data-theme="dark"]) .dark { display: block; }

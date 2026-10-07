@@ -22,9 +22,4 @@
 .points { display: grid; max-width: 44ch; gap: 10px; margin: 0; padding: 0; list-style: none; color: var(--on-media-muted); font-size: var(--text-sm); }
 .points li { padding-top: 10px; border-top: 1px solid var(--on-media-line); }
 
-.logo { display: inline-grid; }
-.logo > * { grid-area: 1 / 1; height: 24px; width: auto; }
-.logoDark { display: none; }
-:global(:root[data-theme="dark"]) .logoLight { display: none; }
-:global(:root[data-theme="dark"]) .logoDark { display: block; }
 .brandName { padding-left: var(--space-3); border-left: 1px solid var(--border); color: var(--text-secondary); font-size: var(--text-sm); }
