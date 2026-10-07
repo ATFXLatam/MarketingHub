@@ -1,12 +1,16 @@
 .root { display: flex; flex-direction: column; gap: 24px; }
 .top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px; }
-.heading { display: flex; min-width: 0; flex: 1; flex-direction: column; align-items: flex-start; gap: 6px; }
-/* The logo sits a step above the title, so the page reads ATFX first and the team second. */
-.heading > :first-child { margin-bottom: 10px; }
+/* Wide enough that on a phone the actions drop under the heading instead of squeezing it. */
+.heading { display: flex; min-width: 0; flex: 1 1 360px; flex-direction: column; gap: 8px; }
+/* ATFX and the team name read as one lockup, split by a hairline like the sign-in brand. */
+.lockup { display: flex; align-items: center; gap: 16px; }
+.lockup .title { padding-left: 16px; border-left: 1px solid var(--border); }
 .title, .title :is(h1, h2, h3) { margin: 0; font: 500 var(--text-3xl)/var(--leading-display) var(--font-display); letter-spacing: var(--tracking-display); }
 .description { max-width: 60ch; margin: 0; color: var(--text-secondary); font-size: var(--text-base); line-height: var(--leading-body); }
 .actions { display: flex; align-items: center; gap: 8px; }
 
 @media (max-width: 640px) {
   .title, .title :is(h1, h2, h3) { font-size: var(--text-2xl); }
+  .lockup { gap: 12px; }
+  .lockup .title { padding-left: 12px; }
 }

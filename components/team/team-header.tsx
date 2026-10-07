@@ -56,8 +56,10 @@ export function TeamHeader({ title, description, members, actions }: TeamHeaderP
     <header className={styles.root}>
       <div className={styles.top}>
         <div className={styles.heading}>
-          <AtfxLogo height={22} />
-          <InViewTitle as="h1" variant="blur" text={title} className={styles.title} />
+          <div className={styles.lockup}>
+            <AtfxLogo height={26} />
+            <InViewTitle as="h1" variant="blur" text={title} className={styles.title} />
+          </div>
           <p className={styles.description}>{description}</p>
         </div>
         <div className={styles.actions}>{actions}</div>

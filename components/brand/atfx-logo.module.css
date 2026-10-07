@@ -1,5 +1,6 @@
-.logo { display: inline-grid; flex: none; }
-.logo > * { grid-area: 1 / 1; width: auto; height: 100%; }
+/* Sized by the box, not by the image: the PNG's own size would otherwise leak through the grid stack. */
+.logo { display: inline-grid; flex: none; width: var(--logo-width); height: var(--logo-height); line-height: 0; }
+.logo > * { grid-area: 1 / 1; width: var(--logo-width); height: var(--logo-height); max-width: none; }
 .dark { display: none; }
 :global(:root[data-theme="dark"]) .light { display: none; }
 :global(:root[data-theme="dark"]) .dark { display: block; }
