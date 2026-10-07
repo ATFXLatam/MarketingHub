@@ -12,15 +12,19 @@ const OwnersSchema = z.record(z.string(), z.array(z.number().int().positive()));
  * Area owners as monday user ids, from MONDAY_AREA_OWNERS ({"web":[123],"video":[456]}). Optional: without it the item
  * lands unassigned and a monday automation can assign it, so changing an owner never needs a deploy.
  */
-export function ownersFor(area: Area): number[] {
+export function configuredOwners(): Partial<Record<Area, number[]>> {
   const raw = process.env.MONDAY_AREA_OWNERS;
-  if (!raw) return [];
+  if (!raw) return {};
   try {
-    return OwnersSchema.parse(JSON.parse(raw))[area] ?? [];
+    return OwnersSchema.parse(JSON.parse(raw));
   } catch (error) {
     console.error("MONDAY_AREA_OWNERS no es JSON válido; la solicitud se crea sin owner", error);
-    return [];
+    return {};
   }
+}
+
+export function ownersFor(area: Area): number[] {
+  return configuredOwners()[area] ?? [];
 }
 
 const CreatedSchema = z.object({ create_item: z.object({ id: z.string() }) });

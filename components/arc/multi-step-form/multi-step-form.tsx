@@ -33,6 +33,8 @@ export type MultiStepFormProps = {
   aside?: ReactNode;
   /** Moves to a step from outside, such as a link from a summary. A new nonce repeats a jump; focus names the element to focus there. */
   jump?: { step: number; nonce: number; focus?: string };
+  /** Fill a fixed height parent: progress on top, the step scrolling in the middle, actions pinned under it, the aside beside it. */
+  fill?: boolean;
 };
 const exitFade = { duration: motionTokens.duration.instant, ease: [...motionTokens.ease.standard] } as const;
 const stepVariants: Variants = {
@@ -101,6 +103,7 @@ export function MultiStepForm({
   surface = "card",
   aside,
   jump,
+  fill = false,
 }: MultiStepFormProps) {
   const [step, setStep] = useState(Math.min(Math.max(initialStep, 0), Math.max(steps.length - 1, 0)));
   const [direction, setDirection] = useState(1);
@@ -134,7 +137,7 @@ export function MultiStepForm({
   const jumpFocus = jump?.focus;
   useEffect(() => {
     if (lastJump === mountJump.current) return;
-    (jumpFocus ? document.getElementById(jumpFocus) : stepTitleRef.current)?.focus();
+    ((jumpFocus && document.getElementById(jumpFocus)) || stepTitleRef.current)?.focus();
   }, [lastJump, jumpFocus]);
 
   // The shell follows the height of the step that is arriving, so a taller or shorter step never jumps the actions.
@@ -171,7 +174,7 @@ export function MultiStepForm({
       setPending(false);
     }
   }
-  return <form className={styles.form} data-surface={surface} onSubmit={submit} aria-label={formLabel} noValidate>
+  return <form className={styles.form} data-surface={surface} data-fill={fill || undefined} onSubmit={submit} aria-label={formLabel} noValidate>
     <nav className={styles.progress} aria-label={stepCountLabel(step + 1, steps.length)}>
       <ol className={styles.progressList}>
         {steps.map((item, index) => <li className={`${styles.progressItem} ${index < step || (complete && index === step) ? styles.complete : ""} ${index === step && !complete ? styles.current : ""}`} key={item.id} aria-current={index === step ? "step" : undefined}>
@@ -190,7 +193,7 @@ export function MultiStepForm({
     </nav>
     <div className={styles.body} data-aside={(aside && !complete) || undefined}>
     <div className={styles.main}>
-    <motion.div ref={viewportRef} className={styles.viewport} initial={false} animate={{ height }} transition={reduced ? { duration: 0 } : motionTokens.spring.smooth} onAnimationStart={() => clip(true)} onAnimationComplete={() => clip(false)}>
+    <motion.div ref={viewportRef} className={styles.viewport} initial={false} animate={fill ? undefined : { height }} transition={reduced ? { duration: 0 } : motionTokens.spring.smooth} onAnimationStart={() => clip(true)} onAnimationComplete={() => clip(false)}>
       <AnimatePresence initial={false} custom={direction}>
         {complete
           ? <motion.section ref={measure} key="complete" className={styles.success} initial={reduced ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={reduced ? { duration: 0 } : { duration: motionTokens.duration.standard, ease: [...motionTokens.ease.enter] }} aria-labelledby={successId} role="status">

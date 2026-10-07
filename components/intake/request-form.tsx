@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { EstimateBreakdown, EstimateCard } from "@/components/arc/blocks/usage-pricing/usage-pricing";
+import { SummaryRows } from "@/components/arc/blocks/usage-pricing/usage-pricing";
+import { Avatar } from "@/components/arc/avatar/avatar";
 import { upload } from "@vercel/blob/client";
 import { submitRequest } from "@/app/(app)/solicitar/actions";
 import { Alert } from "@/components/arc/alert/alert";
@@ -36,7 +37,11 @@ import {
   MAX_UPLOAD_BYTES,
   UPLOAD_PREFIX,
 } from "@/lib/intake/uploads";
+import { RequestSummary } from "./request-summary";
+import { RequirementFields } from "./requirement-fields";
 import { stepErrors, type Draft } from "./validation";
+import type { AreaOwner } from "@/lib/area-owners";
+import { OBJECTIVES, type DetailKey } from "@/lib/requirements";
 
 const AREA_HINT: Record<Area, string> = {
   web: "Landings, cambios, tracking y accesos",
@@ -64,9 +69,10 @@ const EMPTY: Draft = {
   brief: "",
   drive: "",
   blockers: "",
+  details: {},
 };
 
-const STEP_IDS = ["area", "brief", "cuando", "material", "revision"] as const;
+const STEP_IDS = ["area", "brief", "requisitos", "cuando", "material", "revision"] as const;
 const REVIEW = STEP_IDS.indexOf("revision");
 
 const toIsoDate = (date?: Date) =>
@@ -76,6 +82,8 @@ const toIsoDate = (date?: Date) =>
 
 interface RequestFormProps {
   requester: string;
+  /** Who answers for each area, shown before sending so the requester knows who will pick it up. */
+  areaOwners: Record<Area, AreaOwner[]>;
   /** Today in the team's time zone, from the server, so the estimate matches the one written to monday. */
   today: string;
 }
@@ -94,6 +102,7 @@ export function RequestForm(props: RequestFormProps) {
 
 function RequestWizard({
   requester,
+  areaOwners,
   today,
   onAnother,
 }: RequestFormProps & { onAnother: () => void }) {
@@ -122,8 +131,13 @@ function RequestWizard({
       ),
     );
   };
+  const setDetail = (key: DetailKey, value: string) => {
+    setDraft((current) => ({ ...current, details: { ...current.details, [key]: value } }));
+    setErrors((current) => Object.fromEntries(Object.entries(current).filter(([field]) => field !== key)));
+  };
   const validFiles = files.filter((item) => !item.error);
   const area = draft.area || null;
+  const owner = area ? areaOwners[area][0] : undefined;
 
   const preview = area
     ? estimate({
@@ -135,7 +149,8 @@ function RequestWizard({
         market: draft.market || undefined,
         drive: draft.drive,
         attachmentCount: validFiles.length,
-        blockers: area === "web" ? draft.blockers : undefined,
+        blockers: draft.blockers,
+        details: draft.details,
         today,
         dueDate: toIsoDate(draft.dueDate) || undefined,
       })
@@ -158,7 +173,7 @@ function RequestWizard({
     const pendingUploads = validFiles.some(
       (item) => !uploaded.current.has(item.file),
     );
-    const found = stepErrors(index, draft, { pendingUploads });
+    const found = stepErrors(STEP_IDS[index], draft, { pendingUploads });
     setErrors(found);
     const valid = Object.keys(found).length === 0;
     if (valid && returning && index < REVIEW) {
@@ -180,6 +195,7 @@ function RequestWizard({
       dueDate: toIsoDate(draft.dueDate),
       landingSubtype: draft.landingSubtype || undefined,
       blockers: draft.blockers || undefined,
+      details: Object.fromEntries(Object.entries(draft.details).filter(([, value]) => value?.trim())),
       attachments,
     };
     try {
@@ -205,6 +221,7 @@ function RequestWizard({
   }
 
   const subtypes = area ? SUBTYPES[area] : [];
+  const pieceLabel = subtypes.find((item) => item.value === draft.subtype)?.label;
 
   return (
     <MultiStepForm
@@ -214,7 +231,8 @@ function RequestWizard({
       onStepContinue={onStepContinue}
       onComplete={onComplete}
       jump={jump}
-      aside={<EstimateCard result={preview} onFix={fix} />}
+      fill
+      aside={<RequestSummary area={area} pieceLabel={pieceLabel} priority={draft.priority} owner={owner} result={preview} onFix={fix} />}
       successTitle="Solicitud enviada"
       successNote={
         sent &&
@@ -250,11 +268,20 @@ function RequestWizard({
                   }));
                   setErrors({});
                 }}
-                options={AREAS.map((value) => ({
-                  value,
-                  label: AREA_LABEL[value],
-                  description: AREA_HINT[value],
-                }))}
+                options={AREAS.map((value) => {
+                  const [lead] = areaOwners[value];
+                  return {
+                    value,
+                    label: AREA_LABEL[value],
+                    description: AREA_HINT[value],
+                    meta: lead ? (
+                      <>
+                        <Avatar name={lead.name} src={lead.photo ?? undefined} size="sm" />
+                        {`${lead.assigned ? "La toma" : "Suele tomarla"} ${lead.name.split(" ")[0]}`}
+                      </>
+                    ) : undefined,
+                  };
+                })}
               />
               {errors.area && <Alert tone="danger" title={errors.area} />}
             </>
@@ -304,6 +331,22 @@ function RequestWizard({
                   />
                 )}
               </>
+              <Select
+                id="objective"
+                label="Objetivo"
+                placeholder="Elige uno"
+                options={OBJECTIVES.map((value) => ({ value, label: value }))}
+                value={draft.details.objective ?? ""}
+                onValueChange={(value) => setDetail("objective", value)}
+              />
+              <Input
+                id="audience"
+                label="Público"
+                placeholder="Traders nuevos en México, clientes con cuenta fondeada"
+                value={draft.details.audience ?? ""}
+                onChange={(event) => setDetail("audience", event.target.value)}
+                maxLength={300}
+              />
               <Textarea
                 id="brief"
                 label="Descripción y especificaciones"
@@ -313,17 +356,25 @@ function RequestWizard({
                 onChange={(event) => set("brief", event.target.value)}
                 maxLength={5000}
               />
-              {area === "web" && (
-                <Textarea
-                  id="blockers"
-                  label="Bloqueadores"
-                  description="Lo que falta para poder empezar: copy, logos, accesos. Déjalo vacío si no falta nada."
-                  rows={3}
-                  value={draft.blockers}
-                  onChange={(event) => set("blockers", event.target.value)}
-                  maxLength={2000}
-                />
-              )}
+            </>
+          ),
+        },
+        {
+          id: "requisitos",
+          title: area ? `Requisitos de ${AREA_LABEL[area].toLowerCase()}` : "Requisitos",
+          description: "Lo que el equipo necesita para arrancar sin volver a preguntarte. Nada es obligatorio, pero cada punto acorta la entrega.",
+          content: (
+            <>
+              {area && <RequirementFields area={area} details={draft.details} errors={errors} onChange={setDetail} />}
+              <Textarea
+                id="blockers"
+                label="Bloqueadores"
+                description="Lo que falta para poder empezar: copy, logos, accesos, aprobaciones. Déjalo vacío si no falta nada."
+                rows={3}
+                value={draft.blockers}
+                onChange={(event) => set("blockers", event.target.value)}
+                maxLength={2000}
+              />
             </>
           ),
         },
@@ -405,11 +456,18 @@ function RequestWizard({
           description: `Se enviará como ${requester}.`,
           content: (
             <>
-              {preview && (
-                <EstimateBreakdown
-                  result={preview}
-                  pieceLabel={subtypes.find((item) => item.value === draft.subtype)?.label ?? "Tipo de pieza sin elegir"}
-                  priorityLabel={PRIORITY_LABEL[draft.priority]}
+              {area && (
+                <SummaryRows
+                  title="Lo que se enviará"
+                  rows={[
+                    { label: "Título", value: draft.title || "Sin título" },
+                    { label: "Área", value: AREA_LABEL[area], note: pieceLabel },
+                    { label: "Responsable", value: owner?.name ?? "Lo asigna el equipo", note: owner && !owner.assigned ? "Quien suele tomar esta área" : undefined },
+                    { label: "Fecha requerida", value: draft.dueDate ? formatDay(toIsoDate(draft.dueDate)) : "Sin fecha" },
+                    { label: "Prioridad", value: PRIORITY_LABEL[draft.priority] },
+                    { label: "Mercado", value: draft.market || "Sin mercado" },
+                    { label: "Material", value: [draft.drive && "Carpeta Drive", validFiles.length && `${validFiles.length} adjuntos`].filter(Boolean).join(" y ") || "Sin material" },
+                  ]}
                 />
               )}
               {preview?.tight && (

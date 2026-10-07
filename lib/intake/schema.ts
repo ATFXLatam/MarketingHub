@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { LANDING_SUBTYPES, MARKETS, PRIORITIES, SUBTYPES } from "../board-config";
+import { COPY_READY, OBJECTIVES, VIDEO_FORMATS } from "../requirements";
 import { MAX_FILES } from "./uploads";
 
 const values = <T extends { value: string }>(items: readonly T[]) =>
@@ -15,6 +16,28 @@ export const AttachmentSchema = z.object({
   name: text(1, 200),
 });
 
+const optionalText = (max: number) => z.string().trim().max(max).optional();
+const optionalNumber = z.union([z.literal(""), z.string().regex(/^\d{1,6}$/, "Escribe solo números")]).optional();
+
+/** Structured requirements; each is optional because missing ones cost points, not the submission. */
+export const DetailsSchema = z
+  .object({
+    objective: z.union([z.literal(""), z.enum(OBJECTIVES)]).optional(),
+    audience: optionalText(300),
+    cta: optionalText(120),
+    url: z.union([z.literal(""), z.url({ protocol: /^https$/ })]).optional(),
+    format: z.union([z.literal(""), z.enum(VIDEO_FORMATS)]).optional(),
+    duration: optionalNumber,
+    sizes: optionalText(300),
+    copyReady: z.enum(["", COPY_READY, "no"]).optional(),
+    eventDate: z.union([z.literal(""), z.iso.date()]).optional(),
+    venue: optionalText(200),
+    attendees: optionalNumber,
+    budget: optionalText(120),
+  })
+  .strict()
+  .default({});
+
 const common = {
   title: text(3, 120),
   dueDate: z.iso.date(),
@@ -23,6 +46,8 @@ const common = {
   market: z.enum(MARKETS),
   drive: z.union([z.literal(""), z.url({ protocol: /^https$/ })]).optional(),
   attachments: z.array(AttachmentSchema).max(MAX_FILES).default([]),
+  blockers: z.string().trim().max(2000).optional(),
+  details: DetailsSchema,
 };
 
 /** One branch per area mirrors the show-if rules of the old monday form: each area only carries its own fields. */
@@ -33,7 +58,6 @@ export const RequestSchema = z
       area: z.literal("web"),
       subtype: z.enum(values(SUBTYPES.web)),
       landingSubtype: z.enum(values(LANDING_SUBTYPES)).optional(),
-      blockers: z.string().trim().max(2000).optional(),
     }),
     z.object({ ...common, area: z.literal("video"), subtype: z.enum(values(SUBTYPES.video)) }),
     z.object({ ...common, area: z.literal("eventos"), subtype: z.enum(values(SUBTYPES.eventos)) }),

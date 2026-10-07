@@ -8,6 +8,8 @@ import { Button } from "@/components/arc/button/button";
 import { UserMenu } from "@/components/arc/user-menu/user-menu";
 import { RequestFlow } from "@/components/intake/request-flow";
 import { TeamPage, type TeamPageProps } from "@/components/team/team-page";
+import type { AreaOwner } from "@/lib/area-owners";
+import type { Area } from "@/lib/board-config";
 import { applyPreference, readPreference, type ThemePreference } from "@/lib/theme";
 
 const noSubscription = () => () => {};
@@ -20,10 +22,11 @@ interface InternalDashboardProps extends Omit<TeamPageProps, "actions"> {
   publicPath?: string;
   /** /solicitar opens the dashboard with the request flow already up, so the link can go out by email. */
   requestOpen?: boolean;
+  areaOwners: Record<Area, AreaOwner[]>;
 }
 
 /** The team's page plus what only the team does: request work, share the client link, and the account menu. */
-export function InternalDashboard({ user, publicPath, requestOpen = false, ...page }: InternalDashboardProps) {
+export function InternalDashboard({ user, publicPath, requestOpen = false, areaOwners, ...page }: InternalDashboardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { signOut } = useClerk();
@@ -57,7 +60,7 @@ export function InternalDashboard({ user, publicPath, requestOpen = false, ...pa
 
   return (
     <>
-      <RequestFlow open={requesting} onOpenChange={onRequestOpenChange} requester={user.name} today={page.today} />
+      <RequestFlow open={requesting} onOpenChange={onRequestOpenChange} requester={user.name} areaOwners={areaOwners} today={page.today} />
       <TeamPage
         {...page}
         actions={

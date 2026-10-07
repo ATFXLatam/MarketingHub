@@ -53,7 +53,6 @@ export async function submitRequest(input: unknown, idempotencyKey: string): Pro
 
   const result = estimate({
     ...request,
-    blockers: request.area === "web" ? request.blockers : undefined,
     landingSubtype: request.area === "web" ? request.landingSubtype : undefined,
     attachmentCount: request.attachments.length,
     today,

@@ -307,3 +307,20 @@
   .body[data-aside] .aside { order: 1; }
   .body[data-aside] .actionsShell { order: 2; }
 }
+
+/* Fixed grid: the parent holds the height, so steps of any length scroll in place and the actions never move. */
+.form[data-fill] { display: grid; height: 100%; min-height: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+.form[data-fill] .body { min-height: 0; }
+.form[data-fill] .main { display: grid; min-height: 0; grid-template-rows: minmax(0, 1fr) auto; }
+.form[data-fill] .viewport { min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-bottom: var(--space-4); }
+.form[data-fill] .actionsShell { padding-block: var(--space-3) var(--space-4); border-top: 1px solid var(--border-subtle); }
+.form[data-fill] .actions { margin-top: 0; }
+@container msf (min-width: 720px) {
+  .form[data-fill] .body[data-aside] { height: 100%; align-items: stretch; }
+  .form[data-fill] .body[data-aside] .aside { position: static; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-bottom: var(--space-4); }
+}
+@container msf (max-width: 719px) {
+  .form[data-fill] .body[data-aside] { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto; gap: 0; }
+  .form[data-fill] .body[data-aside] .main { display: contents; }
+  .form[data-fill] .body[data-aside] .aside { padding-top: var(--space-3); border-top: 1px solid var(--border-subtle); }
+}

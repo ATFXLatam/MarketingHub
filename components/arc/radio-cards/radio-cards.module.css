@@ -70,7 +70,8 @@
 .description { color: var(--text-secondary); font-size: var(--text-xs); line-height: var(--leading-body); text-wrap: pretty; }
 
 .meta { grid-area: meta; color: var(--foreground); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.root[data-layout="grid"] .meta { margin-top: 10px; font-size: var(--text-lg); }
+/* Here the meta row names a person with their avatar, so it reads as a caption rather than a price. */
+.root[data-layout="grid"] .meta { display: flex; align-items: center; gap: 8px; margin-top: 12px; color: var(--text-secondary); font-size: var(--text-sm); }
 .root[data-layout="list"] .meta { font-weight: 500; }
 
 @media (hover: hover) and (pointer: fine) {

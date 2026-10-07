@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { formatDay } from "@/lib/dates";
 import type { BriefGap, BriefTier, Estimate } from "@/lib/estimate";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { AnimatedCounter } from "../../animated-counter/animated-counter";
@@ -22,28 +21,6 @@ const TIERS: { id: BriefTier; name: string; title: string }[] = [
 /** A day count on the shared odometer, sized by its parent. */
 function Days({ value, prefix, className }: { value: number; prefix?: string; className?: string }) {
   return <span className={[styles.money, className].filter(Boolean).join(" ")}><AnimatedCounter value={value} prefix={prefix} locale="es-MX" /></span>;
-}
-
-/** Replaces a short phrase in place: the new one rises into place, the old one lifts away faster.
- *  Both phrases share one grid cell, so the outgoing one keeps its own width and anchor instead of being popped out of flow. */
-function Swap({ id, children, className }: { id: string; children: ReactNode; className?: string }) {
-  const reduce = useReducedMotion();
-  return (
-    <span className={[styles.swap, className].filter(Boolean).join(" ")}>
-      <AnimatePresence initial={false}>
-        <motion.span
-          key={id}
-          className={styles.swapItem}
-          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={reduce ? { opacity: 0, transition: { duration: duration.instant } } : { opacity: 0, y: -4, transition: { duration: duration.fast, ease: standardEase } }}
-          transition={reduce ? { duration: duration.instant } : { duration: duration.standard, ease: enterEase }}
-        >
-          {children}
-        </motion.span>
-      </AnimatePresence>
-    </span>
-  );
 }
 
 /** A check that draws itself when it first appears. Items already on screen keep their stroke. */
@@ -70,17 +47,16 @@ function useContentHeight<T extends HTMLElement>() {
   return [ref, height] as const;
 }
 
-const plural = (count: number, one: string, other: string) => `${count} ${count === 1 ? one : other}`;
 
-export interface EstimateCardProps {
+export interface EstimateChecklistProps {
   /** The live estimate of the draft; null until an area is picked. */
   result: Estimate | null;
   /** Takes the person to where a missing piece is filled in. */
   onFix?: (gap: BriefGap) => void;
 }
 
-/** The delivery date a draft would get right now, beside every step, with what is still missing as links to fill it in. */
-export function EstimateCard({ result, onFix }: EstimateCardProps) {
+/** How complete the brief is, as a three step meter and the requirements it meets or misses, each missing one a link. */
+export function EstimateChecklist({ result, onFix }: EstimateChecklistProps) {
   const id = useId();
   const reduce = useReducedMotion();
   const [listRef, listHeight] = useContentHeight<HTMLUListElement>();
@@ -92,21 +68,12 @@ export function EstimateCard({ result, onFix }: EstimateCardProps) {
     ? { duration: duration.instant }
     : { layout: spring.smooth, default: { duration: duration.standard, ease: enterEase, delay: .08 } };
 
-  if (!result) {
-    return (
-      <aside className={styles.card} aria-labelledby={`${id}-plan`}>
-        <div className={styles.planHead}>
-          <h3 id={`${id}-plan`} className={styles.planName}>Fecha estimada</h3>
-          <p className={styles.reason}>Elige un área y la fecha aparece aquí mientras llenas la solicitud.</p>
-        </div>
-      </aside>
-    );
-  }
+  if (!result) return <p className={styles.reason}>Elige un área y verás qué necesita su brief.</p>;
   const plan = TIERS[tier];
-  const [next] = result.gaps;
+  const rows = [...result.gaps.map((gap) => ({ gap, done: false })), ...result.met.map((gap) => ({ gap, done: true }))];
 
   return (
-    <aside className={styles.card} aria-labelledby={`${id}-plan`}>
+    <div className={styles.checklist} aria-labelledby={`${id}-tier`}>
       <div className={styles.meter} aria-hidden="true">
         {TIERS.map((item, index) => (
           <span key={item.id} className={styles.step} data-current={index === tier || undefined}>
@@ -117,22 +84,15 @@ export function EstimateCard({ result, onFix }: EstimateCardProps) {
           </span>
         ))}
       </div>
-
-      <div className={styles.planHead}>
-        <TextMorph as="h3" id={`${id}-plan`} className={styles.planName}>{plan.title}</TextMorph>
-        <p className={styles.reason}><Swap id={next?.label ?? "listo"}>{next ? `Siguiente: ${next.label.toLowerCase()}` : "No le falta nada"}</Swap></p>
-      </div>
-
-      <div className={styles.price}>
-        <Days value={result.days} className={styles.priceValue} />
-        <span className={styles.per}>{result.days === 1 ? "día hábil" : "días hábiles"}</span>
-      </div>
-      <p className={styles.billed}><Swap id={result.date}>{`Estimada para el ${formatDay(result.date)}`}</Swap></p>
+      <p className={styles.tierLine}>
+        <TextMorph as="span" id={`${id}-tier`} className={styles.planName}>{plan.title}</TextMorph>
+        <span className={styles.score}><Days value={result.score} /> de 100</span>
+      </p>
 
       <motion.div className={styles.featuresFrame} initial={false} animate={{ height: listHeight }} transition={reduce ? { duration: 0 } : spring.smooth}>
-        <ul ref={listRef} className={styles.features} aria-label="Qué trae el brief">
+        <ul ref={listRef} className={styles.features} aria-label="Requisitos del brief">
           <AnimatePresence mode="popLayout" initial={false}>
-            {[...result.met.map((gap) => ({ gap, done: true })), ...result.gaps.map((gap) => ({ gap, done: false }))].map(({ gap, done }) => (
+            {rows.map(({ gap, done }) => (
               <motion.li
                 key={gap.label}
                 layout="position"
@@ -147,42 +107,31 @@ export function EstimateCard({ result, onFix }: EstimateCardProps) {
                 {done || !onFix
                   ? <span className={styles.featureLabel}>{gap.label}</span>
                   : <button type="button" className={styles.fix} onClick={() => onFix(gap)}>{gap.hint}</button>}
+                <span className={styles.weight}>{done ? gap.weight : `+${gap.weight}`}</span>
               </motion.li>
             ))}
           </AnimatePresence>
         </ul>
       </motion.div>
-      {/* Only a change in days is announced, so typing in the brief does not read the summary out on every key. */}
-      <p className={styles.srOnly} role="status">{plural(result.days, "día hábil", "días hábiles")}</p>
-    </aside>
+      {/* Only a change of tier is announced, so typing in the brief does not read the list out on every key. */}
+      <p className={styles.srOnly} role="status">{plan.title}</p>
+    </div>
   );
 }
 
-/** Where the delivery days come from, for the review step before sending. */
-export function EstimateBreakdown({ result, pieceLabel, priorityLabel }: { result: Estimate; pieceLabel: string; priorityLabel: string }) {
+/** Label and value rows, for reading back what will be sent before sending it. */
+export function SummaryRows({ title, rows }: { title: string; rows: { label: string; value: ReactNode; note?: string }[] }) {
   const id = useId();
-  const { base, priority, brief, days } = result.breakdown;
-  const plan = TIERS.find((item) => item.id === result.tier)!;
   return (
-    <section className={styles.breakdown} aria-labelledby={`${id}-breakdown`}>
-      <h3 id={`${id}-breakdown`}>De dónde sale el plazo</h3>
+    <section className={styles.breakdown} aria-labelledby={`${id}-rows`}>
+      <h3 id={`${id}-rows`}>{title}</h3>
       <dl className={styles.rows}>
-        <div className={styles.row}>
-          <dt><span className={styles.rowLabel}>{pieceLabel}</span><small>Plazo base del tipo de pieza</small></dt>
-          <dd><Days value={base} /></dd>
-        </div>
-        <div className={styles.row}>
-          <dt><span className={styles.rowLabel}>Prioridad {priorityLabel.toLowerCase()}</span><small>Adelanta la pieza en la fila; el trabajo no se achica</small></dt>
-          <dd><Swap id={priority ? "faster" : "same"} className={styles.alignEnd}>{priority ? <Days value={-priority} prefix="−" /> : <span className={styles.included}>Sin cambio</span>}</Swap></dd>
-        </div>
-        <div className={styles.row}>
-          <dt><span className={styles.rowLabel}>{plan.title}</span><small>{result.score} de 100 puntos</small></dt>
-          <dd><Swap id={brief ? "slower" : "none"} className={styles.alignEnd}>{brief ? <Days value={brief} prefix="+" /> : <span className={styles.included}>Sin días extra</span>}</Swap></dd>
-        </div>
-        <div className={`${styles.row} ${styles.total}`}>
-          <dt><span className={styles.rowLabel}>Entrega estimada</span><small>{`${formatDay(result.date)}, días hábiles de lunes a viernes`}</small></dt>
-          <dd><Days value={days} /></dd>
-        </div>
+        {rows.map((row) => (
+          <div key={row.label} className={styles.row}>
+            <dt><span className={styles.rowLabel}>{row.label}</span>{row.note && <small>{row.note}</small>}</dt>
+            <dd>{row.value}</dd>
+          </div>
+        ))}
       </dl>
     </section>
   );

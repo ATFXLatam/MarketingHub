@@ -122,3 +122,12 @@ export async function getBoardSnapshot(): Promise<BoardSnapshot> {
     fetchedAt: new Date(now).toISOString(),
   };
 }
+
+/** Names and photos of configured area owners, cached like the board so opening the request flow costs no monday call. */
+export async function getAreaPeople(ids: string[]): Promise<Map<string, PublicOwner>> {
+  "use cache";
+  cacheTag(BOARD_TAG);
+  cacheLife("hours");
+  if (!mondayConfigured() || ids.length === 0) return new Map();
+  return fetchOwners([...new Set(ids)].sort());
+}

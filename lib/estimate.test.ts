@@ -12,6 +12,7 @@ const complete: EstimateInput = {
   drive: "https://drive.google.com/folder",
   attachmentCount: 0,
   today: "2026-10-05",
+  details: { objective: "Generar leads", audience: "Traders nuevos", url: "https://atfx.com/oro", cta: "Abrir cuenta", copyReady: "si" },
 };
 
 describe("addBusinessDays", () => {
@@ -27,16 +28,16 @@ describe("estimate", () => {
   });
 
   it("adds days and lists what is missing when the brief is thin", () => {
-    const result = estimate({ ...complete, brief: "corto", drive: "", market: undefined });
+    const result = estimate({ ...complete, brief: "corto", drive: "", market: undefined, details: {} });
     expect(result.tier).toBe("incompleto");
     expect(result.days).toBe(7 + 4);
-    expect(result.missing).toHaveLength(3);
+    expect(result.missing).toHaveLength(8);
     expect(result.initialStage).toBe("nueva");
   });
 
   it("shortens turnaround for critical priority but never below one day", () => {
     expect(estimate({ ...complete, priority: "critica" }).days).toBe(4);
-    expect(estimate({ ...complete, area: "diseno", subtype: "meta", priority: "critica" }).days).toBe(1);
+    expect(estimate({ ...complete, area: "diseno", subtype: "meta", priority: "critica", details: { ...complete.details, sizes: "1080x1080" } }).days).toBe(1);
   });
 
   it("keeps a blocked request out of ready even when the rest is complete", () => {
@@ -66,7 +67,7 @@ describe("estimate gaps", () => {
   it("points each missing piece at the step and field that fills it, heaviest first, and reports the breakdown", () => {
     const result = estimate({ ...complete, brief: "corto", drive: "", market: undefined });
     expect(result.gaps.map(({ step, field }) => `${step}:${field}`)).toEqual(["brief:brief", "material:drive", "cuando:market"]);
-    expect(result.met.map((gap) => gap.field)).toEqual(["subtype", "blockers"]);
+    expect(result.met.map((gap) => gap.field)).toEqual(["subtype", "objective", "audience", "blockers", "url", "cta", "copyReady"]);
     expect(result.breakdown.days).toBe(result.days);
   });
 });

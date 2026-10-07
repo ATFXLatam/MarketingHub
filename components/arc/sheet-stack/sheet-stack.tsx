@@ -43,6 +43,11 @@ export interface SheetProps {
   backLabel?: string;
   /** Allow drag and fling to dismiss. Defaults to true. */
   dismissible?: boolean;
+  /**
+   * Hold a fixed height (up to this many pixels in a dialog, the full allowance in a sheet) instead of following the
+   * content, and hand the body to a child that scrolls its own regions. For flows whose steps differ in length.
+   */
+  fixedHeight?: number;
   className?: string;
   ref?: Ref<HTMLDivElement>;
 }
@@ -243,7 +248,7 @@ export function Sheet(props: SheetProps) {
 
 type PanelProps = SheetProps & { index: number; depth: number; context: StackContext };
 
-function Panel({ id, title, description, children, footer, dismissible = true, className, ref, index, depth, context }: PanelProps) {
+function Panel({ id, title, description, children, footer, dismissible = true, fixedHeight, className, ref, index, depth, context }: PanelProps) {
   const { mode, size, heights, titles, reportHeight, frontTop, release, reduced, stack, pop } = context;
   const uid = useId();
   const [isPresent, safeToRemove] = usePresence();
@@ -404,7 +409,7 @@ function Panel({ id, title, description, children, footer, dismissible = true, c
     tabIndex={-1} inert={!isTop || undefined} onKeyDown={onKeyDown}
     style={{ transform, opacity, height: boxHeight, zIndex: index + 2 }}
     onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerEnd} onPointerCancel={onPointerEnd}>
-    <div ref={sizerRef} className={styles.sizer} style={{ maxHeight }}>
+    <div ref={sizerRef} className={styles.sizer} style={{ maxHeight, height: fixedHeight ? (mode === "dialog" ? Math.min(maxHeight, fixedHeight) : maxHeight) : undefined }}>
       {mode === "sheet" && <span className={styles.grabber} aria-hidden="true" />}
       <header className={styles.header}>
         <span className={styles.lead}>
@@ -421,7 +426,7 @@ function Panel({ id, title, description, children, footer, dismissible = true, c
         </span>
       </header>
       {description && <p id={`${uid}-description`} className={styles.description}>{description}</p>}
-      <div ref={bodyRef} className={styles.body}>{children}</div>
+      <div ref={bodyRef} className={styles.body} data-fixed={fixedHeight ? "" : undefined}>{children}</div>
       {footer && <div className={styles.footer}>{footer}</div>}
     </div>
     <motion.div className={styles.dim} style={{ opacity: dim }} aria-hidden="true" />

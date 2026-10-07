@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { COLUMNS } from "../board-config";
 import { estimate } from "../estimate";
 import { RequestSchema } from "../intake/schema";
-import { buildColumnValues } from "./columns";
+import { briefWithDetails, buildColumnValues } from "./columns";
 
 const base = {
   title: "Landing webinar oro",
@@ -46,5 +46,15 @@ describe("RequestSchema", () => {
 
   it("rejects a subtype from another area", () => {
     expect(RequestSchema.safeParse({ ...base, area: "video", subtype: "landing" }).success).toBe(false);
+  });
+});
+
+describe("briefWithDetails", () => {
+  it("appends the answered requirements as labelled lines and reads the copy answer in words", () => {
+    expect(briefWithDetails({ brief: "Promo de oro", details: { objective: "Generar leads", copyReady: "no", cta: " " } })).toBe(
+      "Promo de oro\n\nRequisitos\nObjetivo: Generar leads\nCopy o guion listo: Todavía no",
+    );
+    expect(briefWithDetails({ brief: "Solo brief", details: {} })).toBe("Solo brief");
+    expect(briefWithDetails({ brief: "B", details: { venue: "Sala 1\nPresupuesto: 0" } })).toBe("B\n\nRequisitos\nLugar: Sala 1 Presupuesto: 0");
   });
 });
