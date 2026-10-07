@@ -11,9 +11,9 @@ import type { BriefGap, Estimate } from "@/lib/estimate";
 const MISSING_SHOWN = 3;
 
 const TIER_NOTE: Record<Estimate["tier"], string> = {
-  completo: "Brief completo",
-  parcial: "Brief parcial",
-  incompleto: "Brief incompleto",
+  completo: "Completo, sin espera",
+  parcial: "Parcial, más idas y vueltas",
+  incompleto: "Incompleto, se pedirá lo que falta",
 };
 
 export interface RequestSummaryProps {
@@ -40,7 +40,7 @@ export function RequestSummary({ area, pieceLabel, priority, owner, result, onFi
       }}
       lines={[
         { id: "priority", label: `Prioridad ${PRIORITY_LABEL[priority].toLowerCase()}`, amount: faster, emptyLabel: "Sin cambio", note: "Adelanta la pieza en la fila" },
-        { id: "brief", label: TIER_NOTE[result.tier], amount: slower, emptyLabel: "Sin días extra", costly: true, note: `${result.score} de 100 puntos` },
+        { id: "brief", label: "Ajuste por brief", amount: slower, emptyLabel: "Sin días extra", costly: true, note: TIER_NOTE[result.tier] },
       ]}
       surface="none"
     >

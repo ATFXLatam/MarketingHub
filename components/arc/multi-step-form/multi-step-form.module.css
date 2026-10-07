@@ -304,17 +304,34 @@
 }
 
 /* Fixed grid: progress, then the step (scrolling) beside the summary, then the actions across the full width. Nothing
-   moves between steps because the parent holds the height. */
-.form[data-fill] { display: grid; height: 100%; min-height: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; }
-.form[data-fill] .body { min-height: 0; }
-.form[data-fill] .viewport { height: 100%; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-bottom: var(--space-4); }
-.form[data-fill] .actionsShell { padding-block: var(--space-3); border-top: 1px solid var(--border-subtle); }
+   moves between steps because the parent holds the height. Each region draws its own surface and gutter, so the
+   form runs edge to edge inside its panel. */
+.form[data-fill] {
+  --msf-gutter: var(--space-6);
+  /* One step off the panel in both themes, for the regions that frame the step. */
+  --msf-recessed: color-mix(in oklab, var(--foreground) 4%, var(--surface-raised));
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+.form[data-fill] .progress { margin: 0; padding: var(--space-3) var(--msf-gutter); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border); }
+.form[data-fill] .body { min-height: 0; gap: 0; }
+.form[data-fill] .viewport { height: 100%; min-height: 0; padding: var(--space-6) var(--msf-gutter) var(--space-8); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.form[data-fill] .step legend { font-family: var(--font-display); font-size: var(--text-xl); letter-spacing: var(--tracking-display); line-height: var(--leading-display); }
+.form[data-fill] .step .description { margin: var(--space-2) 0 var(--space-6); }
+.form[data-fill] .step legend + .content { margin-top: var(--space-6); }
+.form[data-fill] .content { gap: var(--space-5); }
+.form[data-fill] .actionsShell { padding: var(--space-3) var(--msf-gutter); border-top: 1px solid var(--border); background: var(--msf-recessed); }
 .form[data-fill] .actions { align-items: center; margin-top: 0; }
 @container msf (min-width: 720px) {
-  .form[data-fill] .body[data-aside] { height: 100%; align-items: stretch; }
-  .form[data-fill] .body[data-aside] .aside { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+  .form[data-fill] .body[data-aside] { height: 100%; grid-template-columns: minmax(0, 1fr) 340px; align-items: stretch; }
+  .form[data-fill] .body[data-aside] .viewport { padding-right: var(--msf-gutter); }
+  .form[data-fill] .body[data-aside] .aside { min-height: 0; padding: var(--space-6) var(--msf-gutter); overflow-y: auto; border-left: 1px solid var(--border); background: var(--msf-recessed); scrollbar-width: thin; }
 }
 @container msf (max-width: 719px) {
-  .form[data-fill] .body[data-aside] { grid-template-rows: minmax(0, 1fr) auto; gap: 0; }
-  .form[data-fill] .body[data-aside] .aside { padding-top: var(--space-3); border-top: 1px solid var(--border-subtle); }
+  .form[data-fill] { --msf-gutter: var(--space-4); }
+  .form[data-fill] .body[data-aside] { grid-template-rows: minmax(0, 1fr) auto; }
+  .form[data-fill] .body[data-aside] .aside { padding: var(--space-2) var(--msf-gutter); border-top: 1px solid var(--border); background: var(--msf-recessed); }
 }
