@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addBusinessDays, estimate, type EstimateInput } from "./estimate";
+import { addBusinessDays, deliveryDays, estimate, type EstimateInput } from "./estimate";
 
 // 2026-10-05 is a Monday.
 const complete: EstimateInput = {
@@ -52,5 +52,12 @@ describe("estimate", () => {
   it("flags a requested date earlier than the estimate", () => {
     expect(estimate({ ...complete, dueDate: "2026-10-08" }).tight).toBe(true);
     expect(estimate({ ...complete, dueDate: "2026-10-20" }).tight).toBe(false);
+  });
+});
+
+describe("deliveryDays", () => {
+  it("splits the total into piece type, priority and brief, and keeps a one day floor", () => {
+    expect(deliveryDays("web", "landing", "critica", "parcial")).toEqual({ base: 7, priority: -3, brief: 2, days: 6 });
+    expect(deliveryDays("diseno", "meta", "critica", "completo")).toEqual({ base: 2, priority: -1, brief: 0, days: 1 });
   });
 });

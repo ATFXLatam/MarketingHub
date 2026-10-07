@@ -3,18 +3,34 @@
 import { useRef } from "react";
 import { useSignIn, useSignUp } from "@clerk/nextjs";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SignIn, type SignInAccount } from "@/components/arc/blocks/sign-in/sign-in";
+import { Megaphone } from "lucide-react";
+import {
+  LoginSplit,
+  type LoginSplitAccount,
+} from "@/components/arc/blocks/login-split/login-split";
 import { safeDestination } from "@/lib/auth/destination";
+import styles from "./clerk-sign-in.module.css";
 
-type ClerkResult = { error: { code: string; message: string; longMessage?: string } | null };
+type ClerkResult = {
+  error: { code: string; message: string; longMessage?: string } | null;
+};
 
 function raise(result: ClerkResult): void {
-  if (result.error) throw new Error(result.error.longMessage ?? result.error.message);
+  if (result.error)
+    throw new Error(result.error.longMessage ?? result.error.message);
 }
 
 function nameFrom(email: string): string {
-  const parts = email.split("@")[0].split(/[._+-]+/).filter(Boolean);
-  return parts.slice(0, 2).map((part) => part[0].toUpperCase() + part.slice(1)).join(" ") || email;
+  const parts = email
+    .split("@")[0]
+    .split(/[._+-]+/)
+    .filter(Boolean);
+  return (
+    parts
+      .slice(0, 2)
+      .map((part) => part[0].toUpperCase() + part.slice(1))
+      .join(" ") || email
+  );
 }
 
 /** Email code sign-in on Clerk's custom flow API: an unknown address signs up with the same code step. */
@@ -27,7 +43,15 @@ export function ClerkSignIn() {
   const email = useRef("");
 
   async function sendCode(address: string) {
-    if (!signIn || !signUp) throw new Error("El inicio de sesión todavía está cargando. Intenta en un momento.");
+    if (!signIn || !signUp)
+      throw new Error(
+        "El inicio de sesión todavía está cargando. Intenta en un momento.",
+      );
+    // A resend during a sign up must reuse that sign up; creating another one would reset or reject the flow.
+    if (mode.current === "signUp" && email.current === address) {
+      raise(await signUp.verifications.sendEmailCode());
+      return;
+    }
     email.current = address;
     const sent = await signIn.emailCode.sendCode({ emailAddress: address });
     if (!sent.error) {
@@ -40,27 +64,60 @@ export function ClerkSignIn() {
     mode.current = "signUp";
   }
 
-  async function verifyCode(code: string): Promise<SignInAccount> {
-    if (!signIn || !signUp) throw new Error("El inicio de sesión todavía está cargando. Intenta en un momento.");
+  async function verifyCode(code: string): Promise<LoginSplitAccount> {
+    if (!signIn || !signUp)
+      throw new Error(
+        "El inicio de sesión todavía está cargando. Intenta en un momento.",
+      );
     if (mode.current === "signIn") {
       raise(await signIn.emailCode.verifyCode({ code }));
-      if (signIn.status !== "complete") throw new Error("Tu cuenta pide un paso más. Escríbele al equipo de marketing.");
+      if (signIn.status !== "complete")
+        throw new Error(
+          "Tu cuenta pide un paso más. Escríbele al equipo de marketing.",
+        );
       raise(await signIn.finalize());
     } else {
       raise(await signUp.verifications.verifyEmailCode({ code }));
-      if (signUp.status !== "complete") throw new Error("Falta completar tu registro. Escríbele al equipo de marketing.");
+      if (signUp.status !== "complete")
+        throw new Error(
+          "Falta completar tu registro. Escríbele al equipo de marketing.",
+        );
       raise(await signUp.finalize());
     }
     return { name: nameFrom(email.current), email: email.current };
   }
 
   return (
-    <SignIn
-      title="Marketing LATAM"
-      subtitle="Entra con tu correo de ATFX y te enviamos un código de 6 dígitos."
+    <LoginSplit
+      fullScreen
+      brand={
+        <>
+          <Megaphone size={20} strokeWidth={1.75} aria-hidden="true" />
+          Marketing LATAM
+        </>
+      }
+      title="Entra al tablero"
+      subtitle="Usa tu correo de ATFX y te enviamos un código de 6 dígitos."
       onSendCode={sendCode}
       onVerifyCode={verifyCode}
-      onDone={() => router.replace(safeDestination(params.get("redirect_url"), window.location.origin))}
+      onDone={() =>
+        router.replace(
+          safeDestination(params.get("redirect_url"), window.location.origin),
+        )
+      }
+      aside={
+        <div className={styles.aside}>
+          <p className={styles.lead}>
+            Pide una pieza, sigue cómo avanza y recíbela en la fecha que viste
+            al pedirla.
+          </p>
+          <ul className={styles.points}>
+            <li>La fecha estimada sale de qué tan completo está tu brief.</li>
+            <li>El tablero muestra quién trabaja en qué, en tiempo real.</li>
+            <li>Los estados se actualizan solos desde monday.</li>
+          </ul>
+        </div>
+      }
     />
   );
 }

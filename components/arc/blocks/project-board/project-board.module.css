@@ -32,7 +32,9 @@
 
 .stageScroll { overflow-x: auto; padding: 0 20px 20px; scroll-padding-inline: 20px; scroll-snap-type: x proximity; overscroll-behavior-x: contain; scrollbar-width: none; }
 .stageScroll::-webkit-scrollbar { display: none; }
-.stages { display: grid; grid-template-columns: repeat(var(--stage-count, 4), minmax(200px, 1fr)); gap: 10px; min-width: calc(var(--stage-count, 4) * 210px); }
+.stages { display: grid; grid-template-columns: repeat(var(--tracks, 4), minmax(150px, 1fr)); gap: 10px; min-width: calc(var(--tracks, 4) * 160px); }
+.stage[data-wide] { grid-column: span 2; }
+.stage[data-wide] .cardStack { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; }
 .stage { min-width: 0; scroll-snap-align: start; }
 .stageHead { display: flex; height: 28px; align-items: center; gap: 8px; padding: 0 6px 4px; }
 .stage h3 { margin: 0; font: 500 var(--text-sm)/var(--leading-body) var(--font-body); letter-spacing: var(--tracking-body); }
@@ -64,6 +66,8 @@
   .stageScroll { padding: 0 16px 16px; scroll-padding-inline: 16px; }
   .board { contain: paint; }
   .stages { grid-template-columns: repeat(var(--stage-count, 4), max(232px, calc(100% - 44px))); min-width: 0; }
+  .stage[data-wide] { grid-column: auto; }
+  .stage[data-wide] .cardStack { grid-template-columns: minmax(0, 1fr); }
   .filters button { height: 36px; padding: 0 12px; }
 }
 

@@ -62,8 +62,8 @@
 
 .srOnly, .compact .text { position: absolute; width: 1px; height: 1px; margin: 0; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .compact.horizontal .caption { display: grid; }
-/* Four labels no longer fit side by side: keep the markers and name the current step underneath. */
-@container stepper (max-width: 30rem) {
+/* Four short labels (as in a request drawer) no longer fit side by side: keep the markers and name the current step underneath. */
+@container stepper (max-width: 24rem) {
   .horizontal .text { position: absolute; width: 1px; height: 1px; margin: 0; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .horizontal .caption { display: grid; }
 }

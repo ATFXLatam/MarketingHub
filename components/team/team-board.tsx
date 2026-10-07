@@ -59,10 +59,11 @@ function select(id: string | null) {
 export interface TeamBoardProps {
   tasks: PublicTask[];
   activity: PublicEvent[];
+  now: number;
   today: string;
 }
 
-export function TeamBoard({ tasks, activity, today }: TeamBoardProps) {
+export function TeamBoard({ tasks, activity, now, today }: TeamBoardProps) {
   // Until someone picks a view, it follows the screen: kanban on desktop, table on a phone.
   const [picked, setPicked] = useState<string | null>(null);
   const isPhone = useSyncExternalStore(subscribeToPhone, () => matchMedia(PHONE_QUERY).matches, () => false);
@@ -138,7 +139,7 @@ export function TeamBoard({ tasks, activity, today }: TeamBoardProps) {
           emptyMessage="Sin solicitudes"
         />
       )}
-      <TaskDrawer task={selected} history={activity} today={today} onClose={() => select(null)} />
+      <TaskDrawer task={selected} history={activity} now={now} today={today} onClose={() => select(null)} />
     </section>
   );
 }

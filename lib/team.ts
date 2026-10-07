@@ -8,6 +8,10 @@ export interface TeamMember extends PublicOwner {
   /** Everything assigned that is not finished yet. */
   open: number;
   done: number;
+  /** Areas the member has work in, for filtering the directory. */
+  areas: NonNullable<PublicTask["area"]>[];
+  /** Open work by due date, so the profile can list what comes next. */
+  queue: PublicTask[];
 }
 
 const byDue = (a: PublicTask, b: PublicTask) => (a.dueDate ?? "9999").localeCompare(b.dueDate ?? "9999");
@@ -24,6 +28,8 @@ export function teamMembers(tasks: PublicTask[]): TeamMember[] {
         current: mine.filter((task) => task.stage === "en-curso").sort(byDue),
         open: mine.filter((task) => task.stage !== "hecha").length,
         done: mine.filter((task) => task.stage === "hecha").length,
+        areas: [...new Set(mine.flatMap((task) => (task.area ? [task.area] : [])))],
+        queue: mine.filter((task) => task.stage !== "hecha").sort(byDue),
       };
     })
     .sort((a, b) => b.current.length - a.current.length || b.open - a.open || a.name.localeCompare(b.name));
@@ -42,4 +48,15 @@ export function upcomingDeliveries(tasks: PublicTask[]): PublicTask[] {
 /** The next delivery still ahead; overdue work is shown on its own card, not as a "0 days" countdown. */
 export function nextDelivery(tasks: PublicTask[], today: string): PublicTask | undefined {
   return upcomingDeliveries(tasks).find((task) => task.dueDate! >= today);
+}
+
+/** A member's shares, in percent: what they finished, what is still on time, and what is moving now. */
+export function memberShares(member: TeamMember, today: string): { entregadas: number; alDia: number; enCurso: number } {
+  const percent = (part: number, whole: number) => (whole ? Math.round((part / whole) * 100) : 0);
+  const late = member.queue.filter((task) => task.dueDate !== null && task.dueDate < today).length;
+  return {
+    entregadas: percent(member.done, member.done + member.open),
+    alDia: member.open ? percent(member.open - late, member.open) : 100,
+    enCurso: percent(member.current.length, member.open),
+  };
 }

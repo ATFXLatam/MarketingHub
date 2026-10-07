@@ -1,0 +1,4 @@
+.aside { display: flex; height: 100%; box-sizing: border-box; flex-direction: column; justify-content: flex-end; gap: 24px; padding: clamp(32px, 6vw, 72px); }
+.lead { max-width: 22ch; margin: 0; font: 500 var(--text-3xl)/var(--leading-display) var(--font-display); letter-spacing: var(--tracking-display); text-wrap: balance; }
+.points { display: flex; max-width: 40ch; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; color: var(--text-secondary); font-size: var(--text-sm); }
+.points li { padding-top: 10px; border-top: 1px solid var(--border); }

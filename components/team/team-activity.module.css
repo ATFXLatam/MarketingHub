@@ -1,14 +1,13 @@
 /* Desktop keeps the history tall on the left; on phones what is coming next reads first. */
 .root { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); grid-template-areas: "past upcoming" "past areas"; grid-template-rows: auto 1fr; gap: 12px; align-items: start; }
 .past { grid-area: past; }
-.upcomingPanel { grid-area: upcoming; }
+/* The feed scrolls inside a fixed frame so it can be pulled past its top edge. */
+.upcomingPanel { grid-area: upcoming; height: 440px; }
 .areasPanel { grid-area: areas; }
 .panel { display: flex; min-width: 0; flex-direction: column; gap: 14px; padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-panel); background: var(--surface); }
 .heading { margin: 0; font: 500 var(--text-base)/var(--leading-body) var(--font-display); letter-spacing: var(--tracking-body); }
 
-.upcoming { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
-.upcoming li { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-top: 1px solid var(--border-subtle); }
-.upcoming li:first-child { border-top: 0; padding-top: 0; }
+.upcomingRow { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; }
 .date { display: inline-flex; align-items: center; gap: 6px; height: fit-content; color: var(--text-secondary); font-size: var(--text-sm); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .date[data-soon] { color: var(--warning); }
 .task { display: flex; min-width: 0; flex-direction: column; gap: 2px; font-size: var(--text-sm); font-weight: 500; }

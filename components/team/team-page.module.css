@@ -1,6 +1,8 @@
-.page { display: flex; width: min(100%, 1320px); flex-direction: column; gap: 24px; margin: 0 auto; padding: 40px 24px 64px; }
-.page > * { min-width: 0; }
+.page { display: flex; width: min(100%, 1320px); flex-direction: column; gap: 40px; margin: 0 auto; padding: 40px 24px 32px; }
+.main { display: flex; min-width: 0; flex-direction: column; gap: 24px; }
+.main > * { min-width: 0; }
 
 @media (max-width: 520px) {
-  .page { gap: 20px; padding: 28px 16px 48px; }
+  .page { gap: 32px; padding: 28px 16px 24px; }
+  .main { gap: 20px; }
 }

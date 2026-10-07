@@ -34,34 +34,62 @@ const TIER_PENALTY_DAYS: Record<BriefTier, number> = { completo: 0, parcial: 2, 
 // Priority reorders the queue; it shortens the turnaround, it does not make the work smaller, hence a floor of one day.
 const PRIORITY_FACTOR: Record<Priority, number> = { normal: 1, media: 1, alta: 0.75, critica: 0.5 };
 
-type Check = { weight: number; ok: (input: EstimateInput) => boolean; hint: string };
+type Check = { weight: number; ok: (input: EstimateInput) => boolean; hint: string; label: string };
 
 const CHECKS: Check[] = [
   {
     weight: 35,
     ok: (input) => input.brief.trim().length >= DETAILED_BRIEF_CHARS,
     hint: "Detalla objetivo, público, formato y copy en el brief",
+    label: "Brief con objetivo, público, formato y copy",
   },
   {
     weight: 25,
     ok: (input) => Boolean(input.drive?.trim()) || input.attachmentCount > 0,
     hint: "Agrega la carpeta Drive o adjuntos con el material",
+    label: "Material en Drive o adjuntos",
   },
   {
     weight: 15,
     ok: (input) =>
       Boolean(input.subtype) && (input.subtype !== "landing" || input.area !== "web" || Boolean(input.landingSubtype)),
     hint: "Elige el tipo de pieza",
+    label: "Tipo de pieza definido",
   },
-  { weight: 10, ok: (input) => Boolean(input.market), hint: "Indica el mercado" },
-  { weight: 15, ok: (input) => !input.blockers?.trim(), hint: "Resuelve los bloqueadores antes de arrancar" },
+  { weight: 10, ok: (input) => Boolean(input.market), hint: "Indica el mercado", label: "Mercado indicado" },
+  { weight: 15, ok: (input) => !input.blockers?.trim(), hint: "Resuelve los bloqueadores antes de arrancar", label: "Sin bloqueadores" },
 ];
+
+/** What a complete brief carries, heaviest first, for anything that explains the score outside the form. */
+export const BRIEF_CHECKS: readonly { weight: number; hint: string; label: string }[] = [...CHECKS]
+  .sort((a, b) => b.weight - a.weight)
+  .map(({ weight, hint, label }) => ({ weight, hint, label }));
+
+export function tierFor(score: number): BriefTier {
+  return score >= 80 ? "completo" : score >= 50 ? "parcial" : "incompleto";
+}
 
 export function briefQuality(input: EstimateInput): { score: number; tier: BriefTier; missing: string[] } {
   const score = CHECKS.reduce((total, check) => total + (check.ok(input) ? check.weight : 0), 0);
   const missing = CHECKS.filter((check) => !check.ok(input)).map((check) => check.hint);
-  const tier: BriefTier = score >= 80 ? "completo" : score >= 50 ? "parcial" : "incompleto";
-  return { score, tier, missing };
+  return { score, tier: tierFor(score), missing };
+}
+
+export interface DeliveryDays {
+  /** Business days the piece type takes. */
+  base: number;
+  /** Days priority takes off (zero or negative). */
+  priority: number;
+  /** Days an incomplete brief adds. */
+  brief: number;
+  days: number;
+}
+
+/** Where the delivery days come from, so the form and the calculator explain the same number. */
+export function deliveryDays(area: Area, subtype: string | undefined, priority: Priority, tier: BriefTier): DeliveryDays {
+  const base = (subtype && subtypeOf(area, subtype)?.days) || FALLBACK_DAYS;
+  const prioritized = Math.max(1, Math.ceil(base * PRIORITY_FACTOR[priority]));
+  return { base, priority: prioritized - base, brief: TIER_PENALTY_DAYS[tier], days: prioritized + TIER_PENALTY_DAYS[tier] };
 }
 
 // HACK: Monday to Friday only, no holidays. Add a holiday calendar per market when a date lands on one and someone notices.
@@ -78,8 +106,7 @@ export function addBusinessDays(isoDate: string, days: number): string {
 
 export function estimate(input: EstimateInput): Estimate {
   const { score, tier, missing } = briefQuality(input);
-  const base = (input.subtype && subtypeOf(input.area, input.subtype)?.days) || FALLBACK_DAYS;
-  const days = Math.max(1, Math.ceil(base * PRIORITY_FACTOR[input.priority])) + TIER_PENALTY_DAYS[tier];
+  const { days } = deliveryDays(input.area, input.subtype, input.priority, tier);
   const date = addBusinessDays(input.today, days);
   const blocked = Boolean(input.blockers?.trim());
   return {

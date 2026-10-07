@@ -64,8 +64,10 @@ export function ProjectBoard({ title, team, stages, tasks, doneStage, filters = 
   const shown = filters.length < 2 || filter === filters[0]?.value ? tasks : tasks.filter((task) => task.filterKey === filter);
   const completed = shown.filter((task) => task.stage === doneStage).length;
   const spring = reduce ? { duration: 0 } : motionTokens.spring.gentle;
+  // A stage with cards takes two tracks and lays them out two per row, so no column becomes the long one; an empty stage stays narrow.
+  const tracks = stages.reduce((sum, stage) => sum + (shown.some((task) => task.stage === stage.id) ? 2 : 1), 0);
 
-  return <LayoutGroup id={groupId}><section className={styles.board} aria-label={title} style={{ ["--stage-count" as string]: stages.length }}>
+  return <LayoutGroup id={groupId}><section className={styles.board} aria-label={title} style={{ ["--stage-count" as string]: stages.length, ["--tracks" as string]: tracks }}>
     <header className={styles.header}>
       <div className={styles.heading}>
         <h2>{title}</h2>
@@ -87,7 +89,7 @@ export function ProjectBoard({ title, team, stages, tasks, doneStage, filters = 
       <div className={styles.stages}>
         {stages.map((stage) => {
           const cards = shown.filter((task) => task.stage === stage.id);
-          return <section className={styles.stage} key={stage.id} aria-label={`${stage.label}, ${cards.length} solicitudes`}>
+          return <section className={styles.stage} key={stage.id} data-wide={cards.length > 0 || undefined} aria-label={`${stage.label}, ${cards.length} solicitudes`}>
             <div className={styles.stageHead}><h3>{stage.label}</h3><span className={styles.stageCount}>{cards.length}</span></div>
             <div className={styles.cardStack}>
               <AnimatePresence mode="popLayout" initial={false}>

@@ -1,21 +1,41 @@
 "use client";
 
 import { CalendarDays, CircleCheck, GitPullRequestArrow } from "lucide-react";
-import { DonutChart } from "@/components/arc/donut-chart/donut-chart";
+import { useRouter } from "next/navigation";
+import { StretchRefresh } from "@/components/arc/stretch-refresh/stretch-refresh";
+import { ActivityRings } from "@/components/arc/activity-rings/activity-rings";
 import { Timeline } from "@/components/arc/timeline/timeline";
-import { AREA_LABEL, AREAS, STAGE_LABEL } from "@/lib/board-config";
+import { STAGE_LABEL } from "@/lib/board-config";
 import { formatDay, TEAM_TIME_ZONE } from "@/lib/dates";
 import type { PublicEvent, PublicTask } from "@/lib/public-dto";
-import { daysUntil, upcomingDeliveries } from "@/lib/team";
+import {
+  daysUntil,
+  memberShares,
+  teamMembers,
+  upcomingDeliveries,
+} from "@/lib/team";
 import { dueText } from "./team-overview";
 import styles from "./team-activity.module.css";
 
-// Areas share the accent hue at different strengths.
-const AREA_SHADES = [
-  "var(--accent)",
-  "color-mix(in oklch, var(--accent) 72%, var(--foreground))",
-  "color-mix(in oklch, var(--accent) 55%, var(--surface-muted))",
-  "color-mix(in oklch, var(--accent) 38%, var(--foreground))",
+// Long enough that the spinner reads as work, not a flicker.
+const REFRESH_MIN_MS = 600;
+
+const SHARES = [
+  {
+    id: "entregadas",
+    label: "Entregadas",
+    unit: "",
+    goal: 100,
+    color: "var(--success)",
+  },
+  { id: "alDia", label: "Al día", unit: "", goal: 100, color: "var(--accent)" },
+  {
+    id: "enCurso",
+    label: "En curso",
+    unit: "",
+    goal: 100,
+    color: "var(--warning)",
+  },
 ];
 
 export interface TeamActivityProps {
@@ -25,19 +45,37 @@ export interface TeamActivityProps {
   today: string;
 }
 
-export function TeamActivity({ tasks, activity, now, today }: TeamActivityProps) {
+export function TeamActivity({
+  tasks,
+  activity,
+  now,
+  today,
+}: TeamActivityProps) {
+  const router = useRouter();
+  // Re-reads the cached snapshot the monday webhook keeps current; it never calls monday itself, so pulling cannot burn API quota.
+  async function refresh() {
+    router.refresh();
+    await new Promise((resolve) => setTimeout(resolve, REFRESH_MIN_MS));
+    return "Al día";
+  }
   const upcoming = upcomingDeliveries(tasks);
-  const byArea = AREAS.map((area, index) => ({
-    key: area,
-    label: AREA_LABEL[area],
-    value: tasks.filter((task) => task.area === area).length,
-    color: AREA_SHADES[index % AREA_SHADES.length],
-  })).filter((item) => item.value > 0);
+  // One ring set per person: the picker under the dial switches between people instead of days.
+  const people = teamMembers(tasks).map((member) => ({
+    id: member.id,
+    label: member.name,
+    short: member.name.split(" ")[0],
+    values: memberShares(member, today),
+  }));
 
   return (
     <div className={styles.root}>
-      <section className={`${styles.panel} ${styles.past}`} aria-labelledby="activity-title">
-        <h2 id="activity-title" className={styles.heading}>Movimientos recientes</h2>
+      <section
+        className={`${styles.panel} ${styles.past}`}
+        aria-labelledby="activity-title"
+      >
+        <h2 id="activity-title" className={styles.heading}>
+          Movimientos recientes
+        </h2>
         {activity.length ? (
           <Timeline
             label="Movimientos recientes"
@@ -52,46 +90,73 @@ export function TeamActivity({ tasks, activity, now, today }: TeamActivityProps)
                 id: event.id,
                 at: event.at,
                 actor: event.taskTitle,
-                title: done ? "se entregó" : `pasó a ${STAGE_LABEL[event.stage]}`,
-                icon: done ? <CircleCheck size={14} strokeWidth={1.75} /> : <GitPullRequestArrow size={14} strokeWidth={1.75} />,
+                title: done
+                  ? "se entregó"
+                  : `pasó a ${STAGE_LABEL[event.stage]}`,
+                icon: done ? (
+                  <CircleCheck size={14} strokeWidth={1.75} />
+                ) : (
+                  <GitPullRequestArrow size={14} strokeWidth={1.75} />
+                ),
                 tone: done ? ("success" as const) : ("neutral" as const),
               };
             })}
           />
         ) : (
-          <p className={styles.empty}>Los cambios de estado de los últimos 30 días aparecen aquí.</p>
+          <p className={styles.empty}>
+            Los cambios de estado de los últimos 60 días aparecen aquí.
+          </p>
         )}
       </section>
-      <section className={`${styles.panel} ${styles.upcomingPanel}`} aria-labelledby="upcoming-title">
-        <h2 id="upcoming-title" className={styles.heading}>Próximas entregas</h2>
-        {upcoming.length ? (
-          <ol className={styles.upcoming}>
-            {upcoming.map((task) => {
-              const days = daysUntil(task.dueDate!, today);
-              return (
-                <li key={task.id}>
-                  <span className={styles.date} data-soon={days <= 2 || undefined}>
-                    <CalendarDays size={14} strokeWidth={1.75} aria-hidden="true" />
-                    <time dateTime={task.dueDate!}>{formatDay(task.dueDate!)}</time>
-                  </span>
-                  <span className={styles.task}>
-                    <span>{task.title}</span>
-                    <span className={styles.stage}>
-                      {STAGE_LABEL[task.stage]} · {dueText(days)}
-                      {task.owners.length > 0 && ` · ${task.owners.map((owner) => owner.name.split(" ")[0]).join(", ")}`}
-                    </span>
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
+      <StretchRefresh
+        className={styles.upcomingPanel}
+        title="Próximas entregas"
+        subtitle={
+          upcoming.length
+            ? `${upcoming.length} con fecha`
+            : "Nada con fecha pendiente"
+        }
+        items={upcoming}
+        getKey={(task) => task.id}
+        onRefresh={refresh}
+        renderItem={(task) => {
+          const days = daysUntil(task.dueDate!, today);
+          return (
+            <div className={styles.upcomingRow}>
+              <span className={styles.date} data-soon={days <= 2 || undefined}>
+                <CalendarDays size={14} strokeWidth={1.75} aria-hidden="true" />
+                <time dateTime={task.dueDate!}>{formatDay(task.dueDate!)}</time>
+              </span>
+              <span className={styles.task}>
+                <span>{task.title}</span>
+                <span className={styles.stage}>
+                  {STAGE_LABEL[task.stage]} · {dueText(days)}
+                  {task.owners.length > 0 &&
+                    ` · ${task.owners.map((owner) => owner.name.split(" ")[0]).join(", ")}`}
+                </span>
+              </span>
+            </div>
+          );
+        }}
+      />
+      <section
+        className={`${styles.panel} ${styles.areasPanel}`}
+        aria-labelledby="areas-title"
+      >
+        <h2 id="areas-title" className={styles.heading}>
+          Por persona
+        </h2>
+        {people.length ? (
+          <ActivityRings
+            metrics={SHARES}
+            days={people}
+            defaultDay={people[0].id}
+            label="Avance por persona"
+            pickerLabel="Persona"
+          />
         ) : (
-          <p className={styles.empty}>Nada con fecha pendiente.</p>
+          <p className={styles.empty}>Nadie tiene solicitudes asignadas.</p>
         )}
-      </section>
-      <section className={`${styles.panel} ${styles.areasPanel}`} aria-labelledby="areas-title">
-        <h2 id="areas-title" className={styles.heading}>Por área</h2>
-        <DonutChart data={byArea} label="Solicitudes por área" unit="solicitudes" totalLabel="Total" size={168} thickness={20} otherLabel="Otras" emptyLabel="Sin solicitudes" />
       </section>
     </div>
   );

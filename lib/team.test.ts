@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PublicOwner, PublicTask } from "./public-dto";
-import { daysUntil, nextDelivery, teamMembers, upcomingDeliveries } from "./team";
+import { daysUntil, memberShares, nextDelivery, teamMembers, upcomingDeliveries } from "./team";
 
 const ana: PublicOwner = { id: "1", name: "Ana", photo: null, title: "Diseño", timeZone: "America/Lima" };
 const leo: PublicOwner = { id: "2", name: "Leo", photo: null, title: null, timeZone: null };
@@ -20,7 +20,8 @@ describe("teamMembers", () => {
     ]);
     expect(members.map((member) => member.name)).toEqual(["Ana", "Leo"]);
     expect(members[0].current.map((item) => item.id)).toEqual(["c", "b"]);
-    expect(members[0]).toMatchObject({ open: 2, done: 1, title: "Diseño" });
+    expect(members[0]).toMatchObject({ open: 2, done: 1, title: "Diseño", areas: ["web"] });
+    expect(members[0].queue.map((item) => item.id)).toEqual(["c", "b"]);
   });
 });
 
@@ -42,5 +43,18 @@ describe("nextDelivery", () => {
   it("skips overdue work, even a mistyped year, and picks the first date from today on", () => {
     const next = nextDelivery([task({ id: "typo", dueDate: "2000-11-11" }), task({ id: "soon", dueDate: "2026-10-09" }), task({ id: "today", dueDate: "2026-10-06" })], "2026-10-06");
     expect(next?.id).toBe("today");
+  });
+});
+
+describe("memberShares", () => {
+  it("reads late work from the due date and treats an empty queue as on time", () => {
+    const [ana] = teamMembers([
+      task({ id: "late", stage: "ready", dueDate: "2026-10-01" }),
+      task({ id: "ok", stage: "en-curso", dueDate: "2026-10-20" }),
+      task({ id: "done", stage: "hecha" }),
+      task({ id: "undated", stage: "nueva" }),
+    ]);
+    expect(memberShares(ana, "2026-10-06")).toEqual({ entregadas: 25, alDia: 67, enCurso: 33 });
+    expect(memberShares({ ...ana, open: 0, done: 0, queue: [], current: [] }, "2026-10-06")).toEqual({ entregadas: 0, alDia: 100, enCurso: 0 });
   });
 });

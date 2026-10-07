@@ -20,8 +20,8 @@ import { mondayConfigured, mondayQuery } from "./client";
 export const BOARD_TAG = `monday:board:${BOARD_ID}`;
 
 const PAGE_SIZE = 500;
-const ACTIVITY_DAYS = 30;
-const ACTIVITY_LIMIT = 60;
+const ACTIVITY_DAYS = 60;
+const ACTIVITY_LIMIT = 300;
 
 const ITEM_FIELDS = `id name created_at updated_at column_values(ids: $columns) { id text ... on StatusValue { index } ... on PeopleValue { persons_and_teams { id kind } } }`;
 
