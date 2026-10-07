@@ -1,7 +1,6 @@
-import { currentUser } from "@clerk/nextjs/server";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
-import { allowedEmail } from "@/lib/access";
+import { currentSession } from "@/lib/auth/current";
 import { createRateLimiter } from "@/lib/intake/rate-limit";
 import { isUploadPathname } from "@/lib/intake/blob-url";
 import { ACCEPTED_TYPES, MAX_UPLOAD_BYTES } from "@/lib/intake/uploads";
@@ -11,11 +10,11 @@ import { ACCEPTED_TYPES, MAX_UPLOAD_BYTES } from "@/lib/intake/uploads";
 const isUploadRateLimited = createRateLimiter(30, 60 * 60 * 1000);
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const user = await currentUser();
-  if (!user || !allowedEmail(user)) {
+  const user = await currentSession();
+  if (!user?.canRequest) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  if (isUploadRateLimited(user.id)) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  if (isUploadRateLimited(user.userId)) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
 
   try {
     const body = (await request.json()) as HandleUploadBody;

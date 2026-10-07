@@ -26,9 +26,10 @@ interface GraphQLResponse<T> {
 export async function mondayQuery<T>(
   query: string,
   variables: Record<string, unknown> = {},
-  options: { idempotencyKey?: string } = {},
+  options: { idempotencyKey?: string; token?: string } = {},
 ): Promise<T> {
-  const token = process.env.MONDAY_API_TOKEN;
+  // A person's own token runs the call with their monday permissions; without one the call uses the app's fixed token.
+  const token = options.token ?? process.env.MONDAY_API_TOKEN;
   if (!token) throw new MondayError("MONDAY_API_TOKEN no está configurado");
 
   const response = await fetch(ENDPOINT, {

@@ -107,3 +107,4 @@
   .chip, .forgot, .textLink { transition: none; }
   .chip:active { transform: none; }
 }
+.providerError { margin: 0; color: var(--danger); font-size: var(--text-sm); line-height: var(--leading-body); }

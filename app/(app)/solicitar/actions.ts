@@ -1,9 +1,8 @@
 "use server";
 
-import { currentUser } from "@clerk/nextjs/server";
 import { updateTag } from "next/cache";
 import { z } from "zod";
-import { allowedEmail } from "@/lib/access";
+import { currentSession } from "@/lib/auth/current";
 import { estimate, type Estimate } from "@/lib/estimate";
 import { createRateLimiter } from "@/lib/intake/rate-limit";
 import { blobStoreHost, ownBlobHref } from "@/lib/intake/blob-url";
@@ -23,12 +22,11 @@ const isRateLimited = createRateLimiter(10, 60 * 60 * 1000);
 const KeySchema = z.uuid();
 
 export async function submitRequest(input: unknown, idempotencyKey: string): Promise<SubmitResult> {
-  const user = await currentUser();
-  const email = allowedEmail(user);
-  if (!user || !email) {
+  const user = await currentSession();
+  if (!user?.canRequest) {
     return { success: false, error: "Tu cuenta no tiene acceso a este formulario." };
   }
-  if (isRateLimited(user.id)) {
+  if (isRateLimited(user.userId)) {
     return { success: false, error: "Enviaste varias solicitudes seguidas. Espera unos minutos y vuelve a intentar." };
   }
   if (!KeySchema.safeParse(idempotencyKey).success) return { success: false, error: "Recarga la página e intenta de nuevo." };
@@ -57,14 +55,15 @@ export async function submitRequest(input: unknown, idempotencyKey: string): Pro
     attachmentCount: request.attachments.length,
     today,
   });
-  const requester = { name: user.fullName?.trim() || email, email };
+  // Name and email come from monday through the session, never from the form.
+  const requester = { name: user.name, email: user.email };
 
   try {
     const itemId = await createRequestItem(request, requester, result, idempotencyKey);
     updateTag(BOARD_TAG);
     return { success: true, data: { itemId, estimate: result } };
   } catch (error) {
-    console.error("no se pudo crear la solicitud en monday", { user: user.id, error });
+    console.error("no se pudo crear la solicitud en monday", { user: user.userId, error });
     const wait = error instanceof MondayError && error.retryInSeconds ? ` en ${error.retryInSeconds} segundos` : "";
     return { success: false, error: `monday no respondió. Tu solicitud no se perdió: vuelve a enviarla${wait}.` };
   }

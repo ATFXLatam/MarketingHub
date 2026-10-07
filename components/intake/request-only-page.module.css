@@ -1,0 +1,8 @@
+.page { min-height: 100dvh; background: var(--background); color: var(--foreground); }
+.top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--border); }
+.brand { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); font-weight: 500; }
+.main { width: min(100% - 2 * var(--space-4), 960px); margin: 0 auto; padding: var(--space-8) 0 var(--space-12); }
+.title { margin: 0; font-family: var(--font-display); font-size: var(--text-3xl); font-weight: 500; letter-spacing: var(--tracking-display); line-height: var(--leading-display); }
+.description { margin: var(--space-2) 0 var(--space-6); color: var(--text-secondary); font-size: var(--text-sm); }
+/* The form keeps the dialog's fixed grid, so the page reads the same as the flow inside the board. */
+.frame { height: min(760px, calc(100dvh - 12rem)); min-height: 560px; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-surface); background: var(--surface-raised); }

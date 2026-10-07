@@ -86,7 +86,7 @@ export function TaskConversation({ taskId }: { taskId: string }) {
       </section>
       <CommentThread
         title="Comentarios"
-        currentUser={{ id: `hub:${viewer.name}`, name: viewer.name, avatar: viewer.photo ?? undefined }}
+        currentUser={{ id: viewer.id, name: viewer.name, avatar: viewer.photo ?? undefined }}
         comments={comments}
         maxDepth={1}
         allowReactions={false}

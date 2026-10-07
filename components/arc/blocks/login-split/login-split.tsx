@@ -19,9 +19,11 @@ export interface LoginSplitProps {
   title: string;
   subtitle: string;
   /** Sends a one time code to the address. Throw with a message the person can act on. */
-  onSendCode: (email: string) => Promise<void>;
+  onSendCode?: (email: string) => Promise<void>;
   /** Checks the code and returns who signed in. Throw with a message the person can act on. */
-  onVerifyCode: (code: string) => Promise<LoginSplitAccount>;
+  onVerifyCode?: (code: string) => Promise<LoginSplitAccount>;
+  /** Signs in through another service instead of a code: the form becomes one button that leaves for `href`. */
+  provider?: { label: string; href: string; params?: Record<string, string>; icon?: ReactNode; error?: string };
   /** Runs once the person is signed in, usually to navigate away. */
   onDone?: (account: LoginSplitAccount) => void;
   /** The wide screen half beside the form. */
@@ -105,7 +107,7 @@ function useStepHeight(step: Step, reduce: boolean) {
   return { track, height };
 }
 
-export function LoginSplit({ fullScreen = false, brand, title, subtitle, onSendCode, onVerifyCode, onDone, aside }: LoginSplitProps) {
+export function LoginSplit({ fullScreen = false, brand, title, subtitle, onSendCode, onVerifyCode, onDone, provider, aside }: LoginSplitProps) {
   const reduce = !!useReducedMotion();
   const [step, setStep] = useState<Step>("email");
   const [direction, setDirection] = useState(1);
@@ -156,7 +158,7 @@ export function LoginSplit({ fullScreen = false, brand, title, subtitle, onSendC
     setSendError("");
     setStatus("Enviando el código");
     try {
-      await onSendCode(address);
+      await onSendCode?.(address);
       setCode("");
       setCodeError("");
       setSubmit("idle");
@@ -177,6 +179,7 @@ export function LoginSplit({ fullScreen = false, brand, title, subtitle, onSendC
     setCodeError("");
     setStatus("Revisando el código");
     try {
+      if (!onVerifyCode) return;
       const next = await onVerifyCode(value);
       setSubmit("success");
       setAccount(next);
@@ -199,7 +202,7 @@ export function LoginSplit({ fullScreen = false, brand, title, subtitle, onSendC
     if (resendIn > 0 || busy) return;
     setBusy(true);
     try {
-      await onSendCode(email.trim());
+      await onSendCode?.(email.trim());
       setResendIn(RESEND_SECONDS);
       setStatus("Te enviamos un código nuevo");
     } catch (error) {
@@ -229,10 +232,14 @@ export function LoginSplit({ fullScreen = false, brand, title, subtitle, onSendC
                 <AnimatePresence mode="popLayout" initial={false} custom={custom}>
                   {step === "email" && <motion.div key="email" className={styles.step} custom={custom} variants={stepMotion} initial="enter" animate="center" exit="exit">
                     <div className={styles.heading}><Heading>{title}</Heading><p>{subtitle}</p></div>
-                    <form className={styles.form} onSubmit={submitEmail} noValidate>
+                    {provider ? <form className={styles.form} method="get" action={provider.href} onSubmit={() => setBusy(true)}>
+                      {Object.entries(provider.params ?? {}).map(([name, value]) => <input key={name} type="hidden" name={name} value={value} />)}
+                      {provider.error && <p className={styles.providerError} role="alert">{provider.error}</p>}
+                      <Button type="submit" className={styles.wide} loading={busy}>{provider.icon}{provider.label}</Button>
+                    </form> : <form className={styles.form} onSubmit={submitEmail} noValidate>
                       <Input ref={emailRef} label="Correo" type="email" name="email" inputMode="email" autoComplete="username" autoCapitalize="none" spellCheck={false} placeholder="nombre@atfx.com" value={email} readOnly={busy} error={emailError || sendError || undefined} onChange={event => { setEmail(event.target.value); setSendError(""); }} onBlur={() => setTouched(true)} />
                       <Button type="submit" className={styles.wide} loading={busy}>Enviar código</Button>
-                    </form>
+                    </form>}
                   </motion.div>}
 
                   {step === "code" && <motion.div key="code" className={styles.step} custom={custom} variants={stepMotion} initial="enter" animate="center" exit="exit">

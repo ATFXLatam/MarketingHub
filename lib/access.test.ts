@@ -1,23 +1,28 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
+import { accessFor, signInMessage, type MondayIdentity } from "./access";
 
-vi.mock("server-only", () => ({}));
-const { allowedEmail, isAllowedEmail } = await import("./access");
+const member: MondayIdentity = { id: "1", name: "Ana", email: "ana@atfxgm.com", photo: null, enabled: true, isGuest: false, isViewOnly: false, accountId: "acc", boardVisible: false };
 
-const user = (status: string | null) => ({ primaryEmailAddress: { emailAddress: "ana@atfx.com", verification: { status } } });
-
-afterEach(() => vi.unstubAllEnvs());
-
-describe("access", () => {
-  it("rejects an allowed domain until the address is verified", () => {
-    vi.stubEnv("ALLOWED_EMAIL_DOMAINS", "atfx.com");
-    expect(allowedEmail(user("unverified"))).toBeNull();
-    expect(allowedEmail(user("verified"))).toBe("ana@atfx.com");
+describe("accessFor", () => {
+  it("lets a member without board access request but not see the board", () => {
+    expect(accessFor(member, "acc")).toEqual({ allowed: true, board: false, canRequest: true });
   });
 
-  it("keeps a deployment without a domain list closed, preview included", () => {
-    vi.stubEnv("ALLOWED_EMAIL_DOMAINS", "");
-    vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("VERCEL_ENV", "preview");
-    expect(isAllowedEmail("ana@atfx.com")).toBe(false);
+  it("turns away other accounts, guests and viewers who cannot see the board", () => {
+    expect(accessFor({ ...member, accountId: "other" }, "acc").allowed).toBe(false);
+    expect(accessFor({ ...member, isGuest: true, boardVisible: true }, "acc").allowed).toBe(false);
+    expect(accessFor({ ...member, isViewOnly: true }, "acc").allowed).toBe(false);
+  });
+
+  it("shows the board to a viewer who has it in monday, without request rights", () => {
+    expect(accessFor({ ...member, isViewOnly: true, boardVisible: true }, "acc")).toEqual({ allowed: true, board: true, canRequest: false });
+  });
+});
+
+describe("signInMessage", () => {
+  it("only shows its own words, so a crafted ?error= link cannot put text on the sign-in page", () => {
+    expect(signInMessage("invitado")).toMatch(/invitados/);
+    expect(signInMessage("Llama al 555 para recuperar tu cuenta")).toBeUndefined();
+    expect(signInMessage("toString")).toBeUndefined();
   });
 });

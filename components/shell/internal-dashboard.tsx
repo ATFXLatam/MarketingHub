@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { useClerk } from "@clerk/nextjs";
 import { usePathname, useRouter } from "next/navigation";
 import { Check, Link2, Plus } from "lucide-react";
 import { Button } from "@/components/arc/button/button";
@@ -23,14 +22,15 @@ interface InternalDashboardProps extends Omit<TeamPageProps, "actions"> {
   /** /solicitar opens the dashboard with the request flow already up, so the link can go out by email. */
   requestOpen?: boolean;
   areaOwners: Record<Area, AreaOwner[]>;
+  /** Viewer seats see the board but cannot request work. */
+  canRequest: boolean;
 }
 
 /** The team's page plus what only the team does: request work, share the client link, and the account menu. */
-export function InternalDashboard({ user, publicPath, requestOpen = false, areaOwners, ...page }: InternalDashboardProps) {
+export function InternalDashboard({ user, publicPath, requestOpen = false, areaOwners, canRequest, ...page }: InternalDashboardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { signOut } = useClerk();
-  const [requesting, setRequesting] = useState(requestOpen);
+  const [requesting, setRequesting] = useState(requestOpen && canRequest);
   const [copied, setCopied] = useState<"idle" | "done" | "failed">("idle");
   // The stored choice only exists in the browser; hydration uses "system" like the server, then the stored value.
   const stored = useSyncExternalStore(noSubscription, readPreference, () => "system" as const);
@@ -60,7 +60,7 @@ export function InternalDashboard({ user, publicPath, requestOpen = false, areaO
 
   return (
     <>
-      <RequestFlow open={requesting} onOpenChange={onRequestOpenChange} requester={user.name} areaOwners={areaOwners} today={page.today} />
+      {canRequest && <RequestFlow open={requesting} onOpenChange={onRequestOpenChange} requester={user.name} areaOwners={areaOwners} today={page.today} />}
       <TeamPage
         {...page}
         actions={
@@ -71,10 +71,12 @@ export function InternalDashboard({ user, publicPath, requestOpen = false, areaO
                 {copied === "done" ? "Enlace copiado" : copied === "failed" ? "No se pudo copiar" : "Enlace para clientes"}
               </Button>
             )}
-            <Button size="sm" onClick={() => setRequesting(true)}>
-              <Plus {...icon} />
-              Nueva solicitud
-            </Button>
+            {canRequest && (
+              <Button size="sm" onClick={() => setRequesting(true)}>
+                <Plus {...icon} />
+                Nueva solicitud
+              </Button>
+            )}
             <UserMenu
               user={user}
               align="end"
@@ -83,7 +85,7 @@ export function InternalDashboard({ user, publicPath, requestOpen = false, areaO
                 setPicked(next);
                 applyPreference(next);
               }}
-              onSignOut={() => signOut({ redirectUrl: "/sign-in" })}
+              onSignOut={() => void fetch("/api/monday/oauth/logout", { method: "POST" }).finally(() => router.replace("/sign-in"))}
             />
           </>
         }
