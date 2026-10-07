@@ -14,7 +14,7 @@ const noSubscription = () => () => {};
 const icon = { size: 16, strokeWidth: 1.75, "aria-hidden": true } as const;
 const COPIED_MS = 2000;
 
-interface InternalDashboardProps extends Omit<TeamPageProps, "actions" | "onRequest"> {
+interface InternalDashboardProps extends Omit<TeamPageProps, "actions"> {
   user: { name: string; email: string; avatarSrc?: string };
   /** Absent when PUBLIC_BOARD_TOKEN is not configured. */
   publicPath?: string;
@@ -60,7 +60,6 @@ export function InternalDashboard({ user, publicPath, requestOpen = false, ...pa
       <RequestFlow open={requesting} onOpenChange={onRequestOpenChange} requester={user.name} today={page.today} />
       <TeamPage
         {...page}
-        onRequest={() => setRequesting(true)}
         actions={
           <>
             {publicPath && (

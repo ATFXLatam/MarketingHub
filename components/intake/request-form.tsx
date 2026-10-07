@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { EstimateBreakdown, EstimateCard } from "@/components/arc/blocks/usage-pricing/usage-pricing";
 import { upload } from "@vercel/blob/client";
 import { submitRequest } from "@/app/(app)/solicitar/actions";
 import { Alert } from "@/components/arc/alert/alert";
@@ -28,14 +29,13 @@ import {
   type Priority,
 } from "@/lib/board-config";
 import { formatDay } from "@/lib/dates";
-import { estimate, type Estimate } from "@/lib/estimate";
+import { estimate, type BriefGap, type Estimate } from "@/lib/estimate";
 import {
   ACCEPTED_TYPES,
   MAX_FILES,
   MAX_UPLOAD_BYTES,
   UPLOAD_PREFIX,
 } from "@/lib/intake/uploads";
-import { EstimatePanel } from "./estimate-panel";
 import { stepErrors, type Draft } from "./validation";
 
 const AREA_HINT: Record<Area, string> = {
@@ -65,6 +65,9 @@ const EMPTY: Draft = {
   drive: "",
   blockers: "",
 };
+
+const STEP_IDS = ["area", "brief", "cuando", "material", "revision"] as const;
+const REVIEW = STEP_IDS.indexOf("revision");
 
 const toIsoDate = (date?: Date) =>
   date
@@ -102,6 +105,14 @@ function RequestWizard({
   const uploaded = useRef(new Map<File, { url: string; name: string }>());
   // Kept across retries of the same submission so monday never creates the item twice.
   const submissionKey = useRef<string | null>(null);
+  const [jump, setJump] = useState<{ step: number; nonce: number; focus?: string }>();
+  // Set when a summary link sent the person back to fill something in; Continuar then returns to review.
+  const [returning, setReturning] = useState(false);
+
+  function fix(gap: BriefGap) {
+    setReturning(true);
+    setJump((current) => ({ step: STEP_IDS.indexOf(gap.step), nonce: (current?.nonce ?? 0) + 1, focus: gap.field }));
+  }
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -149,7 +160,13 @@ function RequestWizard({
     );
     const found = stepErrors(index, draft, { pendingUploads });
     setErrors(found);
-    return Object.keys(found).length === 0;
+    const valid = Object.keys(found).length === 0;
+    if (valid && returning && index < REVIEW) {
+      setReturning(false);
+      setJump((current) => ({ step: REVIEW, nonce: (current?.nonce ?? 0) + 1 }));
+      return false;
+    }
+    return valid;
   }
 
   async function onComplete(): Promise<boolean> {
@@ -196,6 +213,8 @@ function RequestWizard({
       completeLabel="Enviar solicitud"
       onStepContinue={onStepContinue}
       onComplete={onComplete}
+      jump={jump}
+      aside={<EstimateCard result={preview} onFix={fix} />}
       successTitle="Solicitud enviada"
       successNote={
         sent &&
@@ -257,6 +276,7 @@ function RequestWizard({
               />
               <>
                 <Select
+                  id="subtype"
                   label="Tipo de pieza"
                   placeholder="Elige uno"
                   options={subtypes.map(({ value, label }) => ({
@@ -285,6 +305,7 @@ function RequestWizard({
                 )}
               </>
               <Textarea
+                id="brief"
                 label="Descripción y especificaciones"
                 error={errors.brief}
                 rows={7}
@@ -294,6 +315,7 @@ function RequestWizard({
               />
               {area === "web" && (
                 <Textarea
+                  id="blockers"
                   label="Bloqueadores"
                   description="Lo que falta para poder empezar: copy, logos, accesos. Déjalo vacío si no falta nada."
                   rows={3}
@@ -321,6 +343,7 @@ function RequestWizard({
                   placeholder="Elige una fecha"
                 />
                 <Select
+                  id="market"
                   label="Mercado"
                   placeholder="Elige uno"
                   options={MARKETS.map((value) => ({
@@ -352,6 +375,7 @@ function RequestWizard({
           content: (
             <>
               <Input
+                id="drive"
                 label="Carpeta Drive"
                 type="url"
                 inputMode="url"
@@ -381,7 +405,13 @@ function RequestWizard({
           description: `Se enviará como ${requester}.`,
           content: (
             <>
-              {preview && <EstimatePanel result={preview} />}
+              {preview && (
+                <EstimateBreakdown
+                  result={preview}
+                  pieceLabel={subtypes.find((item) => item.value === draft.subtype)?.label ?? "Tipo de pieza sin elegir"}
+                  priorityLabel={PRIORITY_LABEL[draft.priority]}
+                />
+              )}
               {preview?.tight && (
                 <Alert
                   tone="warning"

@@ -8,6 +8,7 @@ import { AREA_LABEL, STAGE_LABEL, type Area } from "@/lib/board-config";
 import { formatDay } from "@/lib/dates";
 import type { TeamMember } from "@/lib/team";
 import { LocalTime } from "./local-time";
+import { PERSON_PARAM, setUrlParam, useUrlParam } from "./url-state";
 import styles from "./team-header.module.css";
 
 const plural = (count: number, one: string, other: string) => `${count} ${count === 1 ? one : other}`;
@@ -48,6 +49,9 @@ function toPerson(member: TeamMember): DirectoryPerson {
 
 /** Who is on the team and what each person is on right now, before any board or number. */
 export function TeamHeader({ title, description, members, actions }: TeamHeaderProps) {
+  const personId = useUrlParam(PERSON_PARAM);
+  // Picking someone filters the board and deliveries to their work; picking them again shows everyone.
+  const pick = ({ id }: { id: string }) => setUrlParam(PERSON_PARAM, personId === id ? null : id);
   return (
     <header className={styles.root}>
       <div className={styles.top}>
@@ -57,7 +61,7 @@ export function TeamHeader({ title, description, members, actions }: TeamHeaderP
         </div>
         <div className={styles.actions}>{actions}</div>
       </div>
-      {members.length > 0 && <TeamDirectory people={members.map(toPerson)} filters={AREA_FILTERS} title="Equipo" />}
+      {members.length > 0 && <TeamDirectory people={members.map(toPerson)} filters={AREA_FILTERS} title="Equipo" onPersonSelect={pick} />}
     </header>
   );
 }

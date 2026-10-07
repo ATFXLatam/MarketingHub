@@ -6,7 +6,6 @@ import type { PublicEvent, PublicTask } from "@/lib/public-dto";
 import { TEAM_TIME_ZONE } from "@/lib/dates";
 import { teamMembers } from "@/lib/team";
 import { SiteFooter } from "@/components/arc/blocks/site-footer/site-footer";
-import { DeliveryCalculator } from "@/components/arc/blocks/usage-pricing/usage-pricing";
 import { TeamActivity } from "./team-activity";
 import { TeamBoard } from "./team-board";
 import { TeamHeader } from "./team-header";
@@ -22,8 +21,6 @@ export interface TeamPageProps {
   /** Today in the team's time zone. */
   today: string;
   actions: ReactNode;
-  /** Opens the request flow; the public page has none, so its calculator only explains. */
-  onRequest?: () => void;
 }
 
 const UPDATED = new Intl.DateTimeFormat("es-MX", {
@@ -41,7 +38,6 @@ export function TeamPage({
   now,
   today,
   actions,
-  onRequest,
 }: TeamPageProps) {
   return (
     <div className={styles.page}>
@@ -61,7 +57,6 @@ export function TeamPage({
           now={now}
           today={today}
         />
-        <DeliveryCalculator today={today} onRequest={onRequest} />
       </main>
       <SiteFooter
         variant="minimal"

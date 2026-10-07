@@ -29,6 +29,10 @@ export type MultiStepFormProps = {
   initialStep?: number;
   /** "none" drops the card surface when the form already sits in a dialog or drawer. */
   surface?: "card" | "none";
+  /** Kept beside the steps on a wide form and between the step and its actions on a narrow one, such as a live summary. Hidden once sent. */
+  aside?: ReactNode;
+  /** Moves to a step from outside, such as a link from a summary. A new nonce repeats a jump; focus names the element to focus there. */
+  jump?: { step: number; nonce: number; focus?: string };
 };
 const exitFade = { duration: motionTokens.duration.instant, ease: [...motionTokens.ease.standard] } as const;
 const stepVariants: Variants = {
@@ -95,6 +99,8 @@ export function MultiStepForm({
   stepCountLabel = defaultCount,
   initialStep = 0,
   surface = "card",
+  aside,
+  jump,
 }: MultiStepFormProps) {
   const [step, setStep] = useState(Math.min(Math.max(initialStep, 0), Math.max(steps.length - 1, 0)));
   const [direction, setDirection] = useState(1);
@@ -107,12 +113,29 @@ export function MultiStepForm({
   const pendingFocus = useRef(false);
   const successId = useId();
   const reduced = useReducedMotion() ?? false;
+  const [lastJump, setLastJump] = useState(jump?.nonce);
+  const mountJump = useRef(jump?.nonce);
+  if (jump && jump.nonce !== lastJump) {
+    setLastJump(jump.nonce);
+    const target = Math.min(Math.max(jump.step, 0), steps.length - 1);
+    if (target !== step) {
+      setDirection(target > step ? 1 : -1);
+      setStep(target);
+    }
+  }
 
   useEffect(() => {
     if (!pendingFocus.current) return;
     pendingFocus.current = false;
     (complete ? successTitleRef.current : stepTitleRef.current)?.focus();
   }, [complete, step]);
+
+  // A jump lands on the field it was made for, after the step it lives in has rendered.
+  const jumpFocus = jump?.focus;
+  useEffect(() => {
+    if (lastJump === mountJump.current) return;
+    (jumpFocus ? document.getElementById(jumpFocus) : stepTitleRef.current)?.focus();
+  }, [lastJump, jumpFocus]);
 
   // The shell follows the height of the step that is arriving, so a taller or shorter step never jumps the actions.
   const measure = useCallback((node: HTMLElement | null) => {
@@ -165,6 +188,8 @@ export function MultiStepForm({
       <span className={styles.progressCount} aria-hidden="true"><SwapText value={stepCountLabel(step + 1, steps.length)} direction={direction} reduced={reduced} className={styles.countValue} /></span>
       <span className={styles.srOnly} aria-live="polite">{stepCountLabel(step + 1, steps.length)}</span>
     </nav>
+    <div className={styles.body} data-aside={(aside && !complete) || undefined}>
+    <div className={styles.main}>
     <motion.div ref={viewportRef} className={styles.viewport} initial={false} animate={{ height }} transition={reduced ? { duration: 0 } : motionTokens.spring.smooth} onAnimationStart={() => clip(true)} onAnimationComplete={() => clip(false)}>
       <AnimatePresence initial={false} custom={direction}>
         {complete
@@ -185,6 +210,9 @@ export function MultiStepForm({
         <div className={styles.actions}><button className={styles.back} type="button" onClick={() => { pendingFocus.current = true; setDirection(-1); setStep(value => Math.max(0, value - 1)); }} disabled={step === 0 || pending}><ArrowLeft aria-hidden="true" width={16} height={16} /> {backLabel}</button><button className={styles.next} type="submit" disabled={pending} aria-busy={pending || undefined}><MorphLabel label={pending ? "Enviando" : last ? completeLabel : nextLabel} reduced={reduced} /><ArrowRight aria-hidden="true" width={16} height={16} /></button></div>
       </motion.div>}
     </AnimatePresence>
+    </div>
+    {aside && !complete && <div className={styles.aside}>{aside}</div>}
+    </div>
   </form>;
 }
 

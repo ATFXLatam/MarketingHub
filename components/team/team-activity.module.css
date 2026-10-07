@@ -20,3 +20,7 @@
 @media (max-width: 520px) {
   .panel { padding: 16px; }
 }
+.group { display: flex; align-items: baseline; gap: 6px; margin: 4px 0 0; color: var(--text-secondary); font: 500 var(--text-xs)/var(--leading-body) var(--font-body); }
+.group[data-late] { color: var(--danger); }
+.groupCount { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.date[data-late] { color: var(--danger); }

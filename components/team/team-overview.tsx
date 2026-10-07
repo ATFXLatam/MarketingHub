@@ -5,7 +5,7 @@ import { Tooltip } from "@/components/arc/tooltip/tooltip";
 import { STAGE_LABEL, STAGES, type Stage } from "@/lib/board-config";
 import { formatDay } from "@/lib/dates";
 import type { PublicTask } from "@/lib/public-dto";
-import { daysUntil, nextDelivery, upcomingDeliveries } from "@/lib/team";
+import { daysUntil, deliveriesByDate, nextDelivery } from "@/lib/team";
 import styles from "./team-overview.module.css";
 
 /** Stage colors from the theme tokens, so the strip, the board and the drawer read the same in light and dark. */
@@ -31,7 +31,7 @@ export function TeamOverview({ tasks, today }: { tasks: PublicTask[]; today: str
   const done = tasks.filter((task) => task.stage === "hecha");
   const held = tasks.filter((task) => task.stage === "on-hold");
   const next = nextDelivery(tasks, today);
-  const overdue = upcomingDeliveries(tasks).filter((task) => task.dueDate! < today);
+  const { overdue } = deliveriesByDate(tasks, today);
   const nextDays = next?.dueDate ? daysUntil(next.dueDate, today) : null;
 
   const stats: Stat[] = [

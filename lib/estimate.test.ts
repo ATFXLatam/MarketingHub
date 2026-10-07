@@ -61,3 +61,12 @@ describe("deliveryDays", () => {
     expect(deliveryDays("diseno", "meta", "critica", "completo")).toEqual({ base: 2, priority: -1, brief: 0, days: 1 });
   });
 });
+
+describe("estimate gaps", () => {
+  it("points each missing piece at the step and field that fills it, heaviest first, and reports the breakdown", () => {
+    const result = estimate({ ...complete, brief: "corto", drive: "", market: undefined });
+    expect(result.gaps.map(({ step, field }) => `${step}:${field}`)).toEqual(["brief:brief", "material:drive", "cuando:market"]);
+    expect(result.met.map((gap) => gap.field)).toEqual(["subtype", "blockers"]);
+    expect(result.breakdown.days).toBe(result.days);
+  });
+});

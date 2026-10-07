@@ -291,3 +291,19 @@
   .back:active:not(:disabled),
   .next:active:not(:disabled) { transform: none; }
 }
+
+/* A summary beside the steps when there is room; on a narrow form it sits between the step and its actions. */
+.form { container: msf / inline-size; }
+.body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
+.main { display: flex; min-width: 0; flex-direction: column; }
+.aside { min-width: 0; }
+@container msf (min-width: 720px) {
+  .body[data-aside] { grid-template-columns: minmax(0, 1fr) minmax(240px, 300px); align-items: start; }
+  .body[data-aside] .aside { position: sticky; top: 0; }
+}
+@container msf (max-width: 719px) {
+  .body[data-aside] { display: flex; flex-direction: column; }
+  .body[data-aside] .main { display: contents; }
+  .body[data-aside] .aside { order: 1; }
+  .body[data-aside] .actionsShell { order: 2; }
+}

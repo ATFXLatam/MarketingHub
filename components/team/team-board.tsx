@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState, useSyncExternalStore } from "react";
+import { X } from "lucide-react";
+import { Avatar } from "@/components/arc/avatar/avatar";
+import { Button } from "@/components/arc/button/button";
 import { Badge, type BadgeTone } from "@/components/arc/badge/badge";
 import { ProjectBoard } from "@/components/arc/blocks/project-board/project-board";
 import { ChipGroup } from "@/components/arc/chip-group/chip-group";
@@ -12,11 +15,11 @@ import { formatDay } from "@/lib/dates";
 import type { PublicEvent, PublicTask } from "@/lib/public-dto";
 import { daysUntil } from "@/lib/team";
 import { TaskDrawer } from "./task-drawer";
+import { PERSON_PARAM, setUrlParam, useUrlParam } from "./url-state";
 import styles from "./team-board.module.css";
 
 const PRIORITY_TONE: Record<Priority, BadgeTone> = { normal: "neutral", media: "info", alta: "warning", critica: "danger" };
 const TASK_PARAM = "solicitud";
-const URL_CHANGE = "hub:url";
 const PHONE_QUERY = "(max-width: 700px)";
 
 // Status is edited in monday, so no column is editable here.
@@ -32,15 +35,6 @@ const COLUMNS: DataGridColumn[] = [
   { key: "slaDays", label: "Días estimados", type: "number", aggregate: "average", decimals: 0, width: 140, editable: false },
 ];
 
-function subscribeToUrl(onChange: () => void) {
-  addEventListener("popstate", onChange);
-  addEventListener(URL_CHANGE, onChange);
-  return () => {
-    removeEventListener("popstate", onChange);
-    removeEventListener(URL_CHANGE, onChange);
-  };
-}
-
 function subscribeToPhone(onChange: () => void) {
   const query = matchMedia(PHONE_QUERY);
   query.addEventListener("change", onChange);
@@ -48,13 +42,7 @@ function subscribeToPhone(onChange: () => void) {
 }
 
 // The URL holds the open request, so ?solicitud=<id> links straight to its details.
-function select(id: string | null) {
-  const url = new URL(location.href);
-  if (id) url.searchParams.set(TASK_PARAM, id);
-  else url.searchParams.delete(TASK_PARAM);
-  history.replaceState(null, "", url);
-  dispatchEvent(new Event(URL_CHANGE));
-}
+const select = (id: string | null) => setUrlParam(TASK_PARAM, id);
 
 export interface TeamBoardProps {
   tasks: PublicTask[];
@@ -69,14 +57,22 @@ export function TeamBoard({ tasks, activity, now, today }: TeamBoardProps) {
   const isPhone = useSyncExternalStore(subscribeToPhone, () => matchMedia(PHONE_QUERY).matches, () => false);
   const view = picked ?? (isPhone ? "table" : "board");
   const [areas, setAreas] = useState<string[]>([]);
-  const selectedId = useSyncExternalStore(subscribeToUrl, () => new URLSearchParams(location.search).get(TASK_PARAM), () => null);
+  const selectedId = useUrlParam(TASK_PARAM);
   const selected = tasks.find((task) => task.id === selectedId) ?? null;
+  const personId = useUrlParam(PERSON_PARAM);
+  const person = tasks.flatMap((task) => task.owners).find((owner) => owner.id === personId);
 
   const areaOptions = useMemo(
     () => AREAS.map((area) => ({ value: area, label: `${AREA_LABEL[area]} · ${tasks.filter((task) => task.area === area).length}` })),
     [tasks],
   );
-  const shown = useMemo(() => (areas.length ? tasks.filter((task) => task.area && areas.includes(task.area)) : tasks), [tasks, areas]);
+  const shown = useMemo(
+    () =>
+      tasks.filter(
+        (task) => (!areas.length || (task.area && areas.includes(task.area))) && (!person || task.owners.some((owner) => owner.id === person.id)),
+      ),
+    [tasks, areas, person],
+  );
   const team = [...new Map(shown.flatMap((task) => task.owners).map((owner) => [owner.id, { name: owner.name, src: owner.photo ?? undefined }])).values()];
   const rows: DataGridRow[] = shown.map((task) => ({
     id: task.id,
@@ -95,6 +91,13 @@ export function TeamBoard({ tasks, activity, now, today }: TeamBoardProps) {
       <div className={styles.head}>
         <h2 id="board-title" className={styles.heading}>Solicitudes</h2>
         <div className={styles.toolbar}>
+          {person && (
+            <Button variant="secondary" size="sm" onClick={() => setUrlParam(PERSON_PARAM, null)} aria-label={`Quitar filtro: ${person.name}`}>
+              <Avatar name={person.name} src={person.photo ?? undefined} size="sm" />
+              {person.name.split(" ")[0]}
+              <X size={14} strokeWidth={1.75} aria-hidden="true" />
+            </Button>
+          )}
           <ChipGroup label="Filtrar por área" options={areaOptions} value={areas} onValueChange={setAreas} multiple />
           <SegmentedControl
             label="Vista"

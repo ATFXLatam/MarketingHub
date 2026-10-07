@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PublicOwner, PublicTask } from "./public-dto";
-import { daysUntil, memberShares, nextDelivery, teamMembers, upcomingDeliveries } from "./team";
+import { daysUntil, deliveriesByDate, memberShares, nextDelivery, teamMembers, upcomingDeliveries } from "./team";
 
 const ana: PublicOwner = { id: "1", name: "Ana", photo: null, title: "Diseño", timeZone: "America/Lima" };
 const leo: PublicOwner = { id: "2", name: "Leo", photo: null, title: null, timeZone: null };
@@ -56,5 +56,16 @@ describe("memberShares", () => {
     ]);
     expect(memberShares(ana, "2026-10-06")).toEqual({ entregadas: 25, alDia: 67, enCurso: 33 });
     expect(memberShares({ ...ana, open: 0, done: 0, queue: [], current: [] }, "2026-10-06")).toEqual({ entregadas: 0, alDia: 100, enCurso: 0 });
+  });
+});
+
+describe("deliveriesByDate", () => {
+  it("puts work due today with what is ahead, and leaves delivered work out", () => {
+    const { overdue, upcoming } = deliveriesByDate(
+      [task({ id: "today", dueDate: "2026-10-06" }), task({ id: "late", dueDate: "2026-10-01" }), task({ id: "next", dueDate: "2026-10-09" }), task({ id: "done", stage: "hecha", dueDate: "2026-10-02" })],
+      "2026-10-06",
+    );
+    expect(overdue.map((item) => item.id)).toEqual(["late"]);
+    expect(upcoming.map((item) => item.id)).toEqual(["today", "next"]);
   });
 });

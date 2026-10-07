@@ -45,9 +45,15 @@ export function upcomingDeliveries(tasks: PublicTask[]): PublicTask[] {
   return tasks.filter((task) => task.dueDate && task.stage !== "hecha").sort(byDue);
 }
 
+/** Open dated work split at today: what already slipped, oldest first, and what is still ahead, soonest first. */
+export function deliveriesByDate(tasks: PublicTask[], today: string): { overdue: PublicTask[]; upcoming: PublicTask[] } {
+  const dated = upcomingDeliveries(tasks);
+  return { overdue: dated.filter((task) => task.dueDate! < today), upcoming: dated.filter((task) => task.dueDate! >= today) };
+}
+
 /** The next delivery still ahead; overdue work is shown on its own card, not as a "0 days" countdown. */
 export function nextDelivery(tasks: PublicTask[], today: string): PublicTask | undefined {
-  return upcomingDeliveries(tasks).find((task) => task.dueDate! >= today);
+  return deliveriesByDate(tasks, today).upcoming[0];
 }
 
 /** A member's shares, in percent: what they finished, what is still on time, and what is moving now. */

@@ -5,6 +5,7 @@ import { Alert } from "@/components/arc/alert/alert";
 import { Skeleton } from "@/components/arc/skeleton/skeleton";
 import { TeamPage } from "@/components/team/team-page";
 import { todayIn } from "@/lib/dates";
+import { RequestButton } from "@/components/team/request-button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { getBoardSnapshot } from "@/lib/monday/read";
 import { safeEqual } from "@/lib/secrets";
@@ -41,5 +42,5 @@ async function Board({ params }: Pick<PageProps<"/p/[token]">, "params">) {
     );
   }
   // The page prerenders, so "today" comes from the snapshot: due-date counts match the data they describe.
-  return <TeamPage tasks={snapshot.tasks} activity={snapshot.activity} now={Date.parse(snapshot.fetchedAt)} today={todayIn(undefined, new Date(snapshot.fetchedAt))} actions={<ThemeToggle />} />;
+  return <TeamPage tasks={snapshot.tasks} activity={snapshot.activity} now={Date.parse(snapshot.fetchedAt)} today={todayIn(undefined, new Date(snapshot.fetchedAt))} actions={<><RequestButton /><ThemeToggle /></>} />;
 }

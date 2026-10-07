@@ -12,10 +12,11 @@ import {
   daysUntil,
   memberShares,
   teamMembers,
-  upcomingDeliveries,
+  deliveriesByDate,
 } from "@/lib/team";
 import { dueText } from "./team-overview";
 import styles from "./team-activity.module.css";
+import { PERSON_PARAM, useUrlParam } from "./url-state";
 
 // Long enough that the spinner reads as work, not a flicker.
 const REFRESH_MIN_MS = 600;
@@ -38,6 +39,10 @@ const SHARES = [
   },
 ];
 
+type DeliveryRow =
+  | PublicTask
+  | { kind: "group"; id: string; label: string; count: number; late: boolean };
+
 export interface TeamActivityProps {
   tasks: PublicTask[];
   activity: PublicEvent[];
@@ -58,7 +63,37 @@ export function TeamActivity({
     await new Promise((resolve) => setTimeout(resolve, REFRESH_MIN_MS));
     return "Al día";
   }
-  const upcoming = upcomingDeliveries(tasks);
+  const personId = useUrlParam(PERSON_PARAM);
+  const person = tasks.flatMap((task) => task.owners).find((owner) => owner.id === personId);
+  const mine = person ? tasks.filter((task) => task.owners.some((owner) => owner.id === personId)) : tasks;
+  const { overdue, upcoming } = deliveriesByDate(mine, today);
+  // Overdue work leads and never collapses: it is what someone has to act on first.
+  const rows: DeliveryRow[] = [
+    ...(overdue.length
+      ? [
+          {
+            kind: "group" as const,
+            id: "vencidas",
+            label: "Vencidas",
+            count: overdue.length,
+            late: true,
+          },
+          ...overdue,
+        ]
+      : []),
+    ...(upcoming.length
+      ? [
+          {
+            kind: "group" as const,
+            id: "proximas",
+            label: "Próximas",
+            count: upcoming.length,
+            late: false,
+          },
+          ...upcoming,
+        ]
+      : []),
+  ];
   // One ring set per person: the picker under the dial switches between people instead of days.
   const people = teamMembers(tasks).map((member) => ({
     id: member.id,
@@ -110,20 +145,35 @@ export function TeamActivity({
       </section>
       <StretchRefresh
         className={styles.upcomingPanel}
-        title="Próximas entregas"
+        title={person ? `Entregas de ${person.name.split(" ")[0]}` : "Entregas"}
         subtitle={
-          upcoming.length
-            ? `${upcoming.length} con fecha`
-            : "Nada con fecha pendiente"
+          overdue.length
+            ? `${overdue.length} ${overdue.length === 1 ? "vencida" : "vencidas"} · ${upcoming.length} por venir`
+            : upcoming.length
+              ? `${upcoming.length} por venir`
+              : "Nada con fecha pendiente"
         }
-        items={upcoming}
-        getKey={(task) => task.id}
+        items={rows}
+        getKey={(row) => row.id}
         onRefresh={refresh}
-        renderItem={(task) => {
+        renderItem={(row) => {
+          if ("kind" in row) {
+            return (
+              <h3 className={styles.group} data-late={row.late || undefined}>
+                {row.label}{" "}
+                <span className={styles.groupCount}>{row.count}</span>
+              </h3>
+            );
+          }
+          const task = row;
           const days = daysUntil(task.dueDate!, today);
           return (
             <div className={styles.upcomingRow}>
-              <span className={styles.date} data-soon={days <= 2 || undefined}>
+              <span
+                className={styles.date}
+                data-late={days < 0 || undefined}
+                data-soon={(days >= 0 && days <= 2) || undefined}
+              >
                 <CalendarDays size={14} strokeWidth={1.75} aria-hidden="true" />
                 <time dateTime={task.dueDate!}>{formatDay(task.dueDate!)}</time>
               </span>
