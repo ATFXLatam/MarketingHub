@@ -25,6 +25,13 @@ describe("teamMembers", () => {
   });
 });
 
+describe("teamMembers roster", () => {
+  it("lists roster people with no work after the busy ones", () => {
+    const members = teamMembers([task({ stage: "en-curso" })], [leo, ana]);
+    expect(members.map((member) => [member.name, member.open])).toEqual([["Ana", 1], ["Leo", 0]]);
+  });
+});
+
 describe("deliveries", () => {
   it("orders open dated work by date and counts calendar days from today", () => {
     const list = upcomingDeliveries([

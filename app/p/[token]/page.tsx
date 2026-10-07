@@ -42,5 +42,5 @@ async function Board({ params }: Pick<PageProps<"/p/[token]">, "params">) {
     );
   }
   // The page prerenders, so "today" comes from the snapshot: due-date counts match the data they describe.
-  return <TeamPage tasks={snapshot.tasks} activity={snapshot.activity} now={Date.parse(snapshot.fetchedAt)} today={todayIn(undefined, new Date(snapshot.fetchedAt))} actions={<><RequestButton /><ThemeToggle /></>} />;
+  return <TeamPage tasks={snapshot.tasks} activity={snapshot.activity} roster={snapshot.roster} now={Date.parse(snapshot.fetchedAt)} today={todayIn(undefined, new Date(snapshot.fetchedAt))} actions={<><RequestButton /><ThemeToggle /></>} />;
 }

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Megaphone } from "lucide-react";
-import type { PublicEvent, PublicTask } from "@/lib/public-dto";
+import type { PublicEvent, PublicOwner, PublicTask } from "@/lib/public-dto";
 import { TEAM_TIME_ZONE } from "@/lib/dates";
 import { teamMembers } from "@/lib/team";
 import { SiteFooter } from "@/components/arc/blocks/site-footer/site-footer";
@@ -16,6 +16,8 @@ import styles from "./team-page.module.css";
 export interface TeamPageProps {
   tasks: PublicTask[];
   activity: PublicEvent[];
+  /** Team members listed even with nothing assigned. */
+  roster: PublicOwner[];
   /** Server time of the snapshot, so the first render matches on server and client. */
   now: number;
   /** Today in the team's time zone. */
@@ -35,6 +37,7 @@ const UPDATED = new Intl.DateTimeFormat("es-MX", {
 export function TeamPage({
   tasks,
   activity,
+  roster,
   now,
   today,
   actions,
@@ -45,7 +48,7 @@ export function TeamPage({
         <TeamHeader
           title="Marketing LATAM"
           description="Quién está en qué, cuándo se entrega cada solicitud y cómo avanza. Los estados se actualizan desde monday."
-          members={teamMembers(tasks)}
+          members={teamMembers(tasks, roster)}
           actions={actions}
         />
         <TeamOverview tasks={tasks} today={today} />

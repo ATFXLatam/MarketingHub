@@ -1,7 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { z } from "zod";
-import { BOARD_ID } from "../board-config";
+import { BOARD_ID, TEAM_ROSTER } from "../board-config";
 import {
   ownerIds,
   ownerPhoto,
@@ -66,6 +66,8 @@ export interface BoardSnapshot {
   configured: boolean;
   tasks: PublicTask[];
   activity: PublicEvent[];
+  /** Team members from TEAM_ROSTER, listed even before they have work assigned. */
+  roster: PublicOwner[];
   fetchedAt: string;
 }
 
@@ -79,7 +81,7 @@ export async function getBoardSnapshot(): Promise<BoardSnapshot> {
   cacheLife("hours");
 
   const now = Date.now();
-  if (!mondayConfigured()) return { configured: false, tasks: [], activity: [], fetchedAt: new Date(now).toISOString() };
+  if (!mondayConfigured()) return { configured: false, tasks: [], activity: [], roster: [], fetchedAt: new Date(now).toISOString() };
 
   const from = new Date(now - ACTIVITY_DAYS * 24 * 60 * 60 * 1000).toISOString();
   const first = FirstPageSchema.parse(
@@ -111,13 +113,14 @@ export async function getBoardSnapshot(): Promise<BoardSnapshot> {
     cursor = next.next_items_page.cursor;
   }
 
-  const people = await fetchOwners(ownerIds(items));
+  const people = await fetchOwners([...new Set([...ownerIds(items), ...TEAM_ROSTER])]);
   return {
     configured: true,
     tasks: visibleTasks(
       items.map((item) => toPublicTask(item, people)),
       now,
     ),
+    roster: TEAM_ROSTER.flatMap((id) => people.get(id) ?? []),
     activity: (board.activity_logs ?? []).map(toPublicEvent).filter((event): event is PublicEvent => event !== null),
     fetchedAt: new Date(now).toISOString(),
   };

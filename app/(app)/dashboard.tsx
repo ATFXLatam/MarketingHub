@@ -32,6 +32,7 @@ export async function Dashboard({ requestOpen = false }: { requestOpen?: boolean
       areaOwners={areaOwners(snapshot.tasks, configured, known)}
       tasks={snapshot.tasks}
       activity={snapshot.activity}
+      roster={snapshot.roster}
       now={Date.parse(snapshot.fetchedAt)}
     />
   );

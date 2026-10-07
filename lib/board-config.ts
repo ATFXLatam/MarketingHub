@@ -26,6 +26,9 @@ export const COLUMNS = {
   videoType: "dropdown_mm5qh6py",
 } as const;
 
+/** monday users who belong to the team even with nothing assigned yet, so the directory shows the whole team. */
+export const TEAM_ROSTER = ["28982466", "74311964"] as const;
+
 export const AREAS = ["web", "video", "eventos", "diseno"] as const;
 export type Area = (typeof AREAS)[number];
 

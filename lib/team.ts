@@ -16,9 +16,9 @@ export interface TeamMember extends PublicOwner {
 
 const byDue = (a: PublicTask, b: PublicTask) => (a.dueDate ?? "9999").localeCompare(b.dueDate ?? "9999");
 
-/** Everyone assigned to a visible task, busiest first, so the people carrying the most work lead the page. */
-export function teamMembers(tasks: PublicTask[]): TeamMember[] {
-  const people = new Map<string, PublicOwner>();
+/** Everyone assigned to a visible task plus the roster, busiest first, so the people carrying the most work lead the page. */
+export function teamMembers(tasks: PublicTask[], roster: PublicOwner[] = []): TeamMember[] {
+  const people = new Map<string, PublicOwner>(roster.map((person) => [person.id, person]));
   tasks.forEach((task) => task.owners.forEach((owner) => people.set(owner.id, owner)));
   return [...people.values()]
     .map((owner) => {
