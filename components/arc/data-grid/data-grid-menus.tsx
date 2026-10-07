@@ -25,20 +25,20 @@ export function HeaderMenu({ column, sorted, pinned, canHide, onSort, onFilter, 
 }) {
   const sortable = column.sortable !== false;
   return <Menu.Root modal={false}>
-    <Menu.Trigger className={styles.headMenuButton} aria-label={`Opciones de la columna ${column.label}`} onPointerDown={e => e.stopPropagation()}>
+    <Menu.Trigger className={styles.headMenuButton} aria-label={`${column.label} column options`} onPointerDown={e => e.stopPropagation()}>
       <ChevronDown size={14} strokeWidth={1.75} aria-hidden="true" />
     </Menu.Trigger>
     <Menu.Portal>
       <Menu.Content className={styles.menu} align="end" sideOffset={4} collisionPadding={10} onCloseAutoFocus={e => e.preventDefault()}>
         {sortable && <>
-          <Menu.Item className={styles.menuItem} data-active={sorted === "asc" || undefined} onSelect={() => onSort("asc")}><ArrowUpNarrowWide {...icon} />Orden ascendente</Menu.Item>
-          <Menu.Item className={styles.menuItem} data-active={sorted === "desc" || undefined} onSelect={() => onSort("desc")}><ArrowDownWideNarrow {...icon} />Orden descendente</Menu.Item>
-          {sorted && <Menu.Item className={styles.menuItem} onSelect={() => onSort(null)}><X {...icon} />Quitar orden</Menu.Item>}
+          <Menu.Item className={styles.menuItem} data-active={sorted === "asc" || undefined} onSelect={() => onSort("asc")}><ArrowUpNarrowWide {...icon} />Sort ascending</Menu.Item>
+          <Menu.Item className={styles.menuItem} data-active={sorted === "desc" || undefined} onSelect={() => onSort("desc")}><ArrowDownWideNarrow {...icon} />Sort descending</Menu.Item>
+          {sorted && <Menu.Item className={styles.menuItem} onSelect={() => onSort(null)}><X {...icon} />Clear sort</Menu.Item>}
           <Menu.Separator className={styles.menuSeparator} />
         </>}
-        {onFilter && <Menu.Item className={styles.menuItem} onSelect={onFilter}><ListFilter {...icon} />Filtrar</Menu.Item>}
-        <Menu.Item className={styles.menuItem} onSelect={onPin}>{pinned ? <PinOff {...icon} /> : <Pin {...icon} />}{pinned ? "Desfijar columna" : "Fijar columna"}</Menu.Item>
-        <Menu.Item className={styles.menuItem} disabled={!canHide} onSelect={onHide}><EyeOff {...icon} />Ocultar columna</Menu.Item>
+        {onFilter && <Menu.Item className={styles.menuItem} onSelect={onFilter}><ListFilter {...icon} />Filter</Menu.Item>}
+        <Menu.Item className={styles.menuItem} onSelect={onPin}>{pinned ? <PinOff {...icon} /> : <Pin {...icon} />}{pinned ? "Unpin column" : "Pin column"}</Menu.Item>
+        <Menu.Item className={styles.menuItem} disabled={!canHide} onSelect={onHide}><EyeOff {...icon} />Hide column</Menu.Item>
       </Menu.Content>
     </Menu.Portal>
   </Menu.Root>;
@@ -48,7 +48,7 @@ export function ColumnsMenu({ columns, hidden, pinned, onToggle, onShowAll }: { 
   const visibleCount = columns.length - columns.filter(c => hidden.has(c.key)).length;
   return <Menu.Root modal={false}>
     <Menu.Trigger className={styles.toolButton} aria-label="Columnas">
-      <Columns3 {...icon} /><span className={styles.toolLabel}>Columnas</span>
+      <Columns3 {...icon} /><span className={styles.toolLabel}>Columns</span>
       {hidden.size > 0 && <span className={styles.toolCount}>{visibleCount}/{columns.length}</span>}
     </Menu.Trigger>
     <Menu.Portal>
@@ -65,22 +65,22 @@ export function ColumnsMenu({ columns, hidden, pinned, onToggle, onShowAll }: { 
           })}
         </div>
         <Menu.Separator className={styles.menuSeparator} />
-        <Menu.Item className={styles.menuItem} disabled={hidden.size === 0} onSelect={e => { e.preventDefault(); onShowAll(); }}>Mostrar todas las columnas</Menu.Item>
+        <Menu.Item className={styles.menuItem} disabled={hidden.size === 0} onSelect={e => { e.preventDefault(); onShowAll(); }}>Show all columns</Menu.Item>
       </Menu.Content>
     </Menu.Portal>
   </Menu.Root>;
 }
 
 const densities: { value: DataGridDensity; label: string; icon: ReactNode }[] = [
-  { value: "compact", label: "Compacta", icon: <Rows4 {...icon} /> },
-  { value: "standard", label: "Estándar", icon: <Rows3 {...icon} /> },
-  { value: "comfortable", label: "Amplia", icon: <Rows2 {...icon} /> },
+  { value: "compact", label: "Compact", icon: <Rows4 {...icon} /> },
+  { value: "standard", label: "Standard", icon: <Rows3 {...icon} /> },
+  { value: "comfortable", label: "Comfortable", icon: <Rows2 {...icon} /> },
 ];
 
 export function DensityMenu({ density, onChange }: { density: DataGridDensity; onChange: (density: DataGridDensity) => void }) {
   const current = densities.find(d => d.value === density) ?? densities[1];
   return <Menu.Root modal={false}>
-    <Menu.Trigger className={styles.toolButton} aria-label={`Densidad de filas, ${current.label.toLowerCase()}`}>{current.icon}</Menu.Trigger>
+    <Menu.Trigger className={styles.toolButton} aria-label={`Row density, ${current.label.toLowerCase()}`}>{current.icon}</Menu.Trigger>
     <Menu.Portal>
       <Menu.Content className={styles.menu} align="end" sideOffset={6} collisionPadding={10}>
         <Menu.RadioGroup value={density} onValueChange={value => onChange(value as DataGridDensity)}>
@@ -98,36 +98,36 @@ export function DensityMenu({ density, onChange }: { density: DataGridDensity; o
 export function SelectFilter({ column, options, value, onChange }: { column: DataGridColumn; options: string[]; value: string[] | undefined; onChange: (value: string[] | undefined) => void }) {
   const [query, setQuery] = useState("");
   const kept = useMemo(() => new Set(value ?? options), [value, options]);
-  const shown = useMemo(() => { const q = query.trim().toLowerCase(); return q ? options.filter(o => (o || "Vacío").toLowerCase().includes(q)) : options; }, [options, query]);
-  const summary = value === undefined ? "Todos" : value.length === 0 ? "Ninguno" : value.length === 1 ? (value[0] || "Vacío") : `${value.length} de ${options.length}`;
+  const shown = useMemo(() => { const q = query.trim().toLowerCase(); return q ? options.filter(o => (o || "Empty").toLowerCase().includes(q)) : options; }, [options, query]);
+  const summary = value === undefined ? "All" : value.length === 0 ? "None" : value.length === 1 ? (value[0] || "Empty") : `${value.length} of ${options.length}`;
   const toggle = (option: string) => {
     const next = new Set(kept);
     if (next.has(option)) next.delete(option); else next.add(option);
     onChange(next.size === options.length ? undefined : options.filter(o => next.has(o)));
   };
   return <Popover.Root onOpenChange={open => { if (!open) setQuery(""); }}>
-    <Popover.Trigger className={styles.filterSelect} data-filter-key={column.key} data-active={value !== undefined || undefined} aria-label={`Filtrar ${column.label}, ${summary}`}>
+    <Popover.Trigger className={styles.filterSelect} data-filter-key={column.key} data-active={value !== undefined || undefined} aria-label={`Filter ${column.label}, ${summary}`}>
       <span className={styles.filterSelectText}>{summary}</span><ChevronDown size={14} strokeWidth={1.75} aria-hidden="true" />
     </Popover.Trigger>
     <Popover.Portal>
-      <Popover.Content className={styles.menu} align="start" sideOffset={4} collisionPadding={10} aria-label={`Filtrar ${column.label}`}>
+      <Popover.Content className={styles.menu} align="start" sideOffset={4} collisionPadding={10} aria-label={`Filter ${column.label}`}>
         {options.length > 7 && <label className={styles.menuSearch}>
           <Search size={14} strokeWidth={1.75} aria-hidden="true" />
-          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar valores" aria-label="Buscar valores" spellCheck={false} />
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search values" aria-label="Search values" spellCheck={false} />
         </label>}
-        <div className={styles.menuScroll} role="group" aria-label={`Valores de ${column.label}`}>
+        <div className={styles.menuScroll} role="group" aria-label={`${column.label} values`}>
           {shown.map(option => {
             const on = kept.has(option);
             return <button key={option || "\u0000"} type="button" role="checkbox" aria-checked={on} className={styles.menuItem} onClick={() => toggle(option)}>
               <span className={styles.menuCheck} data-on={on || undefined} aria-hidden="true"><Check size={12} strokeWidth={2.25} /></span>
-              <span className={styles.menuText} data-muted={!option || undefined}>{option || "Vacío"}</span>
+              <span className={styles.menuText} data-muted={!option || undefined}>{option || "Empty"}</span>
             </button>;
           })}
-          {!shown.length && <p className={styles.menuEmpty}>Sin valores coincidentes</p>}
+          {!shown.length && <p className={styles.menuEmpty}>No matching values</p>}
         </div>
         <div className={styles.menuFooter}>
-          <button type="button" className={styles.menuLink} disabled={value === undefined} onClick={() => onChange(undefined)}>Seleccionar todos</button>
-          <button type="button" className={styles.menuLink} disabled={value !== undefined && value.length === 0} onClick={() => onChange([])}>Borrar</button>
+          <button type="button" className={styles.menuLink} disabled={value === undefined} onClick={() => onChange(undefined)}>Select all</button>
+          <button type="button" className={styles.menuLink} disabled={value !== undefined && value.length === 0} onClick={() => onChange([])}>Clear</button>
         </div>
       </Popover.Content>
     </Popover.Portal>

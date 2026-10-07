@@ -23,20 +23,20 @@ export function MondaySignIn() {
           <span className={styles.brandName}>Marketing LATAM</span>
         </>
       }
-      title="Entra con monday"
-      subtitle="Usa tu usuario de monday de ATFX. Si ves el tablero de solicitudes en monday, aquí también lo verás."
-      provider={{ label: "Entrar con monday", icon: <MondayMark />, href: "/api/monday/oauth/start", params: next ? { redirect_url: next } : undefined, error }}
+      title="Sign in with monday"
+      subtitle="Use your ATFX monday user. If you can see the requests board in monday, you will see it here too."
+      provider={{ label: "Sign in with monday", icon: <MondayMark />, href: "/api/monday/oauth/start", params: next ? { redirect_url: next } : undefined, error }}
       aside={
         <div className={styles.aside}>
           {/* Decorative: muted, no controls, and still for people who ask the system for less motion. */}
           <video key={still ? "still" : "live"} className={styles.media} src="/brand/login-mercado.mp4" poster="/brand/login-mercado.jpg" autoPlay={!still} loop muted playsInline preload="metadata" aria-hidden="true" />
           <span className={styles.overlay} aria-hidden="true" />
           <div className={styles.copy}>
-          <p className={styles.lead}>Pide una pieza, sigue cómo avanza y recíbela en la fecha que viste al pedirla.</p>
+          <p className={styles.lead}>Request a piece, follow its progress and get it on the date you saw when you asked.</p>
           <ul className={styles.points}>
-            <li>La fecha estimada sale de qué tan completo está tu brief.</li>
-            <li>Quien ve el tablero en monday ve aquí quién trabaja en qué.</li>
-            <li>Comentas como tú mismo: lo que escribes llega a monday con tu nombre.</li>
+            <li>The estimated date depends on how complete your brief is.</li>
+            <li>If you see the board in monday, you see who is working on what here.</li>
+            <li>You comment as yourself: what you write reaches monday under your name.</li>
           </ul>
           </div>
         </div>

@@ -25,7 +25,7 @@ export interface TeamPageProps {
   actions: ReactNode;
 }
 
-const UPDATED = new Intl.DateTimeFormat("es-MX", {
+const UPDATED = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
   month: "short",
   hour: "numeric",
@@ -47,7 +47,7 @@ export function TeamPage({
       <main className={styles.main}>
         <TeamHeader
           title="Marketing LATAM"
-          description="Quién está en qué, cuándo se entrega cada solicitud y cómo avanza. Los estados se actualizan desde monday."
+          description="Who is on what, when each request is due, and how it is moving. Statuses update from monday."
           members={teamMembers(tasks, roster)}
           actions={actions}
         />
@@ -67,7 +67,7 @@ export function TeamPage({
           name: "ATFX Marketing LATAM",
           mark: <Megaphone size={18} strokeWidth={1.75} aria-hidden="true" />,
         }}
-        tagline={`Datos de monday al ${UPDATED.format(now)}`}
+        tagline={`monday data as of ${UPDATED.format(now)}`}
         links={[]}
         legal={[]}
         socials={[]}

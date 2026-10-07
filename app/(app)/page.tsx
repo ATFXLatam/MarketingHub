@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Marketing LATAM" };
 
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<Skeleton label="Cargando el tablero" lines={8} />}>
+    <Suspense fallback={<Skeleton label="Loading the board" lines={8} />}>
       <Dashboard />
     </Suspense>
   );

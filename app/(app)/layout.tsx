@@ -6,7 +6,7 @@ import styles from "./layout.module.css";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
-    <Suspense fallback={<div className={styles.center}><Skeleton label="Cargando" lines={4} /></div>}>
+    <Suspense fallback={<div className={styles.center}><Skeleton label="Loading" lines={4} /></div>}>
       <Gate>{children}</Gate>
     </Suspense>
   );
@@ -17,8 +17,8 @@ async function Gate({ children }: { children: React.ReactNode }) {
   if (!(await currentSession())) {
     return (
       <div className={styles.center}>
-        <Alert tone="warning" title="Tu sesión terminó">
-          Vuelve a entrar con tu usuario de monday.
+        <Alert tone="warning" title="Your session ended">
+          Sign in again with your monday user.
         </Alert>
       </div>
     );

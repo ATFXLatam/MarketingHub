@@ -85,7 +85,7 @@ export function CheckoutSummary({ title, item, lines, total, surface = "card", c
           <dt>{total.label}{total.note ? <span className={styles.lineNote}>{total.note}</span> : null}</dt>
           <dd>
             <span className={styles.srOnly}>{`${total.value} ${total.unit}`}</span>
-            <span className={styles.totalValue} aria-hidden="true"><span className={styles.inline}><AnimatedCounter value={total.value} locale="es-MX" /></span><span className={styles.totalUnit}>{total.unit}</span></span>
+            <span className={styles.totalValue} aria-hidden="true"><span className={styles.inline}><AnimatedCounter value={total.value} locale="en-US" /></span><span className={styles.totalUnit}>{total.unit}</span></span>
           </dd>
         </div>}
       </dl>

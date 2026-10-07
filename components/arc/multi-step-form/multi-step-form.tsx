@@ -87,16 +87,16 @@ function MorphLabel({ label, reduced }: { label: string; reduced: boolean }) {
   </span>;
 }
 
-const defaultCount = (step: number, total: number) => `Paso ${step} de ${total}`;
+const defaultCount = (step: number, total: number) => `Step ${step} of ${total}`;
 
 export function MultiStepForm({
   steps,
   onStepContinue,
   onComplete,
-  nextLabel = "Continuar",
-  completeLabel = "Enviar",
-  backLabel = "Atrás",
-  formLabel = "Formulario por pasos",
+  nextLabel = "Continue",
+  completeLabel = "Send",
+  backLabel = "Back",
+  formLabel = "Step-by-step form",
   successTitle,
   successNote,
   successAction,
@@ -214,7 +214,7 @@ export function MultiStepForm({
     </div>
     <AnimatePresence initial={false}>
       {!complete && <motion.div key="actions" className={styles.actionsShell} exit={reduced ? undefined : { opacity: 0, height: 0, overflow: "hidden", transition: { height: motionTokens.spring.smooth, opacity: exitFade } }}>
-        <div className={styles.actions}>{actionsStart && <div className={styles.actionsStart}>{actionsStart}</div>}<button className={styles.back} type="button" onClick={() => { pendingFocus.current = true; setDirection(-1); setStep(value => Math.max(0, value - 1)); }} disabled={step === 0 || pending}><ArrowLeft aria-hidden="true" width={16} height={16} /> {backLabel}</button><button className={styles.next} type="submit" disabled={pending} aria-busy={pending || undefined}><MorphLabel label={pending ? "Enviando" : last ? completeLabel : nextLabel} reduced={reduced} /><ArrowRight aria-hidden="true" width={16} height={16} /></button></div>
+        <div className={styles.actions}>{actionsStart && <div className={styles.actionsStart}>{actionsStart}</div>}<button className={styles.back} type="button" onClick={() => { pendingFocus.current = true; setDirection(-1); setStep(value => Math.max(0, value - 1)); }} disabled={step === 0 || pending}><ArrowLeft aria-hidden="true" width={16} height={16} /> {backLabel}</button><button className={styles.next} type="submit" disabled={pending} aria-busy={pending || undefined}><MorphLabel label={pending ? "Sending" : last ? completeLabel : nextLabel} reduced={reduced} /><ArrowRight aria-hidden="true" width={16} height={16} /></button></div>
       </motion.div>}
     </AnimatePresence>
   </form>;

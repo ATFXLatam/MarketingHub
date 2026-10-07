@@ -52,7 +52,7 @@ const BAND_GAP = 7;
 const OUTER = 106;
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-const number = new Intl.NumberFormat("es-MX");
+const number = new Intl.NumberFormat("en-US");
 
 function bandFor(index: number) {
   const outer = OUTER - index * (BAND + BAND_GAP);
@@ -109,7 +109,7 @@ function LegendRow({ metric, color, index, values, target, pressed, dimmed, onTo
   const value = useTransform(values, v => v[index] ?? 0);
   const met = target >= metric.goal;
   return <button type="button" className={styles.legendRow} aria-pressed={pressed} data-dimmed={dimmed || undefined} style={{ "--ring": color } as CSSProperties}
-    aria-label={`${metric.label}, ${number.format(target)} de ${number.format(metric.goal)} ${metric.unit}, ${Math.round((target / metric.goal) * 100)} por ciento${met ? ", objetivo cumplido" : ""}`}
+    aria-label={`${metric.label}, ${number.format(target)} of ${number.format(metric.goal)} ${metric.unit}, ${Math.round((target / metric.goal) * 100)} percent${met ? ", goal met" : ""}`}
     onClick={onToggle} onPointerEnter={event => event.pointerType === "mouse" && onHover(true)} onPointerLeave={() => onHover(false)} onFocus={() => onHover(true)} onBlur={() => onHover(false)}>
     <span className={styles.swatch} aria-hidden="true" />
     <span className={styles.legendText} aria-hidden="true">
@@ -138,7 +138,7 @@ function MiniRings({ metrics, day }: { metrics: ActivityMetric[]; day: ActivityD
   </svg>;
 }
 
-export function ActivityRings({ metrics, days, day, defaultDay, onDayChange, focused, defaultFocused = null, onFocusedChange, onRingClose, label = "Actividad", pickerLabel = "Día", className }: ActivityRingsProps) {
+export function ActivityRings({ metrics, days, day, defaultDay, onDayChange, focused, defaultFocused = null, onFocusedChange, onRingClose, label = "Activity", pickerLabel = "Day", className }: ActivityRingsProps) {
   const reduced = useReducedMotion() ?? false;
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const [ownDay, setOwnDay] = useState(defaultDay ?? days[days.length - 1]?.id);
@@ -207,7 +207,7 @@ export function ActivityRings({ metrics, days, day, defaultDay, onDayChange, foc
                 <span className={styles.centerValue}>
                   {spotMetric ? <Count value={spotValue} format={v => number.format(Math.round(v))} /> : <><Count value={overall} format={v => String(Math.round(v))} /><span className={styles.centerUnit}>%</span></>}
                 </span>
-                <span className={styles.centerLabel}>{spotMetric ? `${spotMetric.unit} ${spotMetric.label.toLowerCase()}` : "del objetivo"}</span>
+                <span className={styles.centerLabel}>{spotMetric ? `${spotMetric.unit} ${spotMetric.label.toLowerCase()}` : "of goal"}</span>
               </motion.div>
             </AnimatePresence>
           </div>

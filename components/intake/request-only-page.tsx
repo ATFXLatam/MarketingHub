@@ -42,8 +42,8 @@ export function RequestOnlyPage({ user, areaOwners, today }: RequestOnlyPageProp
         />
       </header>
       <main className={styles.main}>
-        <h1 className={styles.title}>Nueva solicitud</h1>
-        <p className={styles.description}>Mientras más completo el brief, antes se puede entregar.</p>
+        <h1 className={styles.title}>New request</h1>
+        <p className={styles.description}>The more complete the brief, the sooner it can be delivered.</p>
         <div className={styles.frame}>
           <RequestForm requester={user.name} areaOwners={areaOwners} today={today} />
         </div>

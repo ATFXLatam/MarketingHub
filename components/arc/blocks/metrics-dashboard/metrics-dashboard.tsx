@@ -16,7 +16,7 @@ export interface DashboardRange {
   value: string;
   /** Short label on the range control, such as "7D". */
   label: string;
-  /** Spoken and subtitle label, such as "Últimos 7 días". */
+  /** Spoken and subtitle label, such as "Last 7 days". */
   long: string;
   days: number;
   /** Days per chart point; 7 draws one point per week. */
@@ -77,9 +77,9 @@ function buildRange(daily: DashboardDay[], metrics: DashboardMetric[], range: Da
   return { series, totals, step };
 }
 
-const countFormat = new Intl.NumberFormat("es-MX");
-const compactFormat = new Intl.NumberFormat("es-MX", { notation: "compact", maximumFractionDigits: 1 });
-const dayFormat = new Intl.DateTimeFormat("es-MX", { month: "short", day: "numeric" });
+const countFormat = new Intl.NumberFormat("en-US");
+const compactFormat = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
+const dayFormat = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
 const formatValue = (value: number) => countFormat.format(Math.round(value));
 const formatAxis = (value: number) => compactFormat.format(value);
 
@@ -216,7 +216,7 @@ export function MetricsDashboard({ title, subtitle, metrics, daily, ranges, brea
         </div>
       </header>
 
-      <div className={styles.kpis} role="tablist" aria-label="Métrica" style={{ ["--kpi-count" as string]: metrics.length }}>
+      <div className={styles.kpis} role="tablist" aria-label="Metric" style={{ ["--kpi-count" as string]: metrics.length }}>
         {metrics.map((m) => {
           const total = data.totals[m.key];
           const good = total.delta !== null && (m.lowerIsBetter ? total.delta < 0 : total.delta > 0);
@@ -226,10 +226,10 @@ export function MetricsDashboard({ title, subtitle, metrics, daily, ranges, brea
               {selected && <motion.span layoutId={`${uid}-kpi`} className={styles.kpiIndicator} transition={reduce ? { duration: 0 } : motionTokens.spring.smooth} />}
               <span className={styles.kpiLabel}>{m.label}</span>
               <span className={styles.kpiValue}><CountValue value={total.value} format={formatValue} /></span>
-              {total.delta === null ? <span className={styles.delta}>Sin periodo anterior</span> : <span className={`${styles.delta} ${good ? styles.good : styles.bad}`}>
+              {total.delta === null ? <span className={styles.delta}>No previous period</span> : <span className={`${styles.delta} ${good ? styles.good : styles.bad}`}>
                 {total.delta >= 0 ? <ArrowUpRight size={13} aria-hidden /> : <ArrowDownRight size={13} aria-hidden />}
                 <span>{Math.abs(total.delta).toFixed(0)}%</span>
-                <span className={styles.srOnly}>{total.delta >= 0 ? "más" : "menos"} que el periodo anterior</span>
+                <span className={styles.srOnly}>{total.delta >= 0 ? "more" : "fewer"} than the previous period</span>
               </span>}
             </button>
           );
@@ -240,7 +240,7 @@ export function MetricsDashboard({ title, subtitle, metrics, daily, ranges, brea
         <div className={styles.chartBar}>
           <div className={styles.legend} aria-hidden>
             <span><i className={styles.swatch} />{metric.label}</span>
-            {compare && <span><i className={styles.swatchPrevious} />Periodo anterior</span>}
+            {compare && <span><i className={styles.swatchPrevious} />Previous period</span>}
           </div>
           <label className={styles.compare}>
             <input type="checkbox" checked={compare} onChange={(e) => setCompare(e.target.checked)} />
@@ -257,7 +257,7 @@ export function MetricsDashboard({ title, subtitle, metrics, daily, ranges, brea
             className={styles.chartArea}
             tabIndex={0}
             role="img"
-            aria-label={`${metric.label}, ${rangeInfo.long.toLowerCase()}. Usa las flechas para revisar cada punto.`}
+            aria-label={`${metric.label}, ${rangeInfo.long.toLowerCase()}. Use the arrow keys to step through each point.`}
             onPointerMove={inspect}
             onPointerDown={inspect}
             onPointerLeave={(e) => { if (e.pointerType === "mouse") setActive(null); }}
@@ -288,7 +288,7 @@ export function MetricsDashboard({ title, subtitle, metrics, daily, ranges, brea
                 <span className={styles.crosshair} style={{ left: `${(chart.x(active!) / W) * 100}%` }} aria-hidden />
                 <span className={styles.dot} style={{ left: `${(chart.x(active!) / W) * 100}%`, top: `${(chart.y(focus.value) / H) * 100}%` }} aria-hidden />
                 <div className={styles.tooltip} style={{ left: `${tooltipLeft}%`, ...(chart.y(focus.value) / H < 0.5 ? { top: "auto", bottom: 6 } : null) }} role="status">
-                  <span className={styles.tooltipDate}>{data.step > 1 ? "Semana del " : ""}{dayFormat.format(focus.date)}</span>
+                  <span className={styles.tooltipDate}>{data.step > 1 ? "Week of " : ""}{dayFormat.format(focus.date)}</span>
                   <strong>{formatValue(focus.value)}</strong>
                   {compare && <span className={styles.tooltipPrevious}>{formatValue(focus.previous)} antes</span>}
                 </div>

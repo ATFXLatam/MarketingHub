@@ -42,7 +42,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       now,
     );
     // Without board access only the request form exists for this person.
-    const next = access.board ? safeDestination(pending.next, request.nextUrl.origin) : "/solicitar";
+    const next = access.board ? safeDestination(pending.next, request.nextUrl.origin) : "/request";
     const response = NextResponse.redirect(new URL(next, request.nextUrl.origin));
     response.cookies.set(SESSION_COOKIE, sealSession(session, sessionKey(process.env.MONDAY_TOKEN_KEY)), cookieOptions(SESSION_MAX_AGE));
     response.cookies.delete(OAUTH_COOKIE);

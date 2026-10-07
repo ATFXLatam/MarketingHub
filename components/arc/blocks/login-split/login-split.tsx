@@ -34,7 +34,7 @@ type StepCustom = { direction: number; reduce: boolean };
 const RESEND_SECONDS = 30;
 const CODE_LENGTH = 6;
 const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim());
-const messageOf = (error: unknown) => (error instanceof Error && error.message ? error.message : "Algo salió mal. Intenta de nuevo.");
+const messageOf = (error: unknown) => (error instanceof Error && error.message ? error.message : "Something went wrong. Try again.");
 
 const stepMotion: Variants = {
   enter: ({ direction, reduce }: StepCustom) => reduce ? { opacity: 0 } : { opacity: 0, y: direction * 14, filter: `blur(${motionTokens.blur.soft}px)` },
@@ -128,7 +128,7 @@ export function LoginSplit({ fullScreen = false, brand, title, subtitle, onSendC
   const focusNext = useRef<"email" | "done" | null>(null);
   const { track, height } = useStepHeight(step, reduce);
   const Heading = fullScreen ? "h1" : "h2";
-  const emailError = (touched || attempted) && !isEmail(email) ? (email.trim() ? "Escribe el correo completo, como nombre@atfx.com." : "Escribe tu correo.") : "";
+  const emailError = (touched || attempted) && !isEmail(email) ? (email.trim() ? "Write the full email, like name@atfx.com." : "Write your email.") : "";
   const custom: StepCustom = { direction, reduce };
 
   useEffect(() => {
@@ -156,7 +156,7 @@ export function LoginSplit({ fullScreen = false, brand, title, subtitle, onSendC
     const address = email.trim();
     setBusy(true);
     setSendError("");
-    setStatus("Enviando el código");
+    setStatus("Sending the code");
     try {
       await onSendCode?.(address);
       setCode("");
@@ -164,20 +164,20 @@ export function LoginSplit({ fullScreen = false, brand, title, subtitle, onSendC
       setSubmit("idle");
       setResendIn(RESEND_SECONDS);
       go("code", 1);
-      setStatus(`Código enviado a ${address}`);
+      setStatus(`Code sent to ${address}`);
     } catch (error) {
       setSendError(messageOf(error));
-      setStatus("No se pudo enviar el código");
+      setStatus("Could not send the code");
     } finally {
       setBusy(false);
     }
   }
   async function verify(value: string) {
     if (submit !== "idle") return;
-    if (value.length < CODE_LENGTH) { setCodeError(`Escribe los ${CODE_LENGTH} dígitos.`); shake(); return; }
+    if (value.length < CODE_LENGTH) { setCodeError(`Enter all ${CODE_LENGTH} digits.`); shake(); return; }
     setSubmit("checking");
     setCodeError("");
-    setStatus("Revisando el código");
+    setStatus("Checking the code");
     try {
       if (!onVerifyCode) return;
       const next = await onVerifyCode(value);
@@ -189,7 +189,7 @@ export function LoginSplit({ fullScreen = false, brand, title, subtitle, onSendC
     } catch (error) {
       setSubmit("idle");
       setCodeError(messageOf(error));
-      setStatus("Código incorrecto");
+      setStatus("Wrong code");
       shake();
     }
   }
@@ -204,7 +204,7 @@ export function LoginSplit({ fullScreen = false, brand, title, subtitle, onSendC
     try {
       await onSendCode?.(email.trim());
       setResendIn(RESEND_SECONDS);
-      setStatus("Te enviamos un código nuevo");
+      setStatus("We sent you a new code");
     } catch (error) {
       setCodeError(messageOf(error));
     } finally {
@@ -215,7 +215,7 @@ export function LoginSplit({ fullScreen = false, brand, title, subtitle, onSendC
     setSubmit("idle");
     setAttempted(false);
     go("email", -1, "email");
-    setStatus("Corrige tu correo");
+    setStatus("Fix your email");
   }
 
   return (
@@ -237,15 +237,15 @@ export function LoginSplit({ fullScreen = false, brand, title, subtitle, onSendC
                       {provider.error && <p className={styles.providerError} role="alert">{provider.error}</p>}
                       <Button type="submit" className={styles.wide} loading={busy}>{provider.icon}{provider.label}</Button>
                     </form> : <form className={styles.form} onSubmit={submitEmail} noValidate>
-                      <Input ref={emailRef} label="Correo" type="email" name="email" inputMode="email" autoComplete="username" autoCapitalize="none" spellCheck={false} placeholder="nombre@atfx.com" value={email} readOnly={busy} error={emailError || sendError || undefined} onChange={event => { setEmail(event.target.value); setSendError(""); }} onBlur={() => setTouched(true)} />
-                      <Button type="submit" className={styles.wide} loading={busy}>Enviar código</Button>
+                      <Input ref={emailRef} label="Email" type="email" name="email" inputMode="email" autoComplete="username" autoCapitalize="none" spellCheck={false} placeholder="name@atfx.com" value={email} readOnly={busy} error={emailError || sendError || undefined} onChange={event => { setEmail(event.target.value); setSendError(""); }} onBlur={() => setTouched(true)} />
+                      <Button type="submit" className={styles.wide} loading={busy}>Send code</Button>
                     </form>}
                   </motion.div>}
 
                   {step === "code" && <motion.div key="code" className={styles.step} custom={custom} variants={stepMotion} initial="enter" animate="center" exit="exit">
                     <div className={styles.heading}>
-                      <Heading>Revisa tu correo</Heading>
-                      <button type="button" className={styles.chip} aria-label={`${email.trim()}, cambiar correo`} onClick={changeEmail}>
+                      <Heading>Check your email</Heading>
+                      <button type="button" className={styles.chip} aria-label={`${email.trim()}, change email`} onClick={changeEmail}>
                         <span className={styles.chipEmail}>{email.trim()}</span>
                         <ChevronDown size={16} strokeWidth={1.75} aria-hidden="true" />
                       </button>
@@ -253,21 +253,21 @@ export function LoginSplit({ fullScreen = false, brand, title, subtitle, onSendC
                     <form className={styles.form} onSubmit={event => { event.preventDefault(); void verify(code); }} noValidate>
                       <div className={styles.fieldGroup}>
                         <div ref={fieldRef}>
-                          <OtpInput label="Código de 6 dígitos" length={CODE_LENGTH} value={code} onChange={changeCode} autoFocus disabled={submit !== "idle"} error={codeError || undefined} />
+                          <OtpInput label="6 digit code" length={CODE_LENGTH} value={code} onChange={changeCode} autoFocus disabled={submit !== "idle"} error={codeError || undefined} />
                         </div>
                         <p className={styles.notice}>
-                          <span>¿No llegó? Revisa spam.</span>
-                          <button type="button" className={styles.textLink} aria-disabled={resendIn > 0 || busy || undefined} aria-label={resendIn > 0 ? `Reenviar código, disponible en ${resendIn} segundos` : "Reenviar código"} onClick={() => void resend()}>
+                          <span>Not there? Check spam.</span>
+                          <button type="button" className={styles.textLink} aria-disabled={resendIn > 0 || busy || undefined} aria-label={resendIn > 0 ? `Resend code, available in ${resendIn} seconds` : "Resend code"} onClick={() => void resend()}>
                             <AnimatePresence mode="popLayout" initial={false}>
-                              <motion.span key={resendIn > 0 ? "wait" : "ready"} className={styles.resendLabel} {...swap(reduce)}>{resendIn > 0 ? <>Reenviar en <Countdown seconds={resendIn} reduce={reduce} /></> : "Reenviar código"}</motion.span>
+                              <motion.span key={resendIn > 0 ? "wait" : "ready"} className={styles.resendLabel} {...swap(reduce)}>{resendIn > 0 ? <>Resend in <Countdown seconds={resendIn} reduce={reduce} /></> : "Resend code"}</motion.span>
                             </AnimatePresence>
                           </button>
                         </p>
                       </div>
                       <div className={styles.submitRow}>
                         <motion.div className={styles.submitSlot} data-success={submit === "success" || undefined} initial={false} animate={{ width: submit === "success" ? 44 : "100%" }} transition={reduce ? { duration: 0 } : motionTokens.spring.smooth}>
-                          <Button type="submit" className={styles.submit} loading={submit === "checking"} aria-label={submit === "success" ? "Código aceptado" : undefined}>
-                            {submit === "success" ? <CheckMark reduce={reduce} /> : "Entrar"}
+                          <Button type="submit" className={styles.submit} loading={submit === "checking"} aria-label={submit === "success" ? "Code accepted" : undefined}>
+                            {submit === "success" ? <CheckMark reduce={reduce} /> : "Sign in"}
                           </Button>
                         </motion.div>
                       </div>
@@ -280,8 +280,8 @@ export function LoginSplit({ fullScreen = false, brand, title, subtitle, onSendC
                       <span className={styles.accountText}><span className={styles.strong}>{account.name}</span><span className={styles.accountEmail}>{account.email}</span></span>
                     </div>
                     <div className={styles.heading}>
-                      <Heading ref={doneRef} tabIndex={-1}>Entrando</Heading>
-                      <p>Te llevamos al tablero del equipo.</p>
+                      <Heading ref={doneRef} tabIndex={-1}>Signing in</Heading>
+                      <p>Taking you to the team board.</p>
                     </div>
                     <div className={styles.progress} aria-hidden="true"><motion.span className={styles.progressFill} initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={reduce ? { duration: 0 } : { duration: 1.4, ease: motionTokens.ease.standard }} /></div>
                   </motion.div>}

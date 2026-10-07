@@ -7,7 +7,7 @@ import { safeEqual } from "@/lib/secrets";
 // The board link and monday's webhook carry their own secret in the URL; sign-in and its OAuth hops are open by nature.
 const OPEN = [/^\/api\/monday\/webhook\//, /^\/api\/monday\/oauth\//, /^\/sign-in(\/|$)/];
 // All a person without the board in monday may reach: the form, its Server Action and the upload signer.
-const REQUEST_ONLY = [/^\/solicitar$/, /^\/api\/blob-upload$/];
+const REQUEST_ONLY = [/^\/request$/, /^\/api\/blob-upload$/];
 
 function toSignIn(request: NextRequest, error?: SignInError): NextResponse {
   const url = new URL("/sign-in", request.nextUrl.origin);
@@ -61,7 +61,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   // The page in this same request must read the refreshed access, not the cookie the browser sent.
   if (sealed) request.cookies.set(SESSION_COOKIE, sealed);
   const allowed = session.board || REQUEST_ONLY.some((pattern) => pattern.test(pathname));
-  const response = allowed ? NextResponse.next({ request: { headers: request.headers } }) : NextResponse.redirect(new URL("/solicitar", request.nextUrl.origin));
+  const response = allowed ? NextResponse.next({ request: { headers: request.headers } }) : NextResponse.redirect(new URL("/request", request.nextUrl.origin));
   if (sealed) response.cookies.set(SESSION_COOKIE, sealed, cookieOptions(Math.floor((session.expiresAt - now) / 1000)));
   return response;
 }

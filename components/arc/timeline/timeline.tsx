@@ -108,10 +108,10 @@ function dayKey(time: number, timeZone: string) {
 
 function relative(time: number, now: number) {
   const minutes = Math.max(0, Math.floor((now - time) / 60_000));
-  if (minutes < 1) return { short: "Ahora", long: "hace un momento" };
-  if (minutes < 60) return { short: `${minutes}m`, long: `hace ${minutes} ${minutes === 1 ? "minuto" : "minutos"}` };
+  if (minutes < 1) return { short: "Now", long: "just now" };
+  if (minutes < 60) return { short: `${minutes}m`, long: `${minutes} ${minutes === 1 ? "minute" : "minutes"} ago` };
   const hours = Math.floor(minutes / 60);
-  return { short: `${hours}h`, long: `hace ${hours} ${hours === 1 ? "hora" : "horas"}` };
+  return { short: `${hours}h`, long: `${hours} ${hours === 1 ? "hour" : "hours"} ago` };
 }
 
 /** A day's section. A new day opens from nothing and pushes the older days down; it clips only while it grows. */
@@ -171,7 +171,7 @@ function TimelineRow({ row, last, expanded, onToggle, timeLabel, timeFull }: { r
   </motion.li>;
 }
 
-export function Timeline({ events, now, label, timeZone = "UTC", locale = "es-MX", maxHeight, scrollToNew = true, defaultExpanded = [], headingLevel = 3, className }: TimelineProps) {
+export function Timeline({ events, now, label, timeZone = "UTC", locale = "en-US", maxHeight, scrollToNew = true, defaultExpanded = [], headingLevel = 3, className }: TimelineProps) {
   const reduced = useReducedMotionSafe();
   const id = useId();
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -182,7 +182,7 @@ export function Timeline({ events, now, label, timeZone = "UTC", locale = "es-MX
   const [known, setKnown] = useState(() => ({ ids, set: new Set(events.map(event => event.id)), fresh: new Set<string>(), announcement: "" }));
   if (known.ids !== ids) {
     const added = events.filter(event => !known.set.has(event.id));
-    setKnown({ ids, set: new Set(events.map(event => event.id)), fresh: new Set([...known.fresh, ...added.map(event => event.id)]), announcement: added.length ? `Nueva actualización: ${added.map(event => [event.actor, event.title].filter(Boolean).join(" ")).join(". ")}` : known.announcement });
+    setKnown({ ids, set: new Set(events.map(event => event.id)), fresh: new Set([...known.fresh, ...added.map(event => event.id)]), announcement: added.length ? `New update: ${added.map(event => [event.actor, event.title].filter(Boolean).join(" ")).join(". ")}` : known.announcement });
   }
   // The bottom edge feathers while more updates wait below, and clears once the end is in view.
   const trackRef = useRef<HTMLDivElement>(null);
@@ -215,7 +215,7 @@ export function Timeline({ events, now, label, timeZone = "UTC", locale = "es-MX
       const day = dayKey(event.time, timeZone);
       byDay.set(day, [...(byDay.get(day) ?? []), { ...event, day }]);
     });
-    return [...byDay].map(([day, rows]) => ({ day, rows, label: day === today ? "Hoy" : day === yesterday ? "Ayer" : heading.format(new Date(rows[0].time)) }));
+    return [...byDay].map(([day, rows]) => ({ day, rows, label: day === today ? "Today" : day === yesterday ? "Yesterday" : heading.format(new Date(rows[0].time)) }));
   }, [events, now, timeZone, locale]);
   const formats = useMemo(() => ({
     clock: new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit", timeZone }),
@@ -254,13 +254,13 @@ export function Timeline({ events, now, label, timeZone = "UTC", locale = "es-MX
           {groups.map(group => <DaySection key={group.day} id={`${id}-${group.day}`} fresh={!initialDays.has(group.day)} reduced={reduced}>
             <div className={styles.day} role="heading" aria-level={headingLevel} id={`${id}-${group.day}`}>
               <span>{group.label}</span>
-              <span className={styles.count} aria-hidden="true"><RollingCount value={group.rows.length} reduced={reduced} /> {group.rows.length === 1 ? "movimiento" : "movimientos"}</span>
-              <span className={styles.srOnly}>{`, ${group.rows.length} ${group.rows.length === 1 ? "movimiento" : "movimientos"}`}</span>
+              <span className={styles.count} aria-hidden="true"><RollingCount value={group.rows.length} reduced={reduced} /> {group.rows.length === 1 ? "update" : "updates"}</span>
+              <span className={styles.srOnly}>{`, ${group.rows.length} ${group.rows.length === 1 ? "update" : "updates"}`}</span>
             </div>
             <ol className={styles.list}>
               <AnimatePresence>
                 {group.rows.map((row, index) => {
-                  const today = group.label === "Hoy" && now - row.time < 12 * HOUR;
+                  const today = group.label === "Today" && now - row.time < 12 * HOUR;
                   const time = today ? relative(row.time, now) : { short: formats.clock.format(new Date(row.time)), long: "" };
                   return <TimelineRow key={row.id} row={row} last={index === group.rows.length - 1} expanded={expanded.has(row.id)} onToggle={() => toggle(row.id)}
                     timeLabel={time.short} timeFull={today ? `${time.long}, ${formats.full.format(new Date(row.time))}` : formats.full.format(new Date(row.time))} />;

@@ -24,25 +24,25 @@ const DIGITS = /^\d{1,6}$/;
 export function stepErrors(step: string, draft: Draft, state: { pendingUploads: boolean }): Record<string, string> {
   const errors: Record<string, string> = {};
   const { details } = draft;
-  if (step === "area" && !draft.area) errors.area = "Elige un área para continuar.";
+  if (step === "area" && !draft.area) errors.area = "Choose an area to continue.";
   if (step === "brief") {
-    if (draft.title.trim().length < MIN_TITLE) errors.title = "Escribe un título.";
-    if (!draft.subtype) errors.subtype = "Elige el tipo de pieza.";
-    if (draft.area === "web" && draft.subtype === "landing" && !draft.landingSubtype) errors.landingSubtype = "Elige el tipo de landing.";
-    if (draft.brief.trim().length < MIN_BRIEF) errors.brief = `Cuéntanos un poco más (mínimo ${MIN_BRIEF} caracteres).`;
+    if (draft.title.trim().length < MIN_TITLE) errors.title = "Enter a title.";
+    if (!draft.subtype) errors.subtype = "Choose the piece type.";
+    if (draft.area === "web" && draft.subtype === "landing" && !draft.landingSubtype) errors.landingSubtype = "Choose the landing type.";
+    if (draft.brief.trim().length < MIN_BRIEF) errors.brief = `Tell us a bit more (at least ${MIN_BRIEF} characters).`;
   }
   if (step === "requisitos") {
-    if (details.url?.trim() && !HTTPS.test(details.url.trim())) errors.url = "Pega el link completo, empieza con https://";
-    if (details.duration?.trim() && !DIGITS.test(details.duration.trim())) errors.duration = "Escribe solo los segundos, por ejemplo 30.";
-    if (details.attendees?.trim() && !DIGITS.test(details.attendees.trim())) errors.attendees = "Escribe solo el número de personas.";
+    if (details.url?.trim() && !HTTPS.test(details.url.trim())) errors.url = "Paste the full link, starting with https://";
+    if (details.duration?.trim() && !DIGITS.test(details.duration.trim())) errors.duration = "Enter seconds only, for example 30.";
+    if (details.attendees?.trim() && !DIGITS.test(details.attendees.trim())) errors.attendees = "Enter the number of people only.";
   }
   if (step === "cuando") {
-    if (!draft.dueDate) errors.dueDate = "Elige la fecha requerida.";
-    if (!draft.market) errors.market = "Elige el mercado.";
+    if (!draft.dueDate) errors.dueDate = "Choose the due date.";
+    if (!draft.market) errors.market = "Choose the market.";
   }
   if (step === "material") {
-    if (draft.drive.trim() && !HTTPS.test(draft.drive.trim())) errors.drive = "Pega el link completo, empieza con https://";
-    if (state.pendingUploads) errors.attachments = "Espera a que terminen de subir los adjuntos, o quita los que fallaron.";
+    if (draft.drive.trim() && !HTTPS.test(draft.drive.trim())) errors.drive = "Paste the full link, starting with https://";
+    if (state.pendingUploads) errors.attachments = "Wait for the attachments to finish uploading, or remove the ones that failed.";
   }
   return errors;
 }

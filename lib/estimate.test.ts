@@ -43,11 +43,11 @@ describe("estimate", () => {
   it("keeps a blocked request out of ready even when the rest is complete", () => {
     const result = estimate({ ...complete, attachmentCount: 2, blockers: "Faltan logos" });
     expect(result.initialStage).toBe("nueva");
-    expect(result.missing).toContain("Resuelve los bloqueadores antes de arrancar");
+    expect(result.missing).toContain("Clear the blockers before starting");
   });
 
   it("requires the landing type before counting the piece as chosen", () => {
-    expect(estimate({ ...complete, landingSubtype: undefined }).missing).toContain("Elige el tipo de pieza");
+    expect(estimate({ ...complete, landingSubtype: undefined }).missing).toContain("Choose the piece type");
   });
 
   it("flags a requested date earlier than the estimate", () => {

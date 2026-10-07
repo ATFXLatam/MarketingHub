@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 
 export default function PublicBoardPage({ params }: PageProps<"/p/[token]">) {
   return (
-    <Suspense fallback={<Skeleton label="Cargando el tablero" lines={8} />}>
+    <Suspense fallback={<Skeleton label="Loading the board" lines={8} />}>
       <Board params={params} />
     </Suspense>
   );
@@ -36,8 +36,8 @@ async function Board({ params }: Pick<PageProps<"/p/[token]">, "params">) {
   const snapshot = await getBoardSnapshot();
   if (!snapshot.configured) {
     return (
-      <Alert tone="warning" title="El tablero todavía no está conectado">
-        Falta configurar el acceso a monday en el servidor.
+      <Alert tone="warning" title="The board is not connected yet">
+        Monday access is not configured on the server.
       </Alert>
     );
   }

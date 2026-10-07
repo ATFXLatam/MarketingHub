@@ -19,7 +19,7 @@ interface InternalDashboardProps extends Omit<TeamPageProps, "actions"> {
   user: { name: string; email: string; avatarSrc?: string };
   /** Absent when PUBLIC_BOARD_TOKEN is not configured. */
   publicPath?: string;
-  /** /solicitar opens the dashboard with the request flow already up, so the link can go out by email. */
+  /** /request opens the dashboard with the request flow already up, so the link can go out by email. */
   requestOpen?: boolean;
   areaOwners: Record<Area, AreaOwner[]>;
   /** Viewer seats see the board but cannot request work. */
@@ -68,13 +68,13 @@ export function InternalDashboard({ user, publicPath, requestOpen = false, areaO
             {publicPath && (
               <Button variant="secondary" size="sm" onClick={copyLink}>
                 {copied === "done" ? <Check {...icon} /> : <Link2 {...icon} />}
-                {copied === "done" ? "Enlace copiado" : copied === "failed" ? "No se pudo copiar" : "Enlace para clientes"}
+                {copied === "done" ? "Link copied" : copied === "failed" ? "Could not copy" : "Client link"}
               </Button>
             )}
             {canRequest && (
               <Button size="sm" onClick={() => setRequesting(true)}>
                 <Plus {...icon} />
-                Nueva solicitud
+                New request
               </Button>
             )}
             <UserMenu

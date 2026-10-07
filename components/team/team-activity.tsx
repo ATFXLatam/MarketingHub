@@ -24,15 +24,15 @@ const REFRESH_MIN_MS = 600;
 const SHARES = [
   {
     id: "entregadas",
-    label: "Entregadas",
+    label: "Delivered",
     unit: "",
     goal: 100,
     color: "var(--success)",
   },
-  { id: "alDia", label: "Al día", unit: "", goal: 100, color: "var(--accent)" },
+  { id: "alDia", label: "On time", unit: "", goal: 100, color: "var(--accent)" },
   {
     id: "enCurso",
-    label: "En curso",
+    label: "In progress",
     unit: "",
     goal: 100,
     color: "var(--warning)",
@@ -61,7 +61,7 @@ export function TeamActivity({
   async function refresh() {
     router.refresh();
     await new Promise((resolve) => setTimeout(resolve, REFRESH_MIN_MS));
-    return "Al día";
+    return "Up to date";
   }
   const personId = useUrlParam(PERSON_PARAM);
   const person = tasks.flatMap((task) => task.owners).find((owner) => owner.id === personId);
@@ -74,7 +74,7 @@ export function TeamActivity({
           {
             kind: "group" as const,
             id: "vencidas",
-            label: "Vencidas",
+            label: "Overdue",
             count: overdue.length,
             late: true,
           },
@@ -86,7 +86,7 @@ export function TeamActivity({
           {
             kind: "group" as const,
             id: "proximas",
-            label: "Próximas",
+            label: "Upcoming",
             count: upcoming.length,
             late: false,
           },
@@ -109,13 +109,13 @@ export function TeamActivity({
         aria-labelledby="activity-title"
       >
         <h2 id="activity-title" className={styles.heading}>
-          Movimientos recientes
+          Recent activity
         </h2>
         {activity.length ? (
           <Timeline
-            label="Movimientos recientes"
+            label="Recent activity"
             now={now}
-            locale="es-MX"
+            locale="en-US"
             timeZone={TEAM_TIME_ZONE}
             scrollToNew={false}
             maxHeight={620}
@@ -126,8 +126,8 @@ export function TeamActivity({
                 at: event.at,
                 actor: event.taskTitle,
                 title: done
-                  ? "se entregó"
-                  : `pasó a ${STAGE_LABEL[event.stage]}`,
+                  ? "delivered"
+                  : `moved to ${STAGE_LABEL[event.stage]}`,
                 icon: done ? (
                   <CircleCheck size={14} strokeWidth={1.75} />
                 ) : (
@@ -139,19 +139,19 @@ export function TeamActivity({
           />
         ) : (
           <p className={styles.empty}>
-            Los cambios de estado de los últimos 60 días aparecen aquí.
+            Status changes from the last 60 days appear here.
           </p>
         )}
       </section>
       <StretchRefresh
         className={styles.upcomingPanel}
-        title={person ? `Entregas de ${person.name.split(" ")[0]}` : "Entregas"}
+        title={person ? `${person.name.split(" ")[0]}'s deliveries` : "Deliveries"}
         subtitle={
           overdue.length
-            ? `${overdue.length} ${overdue.length === 1 ? "vencida" : "vencidas"} · ${upcoming.length} por venir`
+            ? `${overdue.length} overdue · ${upcoming.length} upcoming`
             : upcoming.length
-              ? `${upcoming.length} por venir`
-              : "Nada con fecha pendiente"
+              ? `${upcoming.length} upcoming`
+              : "Nothing pending with a due date"
         }
         items={rows}
         getKey={(row) => row.id}
@@ -194,18 +194,18 @@ export function TeamActivity({
         aria-labelledby="areas-title"
       >
         <h2 id="areas-title" className={styles.heading}>
-          Por persona
+          By person
         </h2>
         {people.length ? (
           <ActivityRings
             metrics={SHARES}
             days={people}
             defaultDay={people[0].id}
-            label="Avance por persona"
-            pickerLabel="Persona"
+            label="Progress by person"
+            pickerLabel="Person"
           />
         ) : (
-          <p className={styles.empty}>Nadie tiene solicitudes asignadas.</p>
+          <p className={styles.empty}>No one has requests assigned.</p>
         )}
       </section>
     </div>

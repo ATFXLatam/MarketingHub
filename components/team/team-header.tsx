@@ -11,7 +11,6 @@ import { LocalTime } from "./local-time";
 import { PERSON_PARAM, setUrlParam, useUrlParam } from "./url-state";
 import styles from "./team-header.module.css";
 
-const plural = (count: number, one: string, other: string) => `${count} ${count === 1 ? one : other}`;
 const AREA_FILTERS = (Object.keys(AREA_LABEL) as Area[]).map((value) => ({ value, label: AREA_LABEL[value] }));
 
 export interface TeamHeaderProps {
@@ -34,15 +33,15 @@ function toPerson(member: TeamMember): DirectoryPerson {
     available: member.current.length > 0,
     about: working ? (
       <>
-        Trabajando en <TextShimmer>{working.title}</TextShimmer>
-        {more.length > 0 && ` y ${more.length} más`}
+        Working on <TextShimmer>{working.title}</TextShimmer>
+        {more.length > 0 && ` and ${more.length} more`}
       </>
     ) : undefined,
     facts: [
-      ...(member.timeZone ? [{ label: "Hora", value: <LocalTime timeZone={member.timeZone} /> }] : []),
-      { label: "Carga", value: `${plural(member.open, "abierta", "abiertas")} · ${plural(member.done, "entregada", "entregadas")} en 30 días` },
-      ...(next ? [{ label: "Sigue", value: `${next.title} · ${STAGE_LABEL[next.stage]}${next.dueDate ? ` · ${formatDay(next.dueDate)}` : ""}` }] : []),
-      ...(member.areas.length ? [{ label: "Áreas", value: member.areas.map((area) => AREA_LABEL[area]).join(", ") }] : []),
+      ...(member.timeZone ? [{ label: "Time", value: <LocalTime timeZone={member.timeZone} /> }] : []),
+      { label: "Load", value: `${member.open} open · ${member.done} delivered in 30 days` },
+      ...(next ? [{ label: "Next up", value: `${next.title} · ${STAGE_LABEL[next.stage]}${next.dueDate ? ` · ${formatDay(next.dueDate)}` : ""}` }] : []),
+      ...(member.areas.length ? [{ label: "Areas", value: member.areas.map((area) => AREA_LABEL[area]).join(", ") }] : []),
     ],
   };
 }
@@ -61,7 +60,7 @@ export function TeamHeader({ title, description, members, actions }: TeamHeaderP
         </div>
         <div className={styles.actions}>{actions}</div>
       </div>
-      {members.length > 0 && <TeamDirectory people={members.map(toPerson)} filters={AREA_FILTERS} title="Equipo" onPersonSelect={pick} />}
+      {members.length > 0 && <TeamDirectory people={members.map(toPerson)} filters={AREA_FILTERS} title="Team" onPersonSelect={pick} />}
     </header>
   );
 }

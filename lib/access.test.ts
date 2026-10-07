@@ -21,7 +21,7 @@ describe("accessFor", () => {
 
 describe("signInMessage", () => {
   it("only shows its own words, so a crafted ?error= link cannot put text on the sign-in page", () => {
-    expect(signInMessage("invitado")).toMatch(/invitados/);
+    expect(signInMessage("invitado")).toMatch(/guests/);
     expect(signInMessage("Llama al 555 para recuperar tu cuenta")).toBeUndefined();
     expect(signInMessage("toString")).toBeUndefined();
   });

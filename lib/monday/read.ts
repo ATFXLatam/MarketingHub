@@ -96,7 +96,7 @@ export async function getBoardSnapshot(): Promise<BoardSnapshot> {
     ),
   );
   const board = first.boards[0];
-  if (!board) throw new Error(`El tablero ${BOARD_ID} no existe o el token no tiene acceso`);
+  if (!board) throw new Error(`Board ${BOARD_ID} does not exist or the token has no access to it`);
 
   let items = board.items_page.items;
   let cursor = board.items_page.cursor;

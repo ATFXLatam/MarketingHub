@@ -32,18 +32,26 @@ export const TEAM_ROSTER = ["28982466", "74311964"] as const;
 export const AREAS = ["web", "video", "eventos", "diseno"] as const;
 export type Area = (typeof AREAS)[number];
 
-export const AREA_LABEL: Record<Area, string> = { web: "Web", video: "Video", eventos: "Eventos", diseno: "Diseño" };
+export const AREA_LABEL: Record<Area, string> = { web: "Web", video: "Video", eventos: "Events", diseno: "Design" };
 export const AREA_LABEL_ID: Record<Area, number> = { web: 7, video: 4, eventos: 9, diseno: 12 };
 
 export const PRIORITIES = ["normal", "media", "alta", "critica"] as const;
 export type Priority = (typeof PRIORITIES)[number];
-export const PRIORITY_LABEL: Record<Priority, string> = { normal: "Normal", media: "Media", alta: "Alta", critica: "Crítica" };
+export const PRIORITY_LABEL: Record<Priority, string> = { normal: "Normal", media: "Medium", alta: "High", critica: "Critical" };
 export const PRIORITY_LABEL_ID: Record<Priority, number> = { normal: 17, media: 9, alta: 19, critica: 2 };
 
 /** Board stages in flow order. The public board renders one column per stage. */
 export const STAGES = ["nueva", "ready", "en-curso", "on-hold", "hecha"] as const;
 export type Stage = (typeof STAGES)[number];
 export const STAGE_LABEL: Record<Stage, string> = {
+  nueva: "New",
+  ready: "Ready",
+  "en-curso": "In progress",
+  "on-hold": "On hold",
+  hecha: "Done",
+};
+/** Status labels as they are named in monday, used to match a status by text when its label id is missing. */
+export const STAGE_MONDAY_TEXT: Record<Stage, string> = {
   nueva: "Nueva",
   ready: "Ready",
   "en-curso": "En curso",
@@ -67,11 +75,11 @@ export type Subtype = { value: string; label: string; labelId: number; days: num
  */
 export const SUBTYPES: Record<Area, readonly Subtype[]> = {
   web: [
-    { value: "landing", label: "Landing page nueva", labelId: 1, days: 7 },
-    { value: "cambios", label: "Ronda de cambios", labelId: 2, days: 2 },
-    { value: "infra", label: "Infraestructura o accesos", labelId: 3, days: 3 },
-    { value: "tracking", label: "Tracking, píxeles o analítica", labelId: 4, days: 2 },
-    { value: "otra", label: "Otra cosa", labelId: 5, days: 3 },
+    { value: "landing", label: "New landing page", labelId: 1, days: 7 },
+    { value: "cambios", label: "Round of changes", labelId: 2, days: 2 },
+    { value: "infra", label: "Infrastructure or access", labelId: 3, days: 3 },
+    { value: "tracking", label: "Tracking, pixels or analytics", labelId: 4, days: 2 },
+    { value: "otra", label: "Something else", labelId: 5, days: 3 },
   ],
   video: [
     { value: "reel", label: "Reel", labelId: 1, days: 3 },
@@ -80,17 +88,17 @@ export const SUBTYPES: Record<Area, readonly Subtype[]> = {
     { value: "testimonial", label: "Testimonial", labelId: 4, days: 5 },
   ],
   eventos: [
-    { value: "interno", label: "Interno", labelId: 1, days: 10 },
-    { value: "cliente", label: "Cliente", labelId: 2, days: 15 },
+    { value: "interno", label: "Internal", labelId: 1, days: 10 },
+    { value: "cliente", label: "Client", labelId: 2, days: 15 },
   ],
   diseno: [
     { value: "meta", label: "Meta", labelId: 1, days: 2 },
     { value: "google", label: "Google", labelId: 2, days: 2 },
     { value: "email", label: "Email", labelId: 3, days: 2 },
     { value: "landing", label: "Landing", labelId: 4, days: 4 },
-    { value: "presentacion", label: "Presentación", labelId: 5, days: 3 },
-    { value: "impreso", label: "Impreso", labelId: 7, days: 5 },
-    { value: "otro", label: "Otro", labelId: 6, days: 3 },
+    { value: "presentacion", label: "Presentation", labelId: 5, days: 3 },
+    { value: "impreso", label: "Print", labelId: 7, days: 5 },
+    { value: "otro", label: "Other", labelId: 6, days: 3 },
   ],
 };
 
@@ -102,12 +110,12 @@ export const SUBTYPE_COLUMN: Record<Area, string> = {
 };
 
 export const LANDING_SUBTYPES = [
-  { value: "captacion", label: "Captación", labelId: 1 },
-  { value: "evento", label: "Evento", labelId: 2 },
-  { value: "descarga", label: "Descarga", labelId: 3 },
-  { value: "comunidad", label: "Comunidad", labelId: 4 },
-  { value: "informativa", label: "Informativa", labelId: 5 },
-  { value: "otro", label: "Otro", labelId: 6 },
+  { value: "captacion", label: "Lead capture", labelId: 1 },
+  { value: "evento", label: "Event", labelId: 2 },
+  { value: "descarga", label: "Download", labelId: 3 },
+  { value: "comunidad", label: "Community", labelId: 4 },
+  { value: "informativa", label: "Informational", labelId: 5 },
+  { value: "otro", label: "Other", labelId: 6 },
 ] as const;
 
 export const MARKETS = ["LATAM", "México", "Colombia", "Chile", "Perú", "Argentina", "Brasil", "Otro"] as const;

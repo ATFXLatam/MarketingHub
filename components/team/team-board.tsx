@@ -19,20 +19,20 @@ import { PERSON_PARAM, setUrlParam, useUrlParam } from "./url-state";
 import styles from "./team-board.module.css";
 
 const PRIORITY_TONE: Record<Priority, BadgeTone> = { normal: "neutral", media: "info", alta: "warning", critica: "danger" };
-const TASK_PARAM = "solicitud";
+const TASK_PARAM = "task";
 const PHONE_QUERY = "(max-width: 700px)";
 
 // Status is edited in monday, so no column is editable here.
 const COLUMNS: DataGridColumn[] = [
-  { key: "title", label: "Solicitud", width: 300, editable: false },
-  { key: "stage", label: "Estado", type: "select", options: STAGES.map((stage) => STAGE_LABEL[stage]), width: 130, editable: false },
-  { key: "area", label: "Área", type: "select", options: AREAS.map((area) => AREA_LABEL[area]), width: 120, editable: false },
-  { key: "priority", label: "Prioridad", type: "select", options: PRIORITIES.map((priority) => PRIORITY_LABEL[priority]), width: 120, editable: false },
-  { key: "owners", label: "Responsables", width: 220, editable: false },
-  { key: "market", label: "Mercado", type: "select", width: 150, editable: false },
+  { key: "title", label: "Request", width: 300, editable: false },
+  { key: "stage", label: "Status", type: "select", options: STAGES.map((stage) => STAGE_LABEL[stage]), width: 130, editable: false },
+  { key: "area", label: "Area", type: "select", options: AREAS.map((area) => AREA_LABEL[area]), width: 120, editable: false },
+  { key: "priority", label: "Priority", type: "select", options: PRIORITIES.map((priority) => PRIORITY_LABEL[priority]), width: 120, editable: false },
+  { key: "owners", label: "Owners", width: 220, editable: false },
+  { key: "market", label: "Market", type: "select", width: 150, editable: false },
   // ISO dates sort and filter as text in calendar order.
-  { key: "dueDate", label: "Fecha requerida", width: 150, editable: false },
-  { key: "slaDays", label: "Días estimados", type: "number", aggregate: "average", decimals: 0, width: 140, editable: false },
+  { key: "dueDate", label: "Due date", width: 150, editable: false },
+  { key: "slaDays", label: "Estimated days", type: "number", aggregate: "average", decimals: 0, width: 140, editable: false },
 ];
 
 function subscribeToPhone(onChange: () => void) {
@@ -41,7 +41,7 @@ function subscribeToPhone(onChange: () => void) {
   return () => query.removeEventListener("change", onChange);
 }
 
-// The URL holds the open request, so ?solicitud=<id> links straight to its details.
+// The URL holds the open request, so ?task=<id> links straight to its details.
 const select = (id: string | null) => setUrlParam(TASK_PARAM, id);
 
 export interface TeamBoardProps {
@@ -89,30 +89,30 @@ export function TeamBoard({ tasks, activity, now, today }: TeamBoardProps) {
   return (
     <section className={styles.root} aria-labelledby="board-title">
       <div className={styles.head}>
-        <h2 id="board-title" className={styles.heading}>Solicitudes</h2>
+        <h2 id="board-title" className={styles.heading}>Requests</h2>
         <div className={styles.toolbar}>
           {person && (
-            <Button variant="secondary" size="sm" onClick={() => setUrlParam(PERSON_PARAM, null)} aria-label={`Quitar filtro: ${person.name}`}>
+            <Button variant="secondary" size="sm" onClick={() => setUrlParam(PERSON_PARAM, null)} aria-label={`Clear filter: ${person.name}`}>
               <Avatar name={person.name} src={person.photo ?? undefined} size="sm" />
               {person.name.split(" ")[0]}
               <X size={14} strokeWidth={1.75} aria-hidden="true" />
             </Button>
           )}
-          <ChipGroup label="Filtrar por área" options={areaOptions} value={areas} onValueChange={setAreas} multiple />
+          <ChipGroup label="Filter by area" options={areaOptions} value={areas} onValueChange={setAreas} multiple />
           <SegmentedControl
-            label="Vista"
+            label="View"
             value={view}
             onValueChange={setPicked}
             options={[
-              { value: "board", label: "Tablero" },
-              { value: "table", label: "Tabla" },
+              { value: "board", label: "Board" },
+              { value: "table", label: "Table" },
             ]}
           />
         </div>
       </div>
       {view === "board" ? (
         <ProjectBoard
-          title="Flujo del equipo"
+          title="Team flow"
           team={team}
           doneStage="hecha"
           stages={STAGES.map((stage) => ({ id: stage, label: STAGE_LABEL[stage] }))}
@@ -131,15 +131,15 @@ export function TeamBoard({ tasks, activity, now, today }: TeamBoardProps) {
         />
       ) : (
         <DataGrid
-          label="Solicitudes del equipo"
-          exportFileName="solicitudes-marketing-latam"
+          label="Team requests"
+          exportFileName="marketing-latam-requests"
           columns={COLUMNS}
           rows={rows}
           defaultSort={[{ key: "dueDate", dir: "asc" }]}
           rowSelection={false}
           canDeleteRows={false}
           maxHeight={640}
-          emptyMessage="Sin solicitudes"
+          emptyMessage="No requests"
         />
       )}
       <TaskDrawer task={selected} history={activity} now={now} today={today} onClose={() => select(null)} />

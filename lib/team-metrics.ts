@@ -50,7 +50,7 @@ export function requestBreakdowns(tasks: PublicTask[], today: string, days: numb
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name));
   return {
-    areas: count(recent.map((task) => (task.area ? AREA_LABEL[task.area] : "Sin área"))),
-    markets: count(recent.map((task) => task.market ?? "Sin mercado")),
+    areas: count(recent.map((task) => (task.area ? AREA_LABEL[task.area] : "No area"))),
+    markets: count(recent.map((task) => task.market ?? "No market")),
   };
 }

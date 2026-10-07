@@ -179,7 +179,7 @@ export function Stepper({ steps, current, orientation = "horizontal", onStepSele
       <SwapText text={now?.label ?? completeLabel} className={styles.captionLabel} reduced={reduced} />
       <SwapText text={now?.error ?? now?.description} className={now?.error ? styles.error : styles.description} reduced={reduced} />
     </span>}
-    <span className={styles.srOnly} aria-live="polite">{now ? `Paso ${active + 1} de ${count}: ${now.label}` : completeLabel}</span>
+    <span className={styles.srOnly} aria-live="polite">{now ? `Step ${active + 1} of ${count}: ${now.label}` : completeLabel}</span>
   </Root>;
 }
 

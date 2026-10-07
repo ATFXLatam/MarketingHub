@@ -179,7 +179,7 @@ export const SiteFooter = forwardRef<HTMLElement, SiteFooterProps>(function Site
     </div>
     <div className={styles.bottomEnd}>{statusNode}{socialNode}</div>
   </div>;
-  const columnNav = <nav className={styles.columns} aria-label="Pie de página">
+  const columnNav = <nav className={styles.columns} aria-label="Footer">
     {columns.map(column => <div key={column.title} className={styles.column}>
       <h2>{column.title}</h2>
       <ul>{column.links.map(link => <li key={link.label}><FooterLink link={link} onNavigate={onNavigate} /></li>)}</ul>
@@ -191,7 +191,7 @@ export const SiteFooter = forwardRef<HTMLElement, SiteFooterProps>(function Site
     return <footer ref={ref} className={[styles.footer, styles.minimal, className].filter(Boolean).join(" ")}>
       <div className={styles.minimalRow}>
         {brandWithMark}
-        <nav aria-label="Pie de página"><ul className={styles.inline}>{rowLinks.map(link => <li key={link.label}><FooterLink link={link} onNavigate={onNavigate} /></li>)}</ul></nav>
+        <nav aria-label="Footer"><ul className={styles.inline}>{rowLinks.map(link => <li key={link.label}><FooterLink link={link} onNavigate={onNavigate} /></li>)}</ul></nav>
       </div>
       <div className={styles.minimalRow}>
         <span className={styles.copyright}>© {year} {brand.name}. {tagline}</span>

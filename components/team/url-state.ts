@@ -26,4 +26,4 @@ export function setUrlParam(name: string, value: string | null): void {
   dispatchEvent(new Event(URL_CHANGE));
 }
 
-export const PERSON_PARAM = "persona";
+export const PERSON_PARAM = "person";

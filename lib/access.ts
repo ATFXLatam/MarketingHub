@@ -14,14 +14,14 @@ export interface MondayIdentity {
 
 /** Why sign-in failed, as a code: the sign-in page maps it to its own words, so a crafted link cannot put text there. */
 export const SIGN_IN_ERRORS = {
-  cuenta: "Tu usuario de monday no es de la cuenta de ATFX.",
-  desactivado: "Tu usuario de monday está desactivado.",
-  invitado: "Los invitados de monday no tienen acceso al hub.",
-  "solo-lectura": "Tu usuario de monday es de solo lectura. Pide un asiento de miembro para hacer solicitudes.",
-  expirada: "El inicio de sesión expiró. Vuelve a intentarlo.",
-  cancelada: "Cancelaste la conexión con monday.",
-  monday: "monday no respondió. Intenta de nuevo en un momento.",
-  verificacion: "No pudimos confirmar tu acceso con monday. Vuelve a entrar.",
+  cuenta: "Your monday user is not part of the ATFX account.",
+  desactivado: "Your monday user is deactivated.",
+  invitado: "monday guests do not have access to the hub.",
+  "solo-lectura": "Your monday user is view only. Ask for a member seat to make requests.",
+  expirada: "Sign-in expired. Try again.",
+  cancelada: "You canceled the connection with monday.",
+  monday: "monday did not respond. Try again in a moment.",
+  verificacion: "We could not confirm your access with monday. Sign in again.",
 } as const;
 export type SignInError = keyof typeof SIGN_IN_ERRORS;
 

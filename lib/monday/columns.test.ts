@@ -51,10 +51,10 @@ describe("RequestSchema", () => {
 
 describe("briefWithDetails", () => {
   it("appends the answered requirements as labelled lines and reads the copy answer in words", () => {
-    expect(briefWithDetails({ brief: "Promo de oro", details: { objective: "Generar leads", copyReady: "no", cta: " " } })).toBe(
-      "Promo de oro\n\nRequisitos\nObjetivo: Generar leads\nCopy o guion listo: Todavía no",
+    expect(briefWithDetails({ brief: "Promo de oro", details: { objective: "Generate leads", copyReady: "no", cta: " " } })).toBe(
+      "Promo de oro\n\nRequirements\nObjective: Generate leads\nCopy or script ready: Not yet",
     );
     expect(briefWithDetails({ brief: "Solo brief", details: {} })).toBe("Solo brief");
-    expect(briefWithDetails({ brief: "B", details: { venue: "Sala 1\nPresupuesto: 0" } })).toBe("B\n\nRequisitos\nLugar: Sala 1 Presupuesto: 0");
+    expect(briefWithDetails({ brief: "B", details: { venue: "Sala 1\nPresupuesto: 0" } })).toBe("B\n\nRequirements\nVenue: Sala 1 Presupuesto: 0");
   });
 });

@@ -14,14 +14,14 @@ const enterEase = [...ease.enter] as [number, number, number, number];
 const standardEase = [...ease.standard] as [number, number, number, number];
 
 const TIERS: { id: BriefTier; name: string; title: string }[] = [
-  { id: "incompleto", name: "Incompleto", title: "Brief incompleto" },
-  { id: "parcial", name: "Parcial", title: "Brief parcial" },
-  { id: "completo", name: "Completo", title: "Brief completo" },
+  { id: "incompleto", name: "Incomplete", title: "Incomplete brief" },
+  { id: "parcial", name: "Partial", title: "Partial brief" },
+  { id: "completo", name: "Complete", title: "Complete brief" },
 ];
 
 /** A day count on the shared odometer, sized by its parent. */
 function Days({ value, prefix, className }: { value: number; prefix?: string; className?: string }) {
-  return <span className={[styles.money, className].filter(Boolean).join(" ")}><AnimatedCounter value={value} prefix={prefix} locale="es-MX" /></span>;
+  return <span className={[styles.money, className].filter(Boolean).join(" ")}><AnimatedCounter value={value} prefix={prefix} locale="en-US" /></span>;
 }
 
 /** A check that draws itself when it first appears. Items already on screen keep their stroke. */
@@ -71,7 +71,7 @@ export function EstimateChecklist({ result, onFix, limit = Infinity }: EstimateC
     ? { duration: duration.instant }
     : { layout: spring.smooth, default: { duration: duration.standard, ease: enterEase, delay: .08 } };
 
-  if (!result) return <p className={styles.reason}>Elige un área y verás qué necesita su brief.</p>;
+  if (!result) return <p className={styles.reason}>Choose an area to see what its brief needs.</p>;
   const plan = TIERS[tier];
   const shownGaps = result.gaps.slice(0, limit);
   const hidden = result.gaps.length - shownGaps.length;
@@ -91,11 +91,11 @@ export function EstimateChecklist({ result, onFix, limit = Infinity }: EstimateC
       </div>
       <p className={styles.tierLine}>
         <TextMorph as="span" id={`${id}-tier`} className={styles.planName}>{plan.title}</TextMorph>
-        <span className={styles.score}><Days value={result.score} /> de 100</span>
+        <span className={styles.score}><Days value={result.score} /> of 100</span>
       </p>
 
       <motion.div className={styles.featuresFrame} initial={false} animate={{ height: listHeight }} transition={reduce ? { duration: 0 } : spring.smooth}>
-        <ul ref={listRef} className={styles.features} aria-label="Requisitos del brief">
+        <ul ref={listRef} className={styles.features} aria-label="Brief requirements">
           <AnimatePresence mode="popLayout" initial={false}>
             {rows.map(({ gap, done }) => (
               <motion.li
@@ -119,7 +119,7 @@ export function EstimateChecklist({ result, onFix, limit = Infinity }: EstimateC
         </ul>
       </motion.div>
       <p className={styles.rest}>
-        {[hidden > 0 && `${hidden} ${hidden === 1 ? "pendiente más" : "pendientes más"}`, `${result.met.length} de ${result.met.length + result.gaps.length} cumplidos`].filter(Boolean).join(" · ")}
+        {[hidden > 0 && `${hidden} more pending`, `${result.met.length} of ${result.met.length + result.gaps.length} met`].filter(Boolean).join(" · ")}
       </p>
       {/* Only a change of tier is announced, so typing in the brief does not read the list out on every key. */}
       <p className={styles.srOnly} role="status">{plan.title}</p>
@@ -134,8 +134,8 @@ export function EstimateTotal({ result }: { result: Estimate | null }) {
     <span className={styles.total}>
       <span className={styles.totalDays}><Days value={result.days} /></span>
       <span className={styles.totalText}>
-        <span>{result.days === 1 ? "día hábil" : "días hábiles"}</span>
-        <span className={styles.totalDate}>{`Estimada para el ${formatDay(result.date)}`}</span>
+        <span>{result.days === 1 ? "business day" : "business days"}</span>
+        <span className={styles.totalDate}>{`Due ${formatDay(result.date)}`}</span>
       </span>
     </span>
   );

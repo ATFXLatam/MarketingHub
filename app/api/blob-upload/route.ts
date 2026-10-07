@@ -22,14 +22,14 @@ export async function POST(request: Request): Promise<NextResponse> {
       body,
       request,
       onBeforeGenerateToken: async (pathname) => {
-        if (!isUploadPathname(pathname)) throw new Error("pathname fuera del prefijo permitido");
+        if (!isUploadPathname(pathname)) throw new Error("pathname outside the allowed prefix");
         return { allowedContentTypes: ACCEPTED_TYPES, maximumSizeInBytes: MAX_UPLOAD_BYTES, addRandomSuffix: true };
       },
       onUploadCompleted: async () => {},
     });
     return NextResponse.json(result);
   } catch (error) {
-    console.error("falló la firma de subida", error);
+    console.error("upload signing failed", error);
     return NextResponse.json({ error: "upload_failed" }, { status: 400 });
   }
 }

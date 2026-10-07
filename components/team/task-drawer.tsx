@@ -14,14 +14,14 @@ import { TaskConversation } from "./task-conversation";
 import { dueText } from "./team-overview";
 import styles from "./task-drawer.module.css";
 
-// On hold is a detour, not a step: it shows as a problem on "En curso" instead of a column of its own.
+// On hold is a detour, not a step: it shows as a problem on "In progress" instead of a column of its own.
 const PATH: Stage[] = ["nueva", "ready", "en-curso", "hecha"];
 const HINT: Record<Stage, string> = {
-  nueva: "Se revisa el brief",
-  ready: "Espera capacidad",
-  "en-curso": "En producción",
-  "on-hold": "Espera material o una decisión",
-  hecha: "Entregada",
+  nueva: "Brief under review",
+  ready: "Waiting for capacity",
+  "en-curso": "In production",
+  "on-hold": "Waiting on material or a decision",
+  hecha: "Delivered",
 };
 
 const icon = { size: 12, strokeWidth: 1.75, "aria-hidden": true } as const;
@@ -66,22 +66,22 @@ function TaskDetail({ task, history, now, today }: { task: PublicTask; history: 
     <div className={styles.body}>
       <div className={styles.tags}>
         <Badge size="sm" tone={done ? "success" : held ? "warning" : "neutral"}>{STAGE_LABEL[task.stage]}</Badge>
-        {task.priority && <Badge size="sm">{`Prioridad ${PRIORITY_LABEL[task.priority].toLowerCase()}`}</Badge>}
+        {task.priority && <Badge size="sm">{`${PRIORITY_LABEL[task.priority]} priority`}</Badge>}
         {task.dueDate && (
           <Badge size="sm" icon={<CalendarDays {...icon} />}>
-            {done ? `Pedida para el ${formatDay(task.dueDate)}` : `${formatDay(task.dueDate)}, ${dueText(daysUntil(task.dueDate, today))}`}
+            {done ? `Requested for ${formatDay(task.dueDate)}` : `${formatDay(task.dueDate)}, ${dueText(daysUntil(task.dueDate, today))}`}
           </Badge>
         )}
-        {task.slaDays && !done && <Badge size="sm" icon={<Clock {...icon} />}>{`${task.slaDays} días hábiles estimados`}</Badge>}
+        {task.slaDays && !done && <Badge size="sm" icon={<Clock {...icon} />}>{`${task.slaDays} business ${task.slaDays === 1 ? "day" : "days"} estimated`}</Badge>}
       </div>
 
-      <Stepper steps={steps} current={current} details="all" label="Avance de la solicitud" completeLabel="Entregada" />
+      <Stepper steps={steps} current={current} details="all" label="Request progress" completeLabel="Delivered" />
 
       <TaskConversation key={task.id} taskId={task.id} />
 
       {task.owners.length > 0 && (
         <section className={styles.section} aria-labelledby={`${task.id}-owners`}>
-          <h3 id={`${task.id}-owners`}>Responsables</h3>
+          <h3 id={`${task.id}-owners`}>Owners</h3>
           <ul className={styles.owners}>
             {task.owners.map((owner) => (
               <li key={owner.id}>
@@ -98,9 +98,9 @@ function TaskDetail({ task, history, now, today }: { task: PublicTask; history: 
 
       {history.length > 0 && (
         <section className={styles.section} aria-labelledby={`${task.id}-history`}>
-          <h3 id={`${task.id}-history`}>Historial</h3>
+          <h3 id={`${task.id}-history`}>History</h3>
           <Timeline
-            label="Historial de la solicitud"
+            label="Request history"
             now={now}
             timeZone={TEAM_TIME_ZONE}
             scrollToNew={false}
@@ -110,7 +110,7 @@ function TaskDetail({ task, history, now, today }: { task: PublicTask; history: 
               return {
                 id: event.id,
                 at: event.at,
-                title: delivered ? "Se entregó" : `Pasó a ${STAGE_LABEL[event.stage]}`,
+                title: delivered ? "Delivered" : `Moved to ${STAGE_LABEL[event.stage]}`,
                 icon: delivered ? <CircleCheck size={14} strokeWidth={1.75} /> : <GitPullRequestArrow size={14} strokeWidth={1.75} />,
                 tone: delivered ? ("success" as const) : ("neutral" as const),
               };

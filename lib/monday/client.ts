@@ -30,7 +30,7 @@ export async function mondayQuery<T>(
 ): Promise<T> {
   // A person's own token runs the call with their monday permissions; without one the call uses the app's fixed token.
   const token = options.token ?? process.env.MONDAY_API_TOKEN;
-  if (!token) throw new MondayError("MONDAY_API_TOKEN no está configurado");
+  if (!token) throw new MondayError("MONDAY_API_TOKEN is not set");
 
   const response = await fetch(ENDPOINT, {
     method: "POST",
@@ -47,13 +47,13 @@ export async function mondayQuery<T>(
   try {
     payload = (await response.json()) as GraphQLResponse<T>;
   } catch {
-    throw new MondayError(`monday respondió ${response.status} sin JSON`);
+    throw new MondayError(`monday answered ${response.status} without JSON`);
   }
 
   const first = payload.errors?.[0];
   if (!response.ok || first || payload.error_message || !payload.data) {
     const retry = first?.extensions?.retry_in_seconds;
-    throw new MondayError(first?.message ?? payload.error_message ?? `monday respondió ${response.status}`, retry);
+    throw new MondayError(first?.message ?? payload.error_message ?? `monday answered ${response.status}`, retry);
   }
   return payload.data;
 }

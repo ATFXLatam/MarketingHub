@@ -9,13 +9,13 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: { default: "Marketing LATAM", template: "%s · Marketing LATAM" },
-  description: "Solicitudes y flujo de trabajo del equipo de marketing de ATFX LATAM.",
+  description: "Requests and workflow of the ATFX LATAM marketing team.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // The head script sets data-theme before paint, so the server markup and the live attribute differ by design.
-    <html lang="es" className={`${geist.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${geist.variable} ${inter.variable}`} suppressHydrationWarning>
       <head>
         <ThemeScript />
       </head>

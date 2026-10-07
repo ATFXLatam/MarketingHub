@@ -24,29 +24,29 @@ const KeySchema = z.uuid();
 export async function submitRequest(input: unknown, idempotencyKey: string): Promise<SubmitResult> {
   const user = await currentSession();
   if (!user?.canRequest) {
-    return { success: false, error: "Tu cuenta no tiene acceso a este formulario." };
+    return { success: false, error: "Your account does not have access to this form." };
   }
   if (isRateLimited(user.userId)) {
-    return { success: false, error: "Enviaste varias solicitudes seguidas. Espera unos minutos y vuelve a intentar." };
+    return { success: false, error: "You sent several requests in a row. Wait a few minutes and try again." };
   }
-  if (!KeySchema.safeParse(idempotencyKey).success) return { success: false, error: "Recarga la página e intenta de nuevo." };
+  if (!KeySchema.safeParse(idempotencyKey).success) return { success: false, error: "Reload the page and try again." };
 
   const parsed = RequestSchema.safeParse(input);
   if (!parsed.success) {
     const fieldErrors = Object.fromEntries(parsed.error.issues.map((issue) => [issue.path.join("."), issue.message]));
-    return { success: false, error: "Revisa los campos marcados.", fieldErrors };
+    return { success: false, error: "Check the highlighted fields.", fieldErrors };
   }
 
   // Only files our upload route signed may reach monday, where the team clicks them.
   const storeHost = blobStoreHost(process.env.BLOB_READ_WRITE_TOKEN);
   const attachments = parsed.data.attachments.map((file) => ({ ...file, url: ownBlobHref(file.url, storeHost) }));
   if (attachments.some((file) => file.url === null)) {
-    return { success: false, error: "Uno de los adjuntos no es válido. Quítalo y vuelve a subirlo." };
+    return { success: false, error: "One of the attachments is not valid. Remove it and upload it again." };
   }
   const request = { ...parsed.data, attachments: attachments as { url: string; name: string }[] };
   const today = todayIn();
   if (request.dueDate < today) {
-    return { success: false, error: "Revisa los campos marcados.", fieldErrors: { dueDate: "La fecha ya pasó" } };
+    return { success: false, error: "Check the highlighted fields.", fieldErrors: { dueDate: "That date has already passed" } };
   }
 
   const result = estimate({
@@ -63,8 +63,8 @@ export async function submitRequest(input: unknown, idempotencyKey: string): Pro
     updateTag(BOARD_TAG);
     return { success: true, data: { itemId, estimate: result } };
   } catch (error) {
-    console.error("no se pudo crear la solicitud en monday", { user: user.userId, error });
-    const wait = error instanceof MondayError && error.retryInSeconds ? ` en ${error.retryInSeconds} segundos` : "";
-    return { success: false, error: `monday no respondió. Tu solicitud no se perdió: vuelve a enviarla${wait}.` };
+    console.error("could not create the request in monday", { user: user.userId, error });
+    const wait = error instanceof MondayError && error.retryInSeconds ? ` in ${error.retryInSeconds} seconds` : "";
+    return { success: false, error: `monday did not respond. Your request was not lost: send it again${wait}.` };
   }
 }

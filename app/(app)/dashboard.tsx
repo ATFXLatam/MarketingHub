@@ -6,15 +6,15 @@ import { areaOwners } from "@/lib/area-owners";
 import { getAreaPeople, getBoardSnapshot } from "@/lib/monday/read";
 import { configuredOwners } from "@/lib/monday/write";
 
-/** Shared by / and /solicitar; the second only opens the request flow on arrival. */
+/** Shared by / and /request; the second only opens the request flow on arrival. */
 export async function Dashboard({ requestOpen = false }: { requestOpen?: boolean }) {
   const [session, snapshot] = await Promise.all([currentSession(), getBoardSnapshot()]);
   // The board renders only for people monday itself lets open it; the proxy keeps everyone else on the request form.
   if (!session?.board) return null;
   if (!snapshot.configured) {
     return (
-      <Alert tone="warning" title="El tablero todavía no está conectado">
-        Falta configurar el acceso a monday en el servidor.
+      <Alert tone="warning" title="The board is not connected yet">
+        monday access still needs to be set up on the server.
       </Alert>
     );
   }

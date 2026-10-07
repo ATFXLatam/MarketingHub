@@ -3,7 +3,7 @@ import {
   AREA_LABEL_ID,
   COLUMNS,
   PRIORITY_LABEL_ID,
-  STAGE_LABEL,
+  STAGE_MONDAY_TEXT,
   STAGE_LABEL_ID,
   type Area,
   type Priority,
@@ -87,7 +87,7 @@ function byLabelId<K extends string>(ids: Record<K, number>, labelId: number | n
 function stageFrom(labelId: number | null | undefined, text: string | null): Stage {
   const byId = byLabelId(STAGE_LABEL_ID, labelId);
   if (byId) return byId;
-  const byText = (Object.entries(STAGE_LABEL) as [Stage, string][]).find(
+  const byText = (Object.entries(STAGE_MONDAY_TEXT) as [Stage, string][]).find(
     ([, label]) => label.toLowerCase() === text?.trim().toLowerCase(),
   );
   // An unlabeled status in monday means nobody triaged it yet.

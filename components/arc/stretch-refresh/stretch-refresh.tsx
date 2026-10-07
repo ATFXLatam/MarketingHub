@@ -91,7 +91,7 @@ function Row({ ref, index, reduced, children }: { ref?: Ref<HTMLLIElement>; inde
   </motion.li>;
 }
 
-export function StretchRefresh<T>({ title, subtitle, items, getKey, renderItem, onRefresh, threshold = 72, doneLabel = "Al día", errorLabel = "No se pudo actualizar", refreshLabel = "Actualizar", className }: StretchRefreshProps<T>) {
+export function StretchRefresh<T>({ title, subtitle, items, getKey, renderItem, onRefresh, threshold = 72, doneLabel = "Up to date", errorLabel = "Could not refresh", refreshLabel = "Refresh", className }: StretchRefreshProps<T>) {
   const reduced = useReducedMotion() ?? false;
   const titleId = useId();
   const viewport = useRef<HTMLDivElement>(null);
@@ -322,7 +322,7 @@ export function StretchRefresh<T>({ title, subtitle, items, getKey, renderItem, 
                   {ok ? <DrawnCheck reduced={reduced} /> : <TriangleAlert size={14} strokeWidth={2} />}
                 </motion.span>}
               </AnimatePresence>
-              <RisingText text={done && outcome ? outcome.label : spinning ? "Actualizando" : armed ? "Suelta para actualizar" : "Desliza para actualizar"} reduced={reduced} />
+              <RisingText text={done && outcome ? outcome.label : spinning ? "Refreshing" : armed ? "Release to refresh" : "Pull to refresh"} reduced={reduced} />
             </span>
           </div>
         </motion.div>
@@ -338,7 +338,7 @@ export function StretchRefresh<T>({ title, subtitle, items, getKey, renderItem, 
       </motion.div>
     </div>
 
-    <p className={styles.srOnly} role="status" aria-live="polite">{spinning ? "Actualizando" : done && outcome ? outcome.label : ""}</p>
+    <p className={styles.srOnly} role="status" aria-live="polite">{spinning ? "Refreshing" : done && outcome ? outcome.label : ""}</p>
   </section>;
 }
 

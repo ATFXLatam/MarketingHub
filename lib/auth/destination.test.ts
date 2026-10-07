@@ -4,7 +4,7 @@ import { safeDestination } from "./destination";
 describe("safeDestination", () => {
   it("keeps same-origin paths, including the absolute URL Clerk sends back", () => {
     expect(safeDestination("/p/abc?x=1")).toBe("/p/abc?x=1");
-    expect(safeDestination("https://hub.example/solicitar", "https://hub.example")).toBe("/solicitar");
+    expect(safeDestination("https://hub.example/request", "https://hub.example")).toBe("/request");
   });
 
   it("falls back for other origins and protocol-relative tricks", () => {

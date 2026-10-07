@@ -48,7 +48,7 @@ export function format(value: DataGridValue | undefined, column: DataGridColumn)
   if (value === null || value === undefined || value === "") return "";
   if (typeof value !== "number") return value;
   const decimals = column.decimals ?? 0;
-  const text = Math.abs(value).toLocaleString("es-MX", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  const text = Math.abs(value).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   const sign = value < 0 ? "−" : "";
   return column.type === "currency" ? `${sign}$${text}` : column.type === "percent" ? `${sign}${text}%` : `${sign}${text}`;
 }
@@ -149,7 +149,7 @@ export function isFilterActive(column: DataGridColumn, value: string | string[] 
 /* Sorting */
 
 const empty = (v: DataGridValue | undefined) => v === null || v === undefined || v === "";
-const collator = new Intl.Collator("es-MX", { numeric: true, sensitivity: "base" });
+const collator = new Intl.Collator("en-US", { numeric: true, sensitivity: "base" });
 
 /** Stable multi-column sort. Empty cells always sink to the bottom, whichever way the column sorts. */
 export function sortRows(rows: DataGridRow[], sort: DataGridSort[], columns: DataGridColumn[]) {

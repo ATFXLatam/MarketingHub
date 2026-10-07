@@ -26,7 +26,7 @@ const IV_BYTES = 12;
 /** The 32 byte key from MONDAY_TOKEN_KEY (base64); a missing or short key fails loudly instead of sealing with a weak one. */
 export function sessionKey(raw: string | undefined): Buffer {
   const key = Buffer.from(raw ?? "", "base64");
-  if (key.length !== 32) throw new Error("MONDAY_TOKEN_KEY debe ser una clave de 32 bytes en base64");
+  if (key.length !== 32) throw new Error("MONDAY_TOKEN_KEY must be a 32 byte base64 key");
   return key;
 }
 

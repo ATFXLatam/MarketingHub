@@ -415,12 +415,12 @@ function Panel({ id, title, description, children, footer, dismissible = true, f
         <span className={styles.lead}>
           {previous && <button type="button" className={styles.back} onClick={pop}>
             <ChevronLeft size={18} strokeWidth={1.75} aria-hidden="true" />
-            <span className={styles.backLabel}>{titles[previous] ?? "Atrás"}</span>
+            <span className={styles.backLabel}>{titles[previous] ?? "Back"}</span>
           </button>}
         </span>
         <h2 id={`${uid}-title`} className={styles.title}>{title}</h2>
         <span className={styles.trail}>
-          <button type="button" className={styles.close} aria-label={stack.length > 1 ? "Cerrar todo" : "Cerrar"} onClick={context.close}>
+          <button type="button" className={styles.close} aria-label={stack.length > 1 ? "Close all" : "Close"} onClick={context.close}>
             <X size={18} strokeWidth={1.75} aria-hidden="true" />
           </button>
         </span>

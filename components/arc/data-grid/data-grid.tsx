@@ -109,10 +109,9 @@ const HISTORY = 100;
 const SEP = String.fromCharCode(31);
 
 const rangeOf = (a: Cell, b: Cell): Range => ({ r0: Math.min(a.r, b.r), r1: Math.max(a.r, b.r), c0: Math.min(a.c, b.c), c1: Math.max(a.c, b.c) });
-const plural = (n: number, one: string, many: string) => `${n.toLocaleString("es-MX")} ${n === 1 ? one : many}`;
-// Both nouns used here (celda, fila) are feminine, so the participle only agrees in number.
-const done = (n: number, one: string, many: string, stem: string) => `${plural(n, one, many)} ${stem}${n === 1 ? "a" : "as"}`;
-const aggregateLabel: Record<DataGridAggregate, string> = { sum: "Suma", average: "Prom.", min: "Mín.", max: "Máx.", count: "Conteo", none: "" };
+const plural = (n: number, one: string, many: string) => `${n.toLocaleString("en-US")} ${n === 1 ? one : many}`;
+const done = (n: number, one: string, many: string, verb: string) => `${plural(n, one, many)} ${verb}`;
+const aggregateLabel: Record<DataGridAggregate, string> = { sum: "Sum", average: "Avg", min: "Min", max: "Max", count: "Count", none: "" };
 
 function useControllable<T>(value: T | undefined, initial: () => T, onChange?: (next: T) => void) {
   const [own, setOwn] = useState<T>(initial);
@@ -175,8 +174,8 @@ const GridRow = memo(function GridRow({ row, r, y, slots, uid, ariaRow, gutter, 
   return <div role="row" aria-rowindex={ariaRow} aria-selected={gutter ? checked : undefined} className={styles.row} data-checked={checked || undefined}
     data-editing={editingC >= 0 || undefined} style={{ transform: `translateY(${y}px)` }}>
     {gutter && <div role="gridcell" aria-colindex={1} className={styles.gutter} data-in-range={inRows || undefined}>
-      <span className={styles.rowNumber} aria-hidden="true">{(r + 1).toLocaleString("es-MX")}</span>
-      <GridCheckbox checked={checked} label={`Seleccionar ${name}`} onToggle={e => onToggle(row.id, r, e.shiftKey)} />
+      <span className={styles.rowNumber} aria-hidden="true">{(r + 1).toLocaleString("en-US")}</span>
+      <GridCheckbox checked={checked} label={`Select ${name}`} onToggle={e => onToggle(row.id, r, e.shiftKey)} />
     </div>}
     {slots.map((slot, c) => {
       const { column } = slot;
@@ -237,11 +236,11 @@ function CellEditor({ column, options, editing, label, openUp, onDraft, onCommit
           if (move) onCommit(move);
         }
       }} />
-    {isSelect && list && <div id={listId} role="listbox" aria-label={`Opciones de ${column.label}`} className={styles.options} data-up={openUp || undefined}>
+    {isSelect && list && <div id={listId} role="listbox" aria-label={`${column.label} options`} className={styles.options} data-up={openUp || undefined}>
       {matches.length ? matches.map((option, i) => <div key={option} id={`${listId}-${i}`} role="option" aria-selected={i === active} className={styles.option}
         data-active={i === active || undefined} data-current={option === editing.draft || undefined}
         onPointerDown={e => e.preventDefault()} onPointerEnter={() => setPick(i)} onClick={() => onCommit({ dr: 0, dc: 0 }, option)}>{option}</div>)
-        : <div className={styles.optionEmpty}>Sin coincidencias</div>}
+        : <div className={styles.optionEmpty}>No matches</div>}
     </div>}
   </>;
 }
@@ -249,7 +248,7 @@ function CellEditor({ column, options, editing, label, openUp, onDraft, onCommit
 export function DataGrid(props: DataGridProps) {
   const {
     columns, rows: controlledRows, defaultRows, onRowsChange, label, maxHeight = 400,
-    rowSelection = true, toolbar = true, totals: showTotals = true, bulkActions, canDeleteRows = true, exportFileName, loading = false, emptyMessage = "Aún no hay filas",
+    rowSelection = true, toolbar = true, totals: showTotals = true, bulkActions, canDeleteRows = true, exportFileName, loading = false, emptyMessage = "No rows yet",
   } = props;
   const reduce = !!useReducedMotion();
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
@@ -441,7 +440,7 @@ export function DataGrid(props: DataGridProps) {
   const startEdit = (cell: Cell, typed?: string, list = false) => {
     const column = cols[cell.c], row = display[cell.r];
     if (!row || !column) return;
-    if (column.editable === false) { flashStatus(`${column.label} es de solo lectura`); return; }
+    if (column.editable === false) { flashStatus(`${column.label} is read-only`); return; }
     select(cell);
     closing.current = false;
     const value = row[column.key];
@@ -455,7 +454,7 @@ export function DataGrid(props: DataGridProps) {
     if (!parsed.ok) {
       if (move) {
         setEditing({ ...editing, invalid: true, list: column.type === "select" });
-        setAnnouncement(column.type === "select" ? `Elige una de las opciones de ${column.label}` : `${column.label} requiere un número`);
+        setAnnouncement(column.type === "select" ? `Choose one of the ${column.label} options` : `${column.label} needs a number`);
         return;
       }
       closing.current = true;
@@ -465,7 +464,7 @@ export function DataGrid(props: DataGridProps) {
     closing.current = true;
     if (row && (row[column.key] ?? null) !== parsed.value) {
       writeCells([{ r: editing.r, c: editing.c, value: parsed.value }], { r0: editing.r, r1: editing.r, c0: editing.c, c1: editing.c });
-      setAnnouncement(`${column.label} de ${String(row[cols[0].key] ?? "")} cambió a ${format(parsed.value, column) || "vacío"}`);
+      setAnnouncement(`${column.label} for ${String(row[cols[0].key] ?? "")} changed to ${format(parsed.value, column) || "empty"}`);
     }
     setEditing(null);
     if (move && (move.dr || move.dc)) select({ r: clamp(editing.r + move.dr, 0, maxR), c: clamp(editing.c + move.dc, 0, maxC) });
@@ -478,26 +477,26 @@ export function DataGrid(props: DataGridProps) {
     const writes = [];
     for (let row = r.r0; row <= r.r1; row++) for (let c = r.c0; c <= r.c1; c++) writes.push({ r: row, c, value: isNumeric(cols[c]) ? null : "" });
     const n = writeCells(writes, r);
-    flashStatus(n ? done(n, "celda", "celdas", "borrad") : "Nada que borrar");
+    flashStatus(n ? done(n, "cell", "cells", "cleared") : "Nothing to clear");
   };
 
   const undo = () => {
     const entry = past.current.pop();
-    if (!entry) { flashStatus("Nada que deshacer"); return; }
+    if (!entry) { flashStatus("Nothing to undo"); return; }
     future.current.push({ rows: data, range: entry.range });
     setHistorySize({ past: past.current.length, future: future.current.length });
     pushRows(entry.rows);
     if (entry.range) { setSel({ anchor: { r: entry.range.r0, c: entry.range.c0 }, focus: { r: entry.range.r1, c: entry.range.c1 } }); flash(entry.range); }
-    flashStatus("Deshecho");
+    flashStatus("Undone");
   };
   const redo = () => {
     const entry = future.current.pop();
-    if (!entry) { flashStatus("Nada que rehacer"); return; }
+    if (!entry) { flashStatus("Nothing to redo"); return; }
     past.current.push({ rows: data, range: entry.range });
     setHistorySize({ past: past.current.length, future: future.current.length });
     pushRows(entry.rows);
     if (entry.range) { setSel({ anchor: { r: entry.range.r0, c: entry.range.c0 }, focus: { r: entry.range.r1, c: entry.range.c1 } }); flash(entry.range); }
-    flashStatus("Rehecho");
+    flashStatus("Redone");
   };
 
   /* Sorting, filters, columns */
@@ -507,8 +506,8 @@ export function DataGrid(props: DataGridProps) {
     window.clearTimeout(movingTimer.current);
     setMoving(true);
     movingTimer.current = window.setTimeout(() => setMoving(false), 700);
-    const named = next.map(s => `${columns.find(c => c.key === s.key)?.label ?? s.key} ${s.dir === "asc" ? "ascendente" : "descendente"}`);
-    setAnnouncement(named.length ? `Ordenado por ${named.join(", luego ")}` : "Orden original restaurado");
+    const named = next.map(s => `${columns.find(c => c.key === s.key)?.label ?? s.key} ${s.dir === "asc" ? "ascending" : "descending"}`);
+    setAnnouncement(named.length ? `Sorted by ${named.join(", then ")}` : "Original order restored");
   };
   const toggleSort = (key: string, additive: boolean) => {
     const existing = sort.find(s => s.key === key);
@@ -522,7 +521,7 @@ export function DataGrid(props: DataGridProps) {
     if (value === undefined || value === "") delete next[key]; else next[key] = value;
     setFilters(next);
   };
-  const clearFilters = () => { setFilters({}); setSearch(""); flashStatus("Filtros borrados"); };
+  const clearFilters = () => { setFilters({}); setSearch(""); flashStatus("Filters cleared"); };
   const openFilter = (key: string) => {
     setFilterRow(true);
     requestAnimationFrame(() => root.current?.querySelector<HTMLElement>(`[data-filter-key="${CSS.escape(key)}"]`)?.focus());
@@ -552,7 +551,7 @@ export function DataGrid(props: DataGridProps) {
     const next = new Set(checkedSet);
     ids.forEach(id => on ? next.add(id) : next.delete(id));
     setCheckedIds(data.filter(r => next.has(r.id)).map(r => r.id));
-    setAnnouncement(on ? done(ids.length, "fila", "filas", "marcad") : done(ids.length, "fila", "filas", "desmarcad"));
+    setAnnouncement(on ? done(ids.length, "row", "rows", "selected") : done(ids.length, "row", "rows", "deselected"));
   };
   const [allChecked, someChecked] = useMemo(() => {
     if (!checkedSet.size || !display.length) return [false, false];
@@ -563,7 +562,7 @@ export function DataGrid(props: DataGridProps) {
     const next = new Set(checkedSet);
     display.forEach(r => allChecked ? next.delete(r.id) : next.add(r.id));
     setCheckedIds(data.filter(r => next.has(r.id)).map(r => r.id));
-    setAnnouncement(allChecked ? "Selección de filas borrada" : done(display.length, "fila", "filas", "marcad"));
+    setAnnouncement(allChecked ? "Row selection cleared" : done(display.length, "row", "rows", "selected"));
   };
   const checkedRows = useMemo(() => data.filter(r => checkedSet.has(r.id)), [data, checkedSet]);
 
@@ -587,17 +586,17 @@ export function DataGrid(props: DataGridProps) {
 
   const copyChecked = async () => {
     const ok = await writeClipboard(toTsv(rowsMatrix(checkedRows, false)), toHtml(rowsMatrix(checkedRows, true)));
-    flashStatus(ok ? done(checkedRows.length, "fila", "filas", "copiad") : "No se pudo copiar. El navegador bloqueó el portapapeles");
+    flashStatus(ok ? done(checkedRows.length, "row", "rows", "copied") : "Could not copy. The browser blocked the clipboard");
   };
   const exportCsv = (rowsOut: DataGridRow[]) => {
     download(`${exportFileName ?? slug(label)}.csv`, toCsv(cols, rowsOut), "text/csv;charset=utf-8");
-    flashStatus(done(rowsOut.length, "fila", "filas", "exportad"));
+    flashStatus(done(rowsOut.length, "row", "rows", "exported"));
   };
   const deleteChecked = () => {
     const n = checkedRows.length;
     commitRows(data.filter(r => !checkedSet.has(r.id)));
     setCheckedIds([]);
-    flashStatus(done(n, "fila", "filas", "eliminad"), { label: "Deshacer", run: () => { live.current.undo(); focusGrid(); } });
+    flashStatus(done(n, "row", "rows", "deleted"), { label: "Undo", run: () => { live.current.undo(); focusGrid(); } });
   };
 
   const pasteMatrix = (matrix: string[][]) => {
@@ -620,7 +619,7 @@ export function DataGrid(props: DataGridProps) {
     setSel({ anchor: { r: pasted.r0, c: pasted.c0 }, focus: { r: pasted.r1, c: pasted.c1 } });
     flash(pasted);
     const cut = !tile && (h > rowsOut || w > colsOut);
-    flashStatus(`${done(n, "celda", "celdas", "pegad")}${skipped ? `, ${skipped} omitidas por no caber` : ""}${cut ? ". Algunas celdas quedaron fuera de la tabla" : ""}`);
+    flashStatus(`${done(n, "cell", "cells", "pasted")}${skipped ? `, ${skipped} skipped for lack of space` : ""}${cut ? ". Some cells fell outside the table" : ""}`);
   };
 
   // The grid is not a text field, so clipboard events are read at the document while the grid itself has focus.
@@ -633,7 +632,7 @@ export function DataGrid(props: DataGridProps) {
       e.clipboardData?.setData("text/html", toHtml(matrixFor(range, false, true)));
     };
     clipboard.current = {
-      copy: e => { if (!rowCount) return; put(e); flash(range); flashStatus(done(size, "celda", "celdas", "copiad")); },
+      copy: e => { if (!rowCount) return; put(e); flash(range); flashStatus(done(size, "cell", "cells", "copied")); },
       cut: e => { if (!rowCount) return; put(e); clearRange(range); },
       paste: e => {
         if (!rowCount) return;
@@ -776,7 +775,7 @@ export function DataGrid(props: DataGridProps) {
     const n = writeCells(writes, target);
     setSel({ anchor: { r: target.r0, c: target.c0 }, focus: { r: target.r1, c: target.c1 } });
     flash(added);
-    flashStatus(n ? done(n, "celda", "celdas", "rellenad") : "Nada que rellenar");
+    flashStatus(n ? done(n, "cell", "cells", "filled") : "Nothing to fill");
   };
 
   const onDoubleClick = (e: ReactMouseEvent<HTMLDivElement>) => {
@@ -794,15 +793,15 @@ export function DataGrid(props: DataGridProps) {
     if (mod && key === "z") { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
     if (mod && key === "y") { e.preventDefault(); redo(); return; }
     if (!rowCount) return;
-    if (mod && key === "a") { e.preventDefault(); setSel({ anchor: { r: 0, c: 0 }, focus: { r: rowCount - 1, c: colCount - 1 } }); setAnnouncement(`${plural(rowCount * colCount, "celda seleccionada", "celdas seleccionadas")}`); return; }
+    if (mod && key === "a") { e.preventDefault(); setSel({ anchor: { r: 0, c: 0 }, focus: { r: rowCount - 1, c: colCount - 1 } }); setAnnouncement(`${plural(rowCount * colCount, "cell selected", "cells selected")}`); return; }
     if (mod && key === "d") {
       e.preventDefault();
-      if (range.r0 === range.r1) { flashStatus("Selecciona más de una fila para rellenar hacia abajo"); return; }
+      if (range.r0 === range.r1) { flashStatus("Select more than one row to fill down"); return; }
       const writes = [];
       for (let r = range.r0 + 1; r <= range.r1; r++) for (let c = range.c0; c <= range.c1; c++) writes.push({ r, c, value: display[range.r0]?.[cols[c].key] ?? null });
       const n = writeCells(writes, range);
       flash({ ...range, r0: range.r0 + 1 });
-      flashStatus(n ? `${done(n, "celda", "celdas", "rellenad")} hacia abajo` : "Nada que rellenar");
+      flashStatus(n ? `${done(n, "cell", "cells", "filled")} down` : "Nothing to fill");
       return;
     }
     if (e.key === " " && e.shiftKey && rowSelection) { e.preventDefault(); toggleRows(range.r0, range.r1); return; }
@@ -824,7 +823,7 @@ export function DataGrid(props: DataGridProps) {
     if (e.key === "Enter" || e.key === "F2") { e.preventDefault(); startEdit(anchor); return; }
     if (e.key === "Escape") {
       if (range.r0 !== range.r1 || range.c0 !== range.c1) { e.preventDefault(); select(anchor); }
-      else if (checkedIds.length) { e.preventDefault(); setCheckedIds([]); setAnnouncement("Selección de filas borrada"); }
+      else if (checkedIds.length) { e.preventDefault(); setCheckedIds([]); setAnnouncement("Row selection cleared"); }
       return;
     }
     if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); clearRange(range); return; }
@@ -897,7 +896,7 @@ export function DataGrid(props: DataGridProps) {
     onCommit={finishEdit} onCancel={cancelEdit} /> : null;
 
   const bulkMode = rowSelection && checkedIds.length > 0;
-  const rowWord = `${rowCount.toLocaleString("es-MX")}${narrowed ? ` de ${data.length.toLocaleString("es-MX")}` : ""} ${data.length === 1 && !narrowed ? "fila" : "filas"}`;
+  const rowWord = `${rowCount.toLocaleString("en-US")}${narrowed ? ` of ${data.length.toLocaleString("en-US")}` : ""} ${data.length === 1 && !narrowed ? "row" : "rows"}`;
 
   return <div ref={root} className={styles.root} data-density={density} style={{ ["--row-h" as string]: `${rowH}px` }}>
     {toolbar && <div className={styles.toolbar}>
@@ -906,39 +905,39 @@ export function DataGrid(props: DataGridProps) {
           ? <motion.div key="bulk" className={styles.toolbarRow} data-bulk=""
             initial={reduce ? { opacity: 0 } : { opacity: 0, y: 6, filter: "blur(2px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6, filter: "blur(2px)" }} transition={{ duration: duration.standard, ease: ease.standard }}>
-            <button type="button" className={styles.toolIcon} aria-label="Borrar selección de filas" onClick={() => setCheckedIds([])}><X size={16} strokeWidth={1.75} aria-hidden="true" /></button>
+            <button type="button" className={styles.toolIcon} aria-label="Clear row selection" onClick={() => setCheckedIds([])}><X size={16} strokeWidth={1.75} aria-hidden="true" /></button>
             <span className={styles.bulkCount}><AnimatedCounter value={checkedIds.length} /> {checkedIds.length === 1 ? "seleccionada" : "seleccionadas"}</span>
             <span className={styles.toolSpacer} />
-            <button type="button" className={styles.toolButton} onClick={copyChecked}><Copy size={16} strokeWidth={1.75} aria-hidden="true" /><span className={styles.toolLabel}>Copiar</span></button>
-            <button type="button" className={styles.toolButton} onClick={() => exportCsv(checkedRows)}><Download size={16} strokeWidth={1.75} aria-hidden="true" /><span className={styles.toolLabel}>Exportar</span></button>
+            <button type="button" className={styles.toolButton} onClick={copyChecked}><Copy size={16} strokeWidth={1.75} aria-hidden="true" /><span className={styles.toolLabel}>Copy</span></button>
+            <button type="button" className={styles.toolButton} onClick={() => exportCsv(checkedRows)}><Download size={16} strokeWidth={1.75} aria-hidden="true" /><span className={styles.toolLabel}>Export</span></button>
             {bulkActions?.map(action => <button key={action.label} type="button" className={styles.toolButton} data-tone={action.tone} onClick={() => action.onAction(checkedRows)}>
               {action.icon}<span className={styles.toolLabel}>{action.label}</span>
             </button>)}
-            {canDeleteRows && <button type="button" className={styles.toolButton} data-tone="danger" onClick={deleteChecked}><Trash2 size={16} strokeWidth={1.75} aria-hidden="true" /><span className={styles.toolLabel}>Eliminar</span></button>}
+            {canDeleteRows && <button type="button" className={styles.toolButton} data-tone="danger" onClick={deleteChecked}><Trash2 size={16} strokeWidth={1.75} aria-hidden="true" /><span className={styles.toolLabel}>Delete</span></button>}
           </motion.div>
           : <motion.div key="tools" className={styles.toolbarRow}
             initial={reduce ? { opacity: 0 } : { opacity: 0, y: -6, filter: "blur(2px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, y: 6, filter: "blur(2px)" }} transition={{ duration: duration.standard, ease: ease.standard }}>
             <label className={styles.search}>
               <Search size={16} strokeWidth={1.75} aria-hidden="true" />
-              <input ref={searchInput} value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar" aria-label={`Buscar en ${label}`} spellCheck={false}
+              <input ref={searchInput} value={search} onChange={e => setSearch(e.target.value)} placeholder="Search" aria-label={`Search ${label}`} spellCheck={false}
                 onKeyDown={e => { if (e.key === "Escape") { if (search) setSearch(""); else focusGrid(); } else if (e.key === "Enter" || e.key === "ArrowDown") { e.preventDefault(); focusGrid(); } }} />
-              {search && <button type="button" className={styles.searchClear} aria-label="Borrar búsqueda" onClick={() => { setSearch(""); searchInput.current?.focus(); }}><X size={14} strokeWidth={1.75} aria-hidden="true" /></button>}
+              {search && <button type="button" className={styles.searchClear} aria-label="Clear search" onClick={() => { setSearch(""); searchInput.current?.focus(); }}><X size={14} strokeWidth={1.75} aria-hidden="true" /></button>}
             </label>
             <span className={styles.rowCount} aria-live="polite">{rowWord}</span>
             <span className={styles.toolSpacer} />
             <span className={styles.toolGroup}>
-              <button type="button" className={styles.toolIcon} aria-label="Deshacer" disabled={!historySize.past} onClick={() => { undo(); focusGrid(); }}><Undo2 size={16} strokeWidth={1.75} aria-hidden="true" /></button>
-              <button type="button" className={styles.toolIcon} aria-label="Rehacer" disabled={!historySize.future} onClick={() => { redo(); focusGrid(); }}><Redo2 size={16} strokeWidth={1.75} aria-hidden="true" /></button>
+              <button type="button" className={styles.toolIcon} aria-label="Undo" disabled={!historySize.past} onClick={() => { undo(); focusGrid(); }}><Undo2 size={16} strokeWidth={1.75} aria-hidden="true" /></button>
+              <button type="button" className={styles.toolIcon} aria-label="Redo" disabled={!historySize.future} onClick={() => { redo(); focusGrid(); }}><Redo2 size={16} strokeWidth={1.75} aria-hidden="true" /></button>
             </span>
-            <button type="button" className={styles.toolButton} aria-pressed={filterRow} aria-label="Filtros" onClick={() => setFilterRow(open => !open)}>
-              <ListFilter size={16} strokeWidth={1.75} aria-hidden="true" /><span className={styles.toolLabel}>Filtrar</span>
+            <button type="button" className={styles.toolButton} aria-pressed={filterRow} aria-label="Filters" onClick={() => setFilterRow(open => !open)}>
+              <ListFilter size={16} strokeWidth={1.75} aria-hidden="true" /><span className={styles.toolLabel}>Filter</span>
               {activeFilters > 0 && <span className={styles.toolCount}>{activeFilters}</span>}
             </button>
             <ColumnsMenu columns={columns} hidden={hiddenSet} pinned={pinnedSet} onToggle={toggleHidden} onShowAll={() => setHidden([])} />
             <DensityMenu density={density} onChange={setDensity} />
-            <button type="button" className={styles.toolButton} aria-label="Exportar CSV" onClick={() => exportCsv(display)} disabled={!rowCount}>
-              <Download size={16} strokeWidth={1.75} aria-hidden="true" /><span className={styles.toolLabel}>Exportar</span>
+            <button type="button" className={styles.toolButton} aria-label="Export CSV" onClick={() => exportCsv(display)} disabled={!rowCount}>
+              <Download size={16} strokeWidth={1.75} aria-hidden="true" /><span className={styles.toolLabel}>Export</span>
             </button>
           </motion.div>}
       </AnimatePresence>
@@ -952,7 +951,7 @@ export function DataGrid(props: DataGridProps) {
         <div role="rowgroup" className={styles.head}>
           <div role="row" aria-rowindex={1} className={styles.headRow}>
             {rowSelection && <div role="columnheader" aria-colindex={1} className={styles.gutterHead}>
-              <GridCheckbox checked={allChecked ? true : someChecked ? "mixed" : false} label={allChecked ? "Borrar selección de filas" : "Seleccionar todas las filas"} onToggle={toggleAll} tabbable />
+              <GridCheckbox checked={allChecked ? true : someChecked ? "mixed" : false} label={allChecked ? "Clear row selection" : "Select all rows"} onToggle={toggleAll} tabbable />
             </div>}
             {slots.map((slot, c) => {
               const { column } = slot;
@@ -965,7 +964,7 @@ export function DataGrid(props: DataGridProps) {
                 style={{ width: slot.width, left: slot.pinned ? slot.left : undefined }}>
                 <button type="button" className={styles.sortButton} disabled={!sortable} onClick={e => toggleSort(column.key, e.shiftKey)}
                   onKeyDown={e => { if (e.altKey && (e.key === "ArrowLeft" || e.key === "ArrowRight")) { e.preventDefault(); nudgeWidth(column.key, c, e.key === "ArrowRight" ? 16 : -16); } }}
-                  aria-label={`${column.label}${sorted ? `, ordenada ${sorted === "asc" ? "ascendente" : "descendente"}${sort.length > 1 ? `, prioridad ${sortIndex + 1}` : ""}` : ""}. ${sortable ? "Ordenar, con Mayús para agregar otro criterio. " : ""}Alt y flechas cambian el ancho`}>
+                  aria-label={`${column.label}${sorted ? `, sorted ${sorted === "asc" ? "ascendente" : "descendente"}${sort.length > 1 ? `, priority ${sortIndex + 1}` : ""}` : ""}. ${sortable ? "Sort, hold Shift to add another criterion. " : ""}Alt and arrow keys change the width`}>
                   <span className={styles.headLabel}>{column.label}</span>
                   {sortable && <span className={styles.sortIcon} data-dir={sorted ?? undefined} aria-hidden="true">
                     <ArrowUp size={14} strokeWidth={1.75} />
@@ -988,7 +987,7 @@ export function DataGrid(props: DataGridProps) {
             exit={{ height: reduce ? FILTER_ROW : 0, opacity: 0, transition: reduce ? { duration: duration.exit, ease: ease.standard } : { height: spring.smooth, opacity: { duration: duration.exit, ease: ease.exit } } }}
             transition={reduce ? { duration: duration.fast, ease: ease.standard } : { height: spring.smooth, opacity: { duration: duration.fast, ease: ease.standard } }}>
             {rowSelection && <div role="gridcell" aria-colindex={1} className={styles.gutterHead}>
-              {narrowed && <button type="button" className={styles.clearFilters} aria-label="Borrar todos los filtros" onClick={clearFilters}><FunnelX size={15} strokeWidth={1.75} aria-hidden="true" /></button>}
+              {narrowed && <button type="button" className={styles.clearFilters} aria-label="Clear all filters" onClick={clearFilters}><FunnelX size={15} strokeWidth={1.75} aria-hidden="true" /></button>}
             </div>}
             {slots.map((slot, c) => {
               const { column } = slot;
@@ -1000,7 +999,7 @@ export function DataGrid(props: DataGridProps) {
                   ? <SelectFilter column={column} options={filterOptionsFor(column)} value={Array.isArray(value) ? value : undefined} onChange={next => setFilter(column.key, next)} />
                   : <input className={styles.filterInput} data-filter-key={column.key} data-num={slot.numeric || undefined} data-active={isFilterActive(column, value) || undefined}
                     aria-invalid={invalid || undefined} value={typeof value === "string" ? value : ""} spellCheck={false} autoComplete="off"
-                    placeholder={slot.numeric ? "> 100, 10..50" : "Contiene"} aria-label={`Filtrar ${column.label}${slot.numeric ? ". Usa > < = o un rango como 10..50" : ""}`}
+                    placeholder={slot.numeric ? "> 100, 10..50" : "Contains"} aria-label={`Filter ${column.label}${slot.numeric ? ". Use > < = or a range like 10..50" : ""}`}
                     onChange={e => setFilter(column.key, e.target.value)}
                     onKeyDown={e => {
                       if (e.key === "Escape") { e.preventDefault(); if (value) setFilter(column.key, undefined); else focusGrid(); }
@@ -1029,8 +1028,8 @@ export function DataGrid(props: DataGridProps) {
           })}
 
           {!loading && rowCount === 0 && <div className={styles.empty} style={{ left: 0, width: viewport.w || "100%" }}>
-            <p className={styles.emptyTitle}>{narrowed ? "Ninguna fila coincide" : emptyMessage}</p>
-            {narrowed && <button type="button" className={styles.toolButton} onClick={clearFilters}><FunnelX size={16} strokeWidth={1.75} aria-hidden="true" />Borrar filtros</button>}
+            <p className={styles.emptyTitle}>{narrowed ? "No rows match" : emptyMessage}</p>
+            {narrowed && <button type="button" className={styles.toolButton} onClick={clearFilters}><FunnelX size={16} strokeWidth={1.75} aria-hidden="true" />Clear filters</button>}
           </div>}
 
           {rowCount > 0 && colCount > 0 && <>
@@ -1074,15 +1073,15 @@ export function DataGrid(props: DataGridProps) {
     </div>
 
     <div className={styles.statusBar}>
-      <span className={styles.address} aria-label={rowCount ? `Selección ${letter(range.c0)}${range.r0 + 1}` : undefined}>
+      <span className={styles.address} aria-label={rowCount ? `Selection ${letter(range.c0)}${range.r0 + 1}` : undefined}>
         {rowCount ? `${letter(range.c0)}${range.r0 + 1}${range.r0 === range.r1 && range.c0 === range.c1 ? "" : `:${letter(range.c1)}${range.r1 + 1}`}` : "–"}
       </span>
       {rowCount > 0 && <span className={styles.stats}>
         {summary.count > 1 && <>
-          <span className={styles.stat}><span className={styles.statLabel}>Suma</span><span className={styles.statValue}><AnimatedCounter value={Math.round(summary.sum * 100) / 100} prefix={summary.prefix} suffix={summary.suffix} decimals={Number.isInteger(Math.round(summary.sum * 100) / 100) ? 0 : 2} /></span></span>
-          <span className={styles.stat}><span className={styles.statLabel}>Promedio</span><span className={styles.statValue}><AnimatedCounter value={Math.round(summary.avg * 10) / 10} prefix={summary.prefix} suffix={summary.suffix} decimals={Number.isInteger(Math.round(summary.avg * 10) / 10) ? 0 : 1} /></span></span>
+          <span className={styles.stat}><span className={styles.statLabel}>Sum</span><span className={styles.statValue}><AnimatedCounter value={Math.round(summary.sum * 100) / 100} prefix={summary.prefix} suffix={summary.suffix} decimals={Number.isInteger(Math.round(summary.sum * 100) / 100) ? 0 : 2} /></span></span>
+          <span className={styles.stat}><span className={styles.statLabel}>Average</span><span className={styles.statValue}><AnimatedCounter value={Math.round(summary.avg * 10) / 10} prefix={summary.prefix} suffix={summary.suffix} decimals={Number.isInteger(Math.round(summary.avg * 10) / 10) ? 0 : 1} /></span></span>
         </>}
-        <span className={styles.stat}><span className={styles.statLabel}>Conteo</span><span className={styles.statValue}><AnimatedCounter value={summary.filled} /></span></span>
+        <span className={styles.stat}><span className={styles.statLabel}>Count</span><span className={styles.statValue}><AnimatedCounter value={summary.filled} /></span></span>
       </span>}
       <span className={styles.status}>
         <AnimatePresence initial={false}>

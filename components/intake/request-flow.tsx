@@ -8,7 +8,7 @@ import { RequestForm } from "./request-form";
 // One height for every step, so the dialog never resizes while the person moves through the flow.
 const FLOW_HEIGHT = 760;
 
-const SHEET = "solicitud";
+const SHEET = "request";
 
 interface RequestFlowProps {
   open: boolean;
@@ -22,7 +22,7 @@ interface RequestFlowProps {
 export function RequestFlow({ open, onOpenChange, requester, areaOwners, today }: RequestFlowProps) {
   return (
     <SheetStack stack={open ? [SHEET] : []} onStackChange={(stack) => onOpenChange(stack.length > 0)}>
-      <Sheet id={SHEET} fixedHeight={FLOW_HEIGHT} title="Nueva solicitud" description="Mientras más completo el brief, antes se puede entregar.">
+      <Sheet id={SHEET} fixedHeight={FLOW_HEIGHT} title="New request" description="The more complete the brief, the sooner it can be delivered.">
         <RequestForm requester={requester} areaOwners={areaOwners} today={today} />
       </Sheet>
     </SheetStack>

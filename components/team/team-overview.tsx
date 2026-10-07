@@ -20,10 +20,10 @@ export const STAGE_TONE: Record<Stage, string> = {
 const plural = (count: number, one: string, other: string) => `${count} ${count === 1 ? one : other}`;
 
 export function dueText(days: number): string {
-  if (days < 0) return `vencida hace ${plural(-days, "día", "días")}`;
-  if (days === 0) return "vence hoy";
-  if (days === 1) return "vence mañana";
-  return `en ${plural(days, "día", "días")}`;
+  if (days < 0) return `${plural(-days, "day", "days")} overdue`;
+  if (days === 0) return "due today";
+  if (days === 1) return "due tomorrow";
+  return `in ${plural(days, "day", "days")}`;
 }
 
 export function TeamOverview({ tasks, today }: { tasks: PublicTask[]; today: string }) {
@@ -35,26 +35,26 @@ export function TeamOverview({ tasks, today }: { tasks: PublicTask[]; today: str
   const nextDays = next?.dueDate ? daysUntil(next.dueDate, today) : null;
 
   const stats: Stat[] = [
-    { value: moving.length, label: "En curso", detail: "Solicitudes que el equipo trabaja ahora", context: `${plural(tasks.length - done.length, "abierta", "abiertas")} en total` },
-    { value: done.length, suffix: `/${tasks.length}`, label: "Entregadas", detail: "En los últimos 30 días", context: `Faltan ${plural(tasks.length - done.length, "solicitud", "solicitudes")}` },
+    { value: moving.length, label: "In progress", detail: "Requests the team is working on now", context: `${tasks.length - done.length} open in total` },
+    { value: done.length, suffix: `/${tasks.length}`, label: "Delivered", detail: "In the last 30 days", context: `${plural(tasks.length - done.length, "request", "requests")} to go` },
     {
       value: held.length,
-      label: "En pausa",
-      detail: held.length ? held.map((task) => task.title).slice(0, 2).join(", ") : "Nada detenido",
-      context: "Esperan material o una decisión",
+      label: "Paused",
+      detail: held.length ? held.map((task) => task.title).slice(0, 2).join(", ") : "Nothing on hold",
+      context: "Waiting on material or a decision",
     },
     ...(next && nextDays !== null
-      ? [{ value: Math.max(nextDays, 0), suffix: nextDays === 1 ? " día" : " días", label: "Próxima entrega", detail: next.title, context: `${formatDay(next.dueDate!)}, ${dueText(nextDays)}` }]
-      : [{ value: overdue.length, label: "Vencidas", detail: overdue.length ? "Ninguna entrega abierta tiene fecha futura" : "Sin entregas con fecha", context: overdue.length ? `La más antigua: ${overdue[0].title}` : "Nada pendiente" }]),
+      ? [{ value: Math.max(nextDays, 0), suffix: nextDays === 1 ? " day" : " days", label: "Next delivery", detail: next.title, context: `${formatDay(next.dueDate!)}, ${dueText(nextDays)}` }]
+      : [{ value: overdue.length, label: "Overdue", detail: overdue.length ? "No open delivery has a future date" : "No deliveries with a date", context: overdue.length ? `Oldest: ${overdue[0].title}` : "Nothing pending" }]),
   ];
 
   const counts = STAGES.map((stage) => ({ stage, count: tasks.filter((task) => task.stage === stage).length }));
 
   return (
-    <section className={styles.root} aria-label="Resumen">
-      <StatsBand stats={stats} layout="plain" locale="es-MX" className={styles.band} />
+    <section className={styles.root} aria-label="Summary">
+      <StatsBand stats={stats} layout="plain" locale="en-US" className={styles.band} />
       <figure className={styles.strip}>
-        <figcaption className={styles.caption}>Dónde está el trabajo</figcaption>
+        <figcaption className={styles.caption}>Where the work is</figcaption>
         <div className={styles.bar} role="img" aria-label={counts.map(({ stage, count }) => `${STAGE_LABEL[stage]}: ${count}`).join(", ")}>
           {counts
             .filter(({ count }) => count > 0)

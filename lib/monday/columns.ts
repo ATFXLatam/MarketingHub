@@ -20,7 +20,7 @@ export const email = (address: string) => ({ email: address, text: address });
 export const people = (ids: number[]) => ({ personsAndTeams: ids.map((id) => ({ id, kind: "person" as const })) });
 export const longText = (text: string) => ({ text });
 
-const COPY_ANSWER: Record<string, string> = { [COPY_READY]: "Sí", no: "Todavía no" };
+const COPY_ANSWER: Record<string, string> = { [COPY_READY]: "Yes", no: "Not yet" };
 
 /**
  * The structured requirements travel inside the brief column as labelled lines: the board keeps its columns, and whoever
@@ -33,7 +33,7 @@ export function briefWithDetails(request: Pick<IntakeRequest, "brief" | "details
     if (!value) return [];
     return [`${DETAIL_LABEL[key]}: ${key === "copyReady" ? (COPY_ANSWER[value] ?? value) : value}`];
   });
-  return lines.length ? `${request.brief}\n\nRequisitos\n${lines.join("\n")}` : request.brief;
+  return lines.length ? `${request.brief}\n\nRequirements\n${lines.join("\n")}` : request.brief;
 }
 
 export interface Requester {
@@ -60,7 +60,7 @@ export function buildColumnValues(
     [COLUMNS.market]: request.market,
   };
   if (subtype) values[SUBTYPE_COLUMN[request.area]] = dropdown([subtype.labelId]);
-  if (request.drive) values[COLUMNS.drive] = link(request.drive, "Carpeta Drive");
+  if (request.drive) values[COLUMNS.drive] = link(request.drive, "Drive folder");
   if (ownerIds.length > 0) values[COLUMNS.owner] = people(ownerIds);
   if (request.area === "web") {
     const landing = LANDING_SUBTYPES.find((item) => item.value === request.landingSubtype);

@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { EstimateTotal, SummaryRows } from "@/components/arc/blocks/usage-pricing/usage-pricing";
 import { Avatar } from "@/components/arc/avatar/avatar";
 import { upload } from "@vercel/blob/client";
-import { submitRequest } from "@/app/(app)/solicitar/actions";
+import { submitRequest } from "@/app/(app)/request/actions";
 import { Alert } from "@/components/arc/alert/alert";
 import { Button } from "@/components/arc/button/button";
 import { DatePicker } from "@/components/arc/date-picker/date-picker";
@@ -44,19 +44,19 @@ import type { AreaOwner } from "@/lib/area-owners";
 import { OBJECTIVES, type DetailKey } from "@/lib/requirements";
 
 const AREA_HINT: Record<Area, string> = {
-  web: "Landings, cambios, tracking y accesos",
-  video: "Reels, promos, webinars y testimoniales",
-  eventos: "Eventos internos o con clientes",
-  diseno: "Piezas para Meta, Google, email e impresos",
+  web: "Landings, changes, tracking and access",
+  video: "Reels, promos, webinars and testimonials",
+  eventos: "Internal or client events",
+  diseno: "Pieces for Meta, Google, email and print",
 };
 
 const BRIEF_HINT: Record<Area, string> = {
-  web: "Objetivo, público, secciones, copy y CTA. Si es una ronda de cambios, lista cada cambio con su URL.",
+  web: "Objective, audience, sections, copy and CTA. For a round of changes, list each change with its URL.",
   video:
-    "Formato (horizontal o vertical), duración, idioma y canal donde se publicará.",
+    "Format (horizontal or vertical), duration, language and the channel it will run on.",
   eventos:
-    "Fecha y lugar, asistentes esperados, qué necesitas de marketing y presupuesto si aplica.",
-  diseno: "Tipo de pieza, público, idioma, copy, CTA, tamaño y formato.",
+    "Date and venue, expected attendees, what you need from marketing and budget if it applies.",
+  diseno: "Piece type, audience, language, copy, CTA, size and format.",
 };
 
 const EMPTY: Draft = {
@@ -115,7 +115,7 @@ function RequestWizard({
   // Kept across retries of the same submission so monday never creates the item twice.
   const submissionKey = useRef<string | null>(null);
   const [jump, setJump] = useState<{ step: number; nonce: number; focus?: string }>();
-  // Set when a summary link sent the person back to fill something in; Continuar then returns to review.
+  // Set when a summary link sent the person back to fill something in; Continue then returns to review.
   const [returning, setReturning] = useState(false);
 
   function fix(gap: BriefGap) {
@@ -204,7 +204,7 @@ function RequestWizard({
         setErrors(response.fieldErrors ?? {});
         setSubmitError(
           response.fieldErrors
-            ? `${response.error} Vuelve a los pasos anteriores para corregirlos.`
+            ? `${response.error} Go back to the earlier steps to fix them.`
             : response.error,
         );
         return false;
@@ -214,7 +214,7 @@ function RequestWizard({
       return true;
     } catch {
       setSubmitError(
-        "Se perdió la conexión. Vuelve a enviar: no se duplicará.",
+        "Connection lost. Send again: it will not be duplicated.",
       );
       return false;
     }
@@ -226,33 +226,33 @@ function RequestWizard({
   return (
     <MultiStepForm
       surface="none"
-      formLabel="Nueva solicitud"
-      completeLabel="Enviar solicitud"
+      formLabel="New request"
+      completeLabel="Send request"
       onStepContinue={onStepContinue}
       onComplete={onComplete}
       jump={jump}
       fill
       actionsStart={<EstimateTotal result={preview} />}
       aside={<RequestSummary area={area} pieceLabel={pieceLabel} priority={draft.priority} owner={owner} result={preview} onFix={fix} />}
-      successTitle="Solicitud enviada"
+      successTitle="Request sent"
       successNote={
         sent &&
-        `Entrega estimada: ${formatDay(sent.date)} (${sent.days} días hábiles). ${
+        `Estimated delivery: ${formatDay(sent.date)} (${sent.days} business ${sent.days === 1 ? "day" : "days"}). ${
           sent.initialStage === "ready"
-            ? "Quedó lista para arrancar y el responsable del área ya la ve en monday."
-            : "Quedó en Nuevas: el responsable del área la revisará y te escribirá si falta algo."
+            ? "It is ready to start and the area owner can already see it in monday."
+            : "It landed in New: the area owner will review it and write to you if anything is missing."
         }`
       }
       successAction={
         <Button variant="secondary" type="button" onClick={onAnother}>
-          Enviar otra solicitud
+          Send another request
         </Button>
       }
       steps={[
         {
           id: "area",
-          title: "Área",
-          description: "¿Qué equipo necesitas?",
+          title: "Area",
+          description: "Which team do you need?",
           content: (
             <>
               <RadioCards
@@ -278,10 +278,10 @@ function RequestWizard({
                     meta: lead ? (
                       <>
                         <Avatar name={lead.name} src={lead.photo ?? undefined} size="sm" />
-                        {`${lead.assigned ? "La toma" : "Suele tomarla"} ${lead.name.split(" ")[0]}`}
+                        {`${lead.assigned ? `${lead.name.split(" ")[0]} takes it` : `Usually ${lead.name.split(" ")[0]}`}`}
                       </>
                     ) : (
-                      "La asigna el equipo"
+                      "Assigned by the team"
                     ),
                   };
                 })}
@@ -297,8 +297,8 @@ function RequestWizard({
           content: (
             <>
               <Input
-                label="Título"
-                placeholder="Landing webinar de oro, octubre"
+                label="Title"
+                placeholder="Gold webinar landing, October"
                 value={draft.title}
                 onChange={(event) => set("title", event.target.value)}
                 error={errors.title}
@@ -307,8 +307,8 @@ function RequestWizard({
               <>
                 <Select
                   id="subtype"
-                  label="Tipo de pieza"
-                  placeholder="Elige uno"
+                  label="Piece type"
+                  placeholder="Choose one"
                   options={subtypes.map(({ value, label }) => ({
                     value,
                     label,
@@ -322,8 +322,8 @@ function RequestWizard({
                 />
                 {area === "web" && draft.subtype === "landing" && (
                   <Select
-                    label="Tipo de landing"
-                    placeholder="Elige uno"
+                    label="Landing type"
+                    placeholder="Choose one"
                     options={LANDING_SUBTYPES.map(({ value, label }) => ({
                       value,
                       label,
@@ -336,23 +336,23 @@ function RequestWizard({
               </>
               <Select
                 id="objective"
-                label="Objetivo"
-                placeholder="Elige uno"
+                label="Objective"
+                placeholder="Choose one"
                 options={OBJECTIVES.map((value) => ({ value, label: value }))}
                 value={draft.details.objective ?? ""}
                 onValueChange={(value) => setDetail("objective", value)}
               />
               <Input
                 id="audience"
-                label="Público"
-                placeholder="Traders nuevos en México, clientes con cuenta fondeada"
+                label="Audience"
+                placeholder="New traders in Mexico, clients with a funded account"
                 value={draft.details.audience ?? ""}
                 onChange={(event) => setDetail("audience", event.target.value)}
                 maxLength={300}
               />
               <Textarea
                 id="brief"
-                label="Descripción y especificaciones"
+                label="Description and specs"
                 error={errors.brief}
                 rows={7}
                 value={draft.brief}
@@ -364,15 +364,15 @@ function RequestWizard({
         },
         {
           id: "requisitos",
-          title: area ? `Requisitos de ${AREA_LABEL[area].toLowerCase()}` : "Requisitos",
-          description: "Lo que el equipo necesita para arrancar sin volver a preguntarte. Nada es obligatorio, pero cada punto acorta la entrega.",
+          title: area ? `${AREA_LABEL[area]} requirements` : "Requirements",
+          description: "What the team needs to start without coming back to ask. Nothing is required, but every point shortens delivery.",
           content: (
             <>
               {area && <RequirementFields area={area} details={draft.details} errors={errors} onChange={setDetail} />}
               <Textarea
                 id="blockers"
-                label="Bloqueadores"
-                description="Lo que falta para poder empezar: copy, logos, accesos, aprobaciones. Déjalo vacío si no falta nada."
+                label="Blockers"
+                description="What is missing before work can start: copy, logos, access, approvals. Leave empty if nothing is missing."
                 rows={3}
                 value={draft.blockers}
                 onChange={(event) => set("blockers", event.target.value)}
@@ -383,23 +383,23 @@ function RequestWizard({
         },
         {
           id: "cuando",
-          title: "Fecha y prioridad",
+          title: "Date and priority",
           content: (
             <>
               <>
                 <DatePicker
-                  label="Fecha requerida"
-                  locale="es-MX"
+                  label="Due date"
+                  locale="en-US"
                   value={draft.dueDate}
                   onChange={(date) => set("dueDate", date)}
                   minDate={new Date(`${today}T00:00:00`)}
                   description={errors.dueDate}
-                  placeholder="Elige una fecha"
+                  placeholder="Choose a date"
                 />
                 <Select
                   id="market"
-                  label="Mercado"
-                  placeholder="Elige uno"
+                  label="Market"
+                  placeholder="Choose one"
                   options={MARKETS.map((value) => ({
                     value,
                     label: value,
@@ -410,7 +410,7 @@ function RequestWizard({
                 />
               </>
               <RadioGroup
-                label="Prioridad"
+                label="Priority"
                 name="priority"
                 value={draft.priority}
                 onValueChange={(value) => set("priority", value as Priority)}
@@ -424,13 +424,13 @@ function RequestWizard({
         },
         {
           id: "material",
-          title: "Material",
-          description: "Opcional, pero acorta la entrega.",
+          title: "Assets",
+          description: "Optional, but it shortens delivery.",
           content: (
             <>
               <Input
                 id="drive"
-                label="Carpeta Drive"
+                label="Drive folder"
                 type="url"
                 inputMode="url"
                 placeholder="https://drive.google.com/..."
@@ -439,8 +439,8 @@ function RequestWizard({
                 error={errors.drive}
               />
               <FileUpload
-                label="Adjuntos"
-                description={`Hasta ${MAX_FILES} archivos de ${MAX_UPLOAD_BYTES / 1024 / 1024} MB: imágenes, PDF, Office o CSV.`}
+                label="Attachments"
+                description={`Up to ${MAX_FILES} files of ${MAX_UPLOAD_BYTES / 1024 / 1024} MB: images, PDF, Office or CSV.`}
                 accept={ACCEPTED_TYPES.join(",")}
                 maxSize={MAX_UPLOAD_BYTES}
                 value={files}
@@ -455,38 +455,38 @@ function RequestWizard({
         },
         {
           id: "revision",
-          title: "Revisión",
-          description: `Se enviará como ${requester}.`,
+          title: "Review",
+          description: `It will be sent as ${requester}.`,
           content: (
             <>
               {area && (
                 <SummaryRows
-                  title="Lo que se enviará"
+                  title="What will be sent"
                   rows={[
-                    { label: "Título", value: draft.title || "Sin título" },
-                    { label: "Área", value: AREA_LABEL[area], note: pieceLabel },
-                    { label: "Responsable", value: owner?.name ?? "Lo asigna el equipo", note: owner && !owner.assigned ? "Quien suele tomar esta área" : undefined },
-                    { label: "Fecha requerida", value: draft.dueDate ? formatDay(toIsoDate(draft.dueDate)) : "Sin fecha" },
-                    { label: "Prioridad", value: PRIORITY_LABEL[draft.priority] },
-                    { label: "Mercado", value: draft.market || "Sin mercado" },
-                    { label: "Material", value: [draft.drive && "Carpeta Drive", validFiles.length && `${validFiles.length} adjuntos`].filter(Boolean).join(" y ") || "Sin material" },
+                    { label: "Title", value: draft.title || "No title" },
+                    { label: "Area", value: AREA_LABEL[area], note: pieceLabel },
+                    { label: "Owner", value: owner?.name ?? "Assigned by the team", note: owner && !owner.assigned ? "Usually takes this area" : undefined },
+                    { label: "Due date", value: draft.dueDate ? formatDay(toIsoDate(draft.dueDate)) : "No date" },
+                    { label: "Priority", value: PRIORITY_LABEL[draft.priority] },
+                    { label: "Market", value: draft.market || "No market" },
+                    { label: "Assets", value: [draft.drive && "Drive folder", validFiles.length && `${validFiles.length} ${validFiles.length === 1 ? "attachment" : "attachments"}`].filter(Boolean).join(" and ") || "No assets" },
                   ]}
                 />
               )}
               {preview?.tight && (
                 <Alert
                   tone="warning"
-                  title="La fecha requerida es anterior a la estimada"
+                  title="The due date is earlier than the estimate"
                 >
-                  El equipo revisará si es posible. Completar el brief o subir
-                  la prioridad ayuda.
+                  The team will check if it is possible. Completing the brief or
+                  raising the priority helps.
                 </Alert>
               )}
               {submitError && <Alert tone="danger" title={submitError} />}
               {!preview?.tight && !submitError && (
-                <Alert tone="info" title="Todo listo para enviar">
-                  La solicitud llega al tablero del equipo en monday con su
-                  fecha estimada.
+                <Alert tone="info" title="Ready to send">
+                  The request lands on the team&apos;s monday board with its
+                  estimated date.
                 </Alert>
               )}
             </>

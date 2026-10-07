@@ -12,7 +12,7 @@ const readMinute = () => Math.floor(Date.now() / 60_000) * 60_000;
 
 /** A member's wall clock, so requesters across LATAM know whether a reply is likely right now. Rendered only on the client. */
 export function LocalTime({ timeZone }: { timeZone: string }) {
-  const clock = useMemo(() => new Intl.DateTimeFormat("es-MX", { hour: "numeric", minute: "2-digit", timeZone }), [timeZone]);
+  const clock = useMemo(() => new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", timeZone }), [timeZone]);
   const minute = useSyncExternalStore(subscribe, readMinute, () => null);
-  return minute === null ? null : <time>{clock.format(minute)} hora local</time>;
+  return minute === null ? null : <time>{clock.format(minute)} local time</time>;
 }

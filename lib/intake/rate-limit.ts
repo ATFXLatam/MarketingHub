@@ -1,7 +1,7 @@
-// Rate limit en memoria por clave (ventana deslizante de timestamps). En Vercel serverless el Map
-// vive por isolate, así que el límite no es hermético entre instancias frías/regiones: es un freno de
-// bursts y doble-submit, no un control fuerte (eso pediría Redis/KV, deuda registrada). Se purgan
-// buckets muertos al escribir para que el Map no crezca con cada clave única.
+// In-memory rate limit per key (sliding window of timestamps). On Vercel serverless the Map lives per
+// isolate, so the limit is not airtight across cold instances/regions: it brakes bursts and double
+// submits, it is not a hard control (that would need Redis/KV, tracked debt). Dead buckets are purged
+// on write so the Map does not grow with every unique key.
 
 export function createRateLimiter(max: number, windowMs: number): (key: string) => boolean {
   const buckets = new Map<string, number[]>();

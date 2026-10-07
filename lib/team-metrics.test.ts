@@ -33,7 +33,7 @@ describe("requestBreakdowns", () => {
       "2026-10-06",
       7,
     );
-    expect(areas).toEqual([{ name: "Sin área", value: 1 }, { name: "Web", value: 1 }]);
-    expect(markets).toEqual([{ name: "Perú", value: 1 }, { name: "Sin mercado", value: 1 }]);
+    expect(areas).toEqual([{ name: "No area", value: 1 }, { name: "Web", value: 1 }]);
+    expect(markets).toEqual([{ name: "No market", value: 1 }, { name: "Perú", value: 1 }]);
   });
 });

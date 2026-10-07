@@ -5,7 +5,7 @@ const draft: Draft = { title: "Landing oro", area: "web", subtype: "landing", la
 
 describe("stepErrors", () => {
   it("stops the brief step until a new landing has its type", () => {
-    expect(stepErrors("brief", draft, { pendingUploads: false })).toEqual({ landingSubtype: "Elige el tipo de landing." });
+    expect(stepErrors("brief", draft, { pendingUploads: false })).toEqual({ landingSubtype: "Choose the landing type." });
     expect(stepErrors("brief", { ...draft, landingSubtype: "evento" }, { pendingUploads: false })).toEqual({});
   });
 

@@ -18,7 +18,7 @@ export function configuredOwners(): Partial<Record<Area, number[]>> {
   try {
     return OwnersSchema.parse(JSON.parse(raw));
   } catch (error) {
-    console.error("MONDAY_AREA_OWNERS no es JSON válido; la solicitud se crea sin owner", error);
+    console.error("MONDAY_AREA_OWNERS is not valid JSON; the request is created without an owner", error);
     return {};
   }
 }
@@ -57,7 +57,7 @@ export async function createRequestItem(
     const list = request.attachments.map((file) => `<li><a href="${escapeHtml(file.url)}">${escapeHtml(file.name)}</a></li>`).join("");
     await mondayQuery(
       `mutation ($item: ID!, $body: String!) { create_update(item_id: $item, body: $body) { id } }`,
-      { item: itemId, body: `<p>Adjuntos de la solicitud</p><ul>${list}</ul>` },
+      { item: itemId, body: `<p>Request attachments</p><ul>${list}</ul>` },
       { idempotencyKey: `${idempotencyKey}:attachments` },
     );
   }

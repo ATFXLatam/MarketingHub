@@ -57,7 +57,7 @@ export interface ProjectBoardProps {
   onSelect?: (id: string) => void;
 }
 
-export function ProjectBoard({ title, team, stages, tasks, doneStage, filters = [], emptyLabel = "Sin solicitudes", onSelect }: ProjectBoardProps) {
+export function ProjectBoard({ title, team, stages, tasks, doneStage, filters = [], emptyLabel = "No requests", onSelect }: ProjectBoardProps) {
   const reduce = useReducedMotion();
   const groupId = useId();
   const [filter, setFilter] = useState(filters[0]?.value ?? "");
@@ -71,11 +71,11 @@ export function ProjectBoard({ title, team, stages, tasks, doneStage, filters = 
     <header className={styles.header}>
       <div className={styles.heading}>
         <h2>{title}</h2>
-        <p><span className={styles.tabular}>{completed}</span> de <span className={styles.tabular}>{shown.length}</span> hechas</p>
+        <p><span className={styles.tabular}>{completed}</span> of <span className={styles.tabular}>{shown.length}</span> done</p>
       </div>
       <div className={styles.headerActions}>
-        {team.length > 0 && <div className={styles.people}><AvatarGroup members={team} max={4} size="sm" label="Equipo" /></div>}
-        {filters.length > 1 && <div className={styles.filters} role="group" aria-label="Filtrar por área">
+        {team.length > 0 && <div className={styles.people}><AvatarGroup members={team} max={4} size="sm" label="Team" /></div>}
+        {filters.length > 1 && <div className={styles.filters} role="group" aria-label="Filter by area">
           {filters.map(({ value, label }) => <button type="button" key={value} aria-pressed={filter === value} onClick={() => setFilter(value)}>
             {filter === value && <motion.span layoutId="filter" className={styles.filterHighlight} transition={reduce ? { duration: 0 } : motionTokens.spring.snappy} aria-hidden="true" />}
             <span>{label}</span>
@@ -89,12 +89,12 @@ export function ProjectBoard({ title, team, stages, tasks, doneStage, filters = 
       <div className={styles.stages}>
         {stages.map((stage) => {
           const cards = shown.filter((task) => task.stage === stage.id);
-          return <section className={styles.stage} key={stage.id} data-wide={cards.length > 0 || undefined} aria-label={`${stage.label}, ${cards.length} solicitudes`}>
+          return <section className={styles.stage} key={stage.id} data-wide={cards.length > 0 || undefined} aria-label={`${stage.label}, ${cards.length} ${cards.length === 1 ? "request" : "requests"}`}>
             <div className={styles.stageHead}><h3>{stage.label}</h3><span className={styles.stageCount}>{cards.length}</span></div>
             <div className={styles.cardStack}>
               <AnimatePresence mode="popLayout" initial={false}>
                 {cards.map((task) => <motion.article key={task.id} layoutId={reduce ? undefined : `task-${task.id}`} layoutCrossfade={false} initial={reduce ? false : { opacity: 0, scale: .98 }} animate={{ opacity: 1, scale: 1 }} exit={reduce ? { opacity: 0 } : { opacity: 0, scale: .98 }} transition={spring} className={styles.card} data-done={stage.id === doneStage || undefined}
-                  {...(onSelect ? { role: "button", tabIndex: 0, "aria-label": `${task.title}, ver detalle`, onClick: () => onSelect(task.id), onKeyDown: (event: KeyboardEvent<HTMLElement>) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelect(task.id); } } } : {})}>
+                  {...(onSelect ? { role: "button", tabIndex: 0, "aria-label": `${task.title}, view details`, onClick: () => onSelect(task.id), onKeyDown: (event: KeyboardEvent<HTMLElement>) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelect(task.id); } } } : {})}>
                   <div className={styles.cardTop}><span>{task.project}</span>{task.due && <span className={styles.due} data-soon={task.dueSoon && stage.id !== doneStage ? "" : undefined}>{task.due}</span>}</div>
                   <h4>{task.title}</h4>
                   {(task.owners.length > 0 || task.footer) && <div className={styles.cardBottom}>

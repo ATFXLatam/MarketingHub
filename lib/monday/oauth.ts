@@ -12,7 +12,7 @@ export const CALLBACK_PATH = "/api/monday/oauth/callback";
 function clientCredentials(): { id: string; secret: string } {
   const id = process.env.MONDAY_CLIENT_ID;
   const secret = process.env.MONDAY_CLIENT_SECRET;
-  if (!id || !secret) throw new MondayError("MONDAY_CLIENT_ID o MONDAY_CLIENT_SECRET no están configurados");
+  if (!id || !secret) throw new MondayError("MONDAY_CLIENT_ID or MONDAY_CLIENT_SECRET is not set");
   return { id, secret };
 }
 
@@ -33,7 +33,7 @@ export async function exchangeCode(code: string, redirectUri: string): Promise<s
     body: JSON.stringify({ client_id: id, client_secret: secret, code, redirect_uri: redirectUri }),
   });
   const parsed = TokenSchema.safeParse(await response.json().catch(() => null));
-  if (!response.ok || !parsed.success) throw new MondayError(`monday no entregó el token (${response.status})`);
+  if (!response.ok || !parsed.success) throw new MondayError(`monday did not return a token (${response.status})`);
   return parsed.data.access_token;
 }
 

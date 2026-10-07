@@ -11,9 +11,9 @@ import type { BriefGap, Estimate } from "@/lib/estimate";
 const MISSING_SHOWN = 3;
 
 const TIER_NOTE: Record<Estimate["tier"], string> = {
-  completo: "Completo, sin espera",
-  parcial: "Parcial, más idas y vueltas",
-  incompleto: "Incompleto, se pedirá lo que falta",
+  completo: "Complete, no waiting",
+  parcial: "Partial, more back and forth",
+  incompleto: "Incomplete, we will ask for what is missing",
 };
 
 export interface RequestSummaryProps {
@@ -31,16 +31,16 @@ export function RequestSummary({ area, pieceLabel, priority, owner, result, onFi
   const { base, priority: faster, brief: slower } = result.breakdown;
   return (
     <CheckoutSummary
-      title="Tu solicitud"
+      title="Your request"
       item={{
-        name: pieceLabel ?? "Tipo de pieza sin elegir",
-        description: owner ? `${owner.assigned ? "La toma" : "Suele tomarla"} ${owner.name}` : `${AREA_LABEL[area]}, sin responsable asignado`,
+        name: pieceLabel ?? "Piece type not chosen",
+        description: owner ? `${owner.assigned ? `${owner.name} takes it` : `Usually ${owner.name}`}` : `${AREA_LABEL[area]}, no owner assigned`,
         media: owner ? <Avatar name={owner.name} src={owner.photo ?? undefined} size="md" /> : undefined,
-        aside: `${base} ${base === 1 ? "día" : "días"} base`,
+        aside: `${base} base ${base === 1 ? "day" : "days"}`,
       }}
       lines={[
-        { id: "priority", label: `Prioridad ${PRIORITY_LABEL[priority].toLowerCase()}`, amount: faster, emptyLabel: "Sin cambio", note: "Adelanta la pieza en la fila" },
-        { id: "brief", label: "Ajuste por brief", amount: slower, emptyLabel: "Sin días extra", costly: true, note: TIER_NOTE[result.tier] },
+        { id: "priority", label: `${PRIORITY_LABEL[priority]} priority`, amount: faster, emptyLabel: "No change", note: "Moves the piece up the queue" },
+        { id: "brief", label: "Brief adjustment", amount: slower, emptyLabel: "No extra days", costly: true, note: TIER_NOTE[result.tier] },
       ]}
       surface="none"
     >

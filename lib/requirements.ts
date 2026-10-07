@@ -5,23 +5,23 @@ export const DETAIL_KEYS = ["objective", "audience", "cta", "url", "format", "du
 export type DetailKey = (typeof DETAIL_KEYS)[number];
 export type Details = Partial<Record<DetailKey, string>>;
 
-export const OBJECTIVES = ["Generar leads", "Conversión o depósitos", "Awareness o alcance", "Retención de clientes", "Comunicación interna"] as const;
-export const VIDEO_FORMATS = ["Vertical 9:16", "Horizontal 16:9", "Cuadrado 1:1"] as const;
+export const OBJECTIVES = ["Generate leads", "Conversion or deposits", "Awareness or reach", "Customer retention", "Internal communication"] as const;
+export const VIDEO_FORMATS = ["Vertical 9:16", "Horizontal 16:9", "Square 1:1"] as const;
 export const COPY_READY = "si";
 
 export const DETAIL_LABEL: Record<DetailKey, string> = {
-  objective: "Objetivo",
-  audience: "Público",
-  cta: "Llamado a la acción",
-  url: "URL de destino o referencia",
-  format: "Formato",
-  duration: "Duración en segundos",
-  sizes: "Medidas y formatos",
-  copyReady: "Copy o guion listo",
-  eventDate: "Fecha del evento",
-  venue: "Lugar",
-  attendees: "Asistentes esperados",
-  budget: "Presupuesto",
+  objective: "Objective",
+  audience: "Audience",
+  cta: "Call to action",
+  url: "Destination or reference URL",
+  format: "Format",
+  duration: "Duration in seconds",
+  sizes: "Sizes and formats",
+  copyReady: "Copy or script ready",
+  eventDate: "Event date",
+  venue: "Venue",
+  attendees: "Expected attendees",
+  budget: "Budget",
 };
 
 /** Where a requirement is filled in the request form, so a summary can link straight to it. */
@@ -58,7 +58,7 @@ const detail = (key: DetailKey, weight: number, hint: string, label: string = DE
   weight,
   step: "requisitos",
   field: key,
-  // "Todavía no" is an answer, but only a ready copy saves the team a round trip.
+  // "Not yet" is an answer, but only a ready copy saves the team a round trip.
   ok: key === "copyReady" ? (input) => input.details?.copyReady === COPY_READY : filled(key),
 });
 
@@ -66,8 +66,8 @@ const detail = (key: DetailKey, weight: number, hint: string, label: string = DE
 const COMMON: Requirement[] = [
   {
     id: "brief",
-    label: "Brief con contexto y especificaciones",
-    hint: "Detalla contexto, mensaje clave y especificaciones en el brief",
+    label: "Brief with context and specs",
+    hint: "Add context, key message and specs to the brief",
     weight: 15,
     step: "brief",
     field: "brief",
@@ -75,8 +75,8 @@ const COMMON: Requirement[] = [
   },
   {
     id: "material",
-    label: "Material en Drive o adjuntos",
-    hint: "Agrega la carpeta Drive o adjuntos con el material",
+    label: "Assets in Drive or attached",
+    hint: "Add the Drive folder or attach the assets",
     weight: 15,
     step: "material",
     field: "drive",
@@ -84,49 +84,49 @@ const COMMON: Requirement[] = [
   },
   {
     id: "subtype",
-    label: "Tipo de pieza definido",
-    hint: "Elige el tipo de pieza",
+    label: "Piece type defined",
+    hint: "Choose the piece type",
     weight: 10,
     step: "brief",
     field: "subtype",
     ok: (input) => Boolean(input.subtype) && (input.area !== "web" || input.subtype !== "landing" || Boolean(input.landingSubtype)),
   },
-  { id: "objective", label: "Objetivo definido", hint: "Elige el objetivo de la pieza", weight: 10, step: "brief", field: "objective", ok: filled("objective") },
-  { id: "audience", label: "Público definido", hint: "Describe a quién va dirigida", weight: 10, step: "brief", field: "audience", ok: filled("audience") },
+  { id: "objective", label: "Objective defined", hint: "Choose the objective of the piece", weight: 10, step: "brief", field: "objective", ok: filled("objective") },
+  { id: "audience", label: "Audience defined", hint: "Describe who it is for", weight: 10, step: "brief", field: "audience", ok: filled("audience") },
   {
     id: "blockers",
-    label: "Sin bloqueadores",
-    hint: "Resuelve los bloqueadores antes de arrancar",
+    label: "No blockers",
+    hint: "Clear the blockers before starting",
     weight: 10,
     step: "requisitos",
     field: "blockers",
     ok: (input) => !input.blockers?.trim(),
   },
-  { id: "market", label: "Mercado indicado", hint: "Indica el mercado", weight: 5, step: "cuando", field: "market", ok: (input) => Boolean(input.market) },
+  { id: "market", label: "Market given", hint: "Give the market", weight: 5, step: "cuando", field: "market", ok: (input) => Boolean(input.market) },
 ];
 
 /** What only that area needs to start without coming back to ask: the other 25 points. */
 const BY_AREA: Record<Area, Requirement[]> = {
   web: [
-    detail("url", 10, "Pega la URL de destino o la de referencia"),
-    detail("cta", 10, "Define el llamado a la acción"),
-    detail("copyReady", 5, "Confirma si el copy está listo", "Copy final listo"),
+    detail("url", 10, "Paste the destination or reference URL"),
+    detail("cta", 10, "Define the call to action"),
+    detail("copyReady", 5, "Confirm whether the copy is ready", "Final copy ready"),
   ],
   video: [
-    detail("format", 10, "Elige el formato del video"),
-    detail("copyReady", 10, "Confirma si el guion está listo", "Guion listo"),
-    detail("duration", 5, "Indica la duración"),
+    detail("format", 10, "Choose the video format"),
+    detail("copyReady", 10, "Confirm whether the script is ready", "Script ready"),
+    detail("duration", 5, "Give the duration"),
   ],
   diseno: [
-    detail("sizes", 10, "Indica medidas y formatos de entrega"),
-    detail("copyReady", 10, "Confirma si el copy está listo", "Copy final listo"),
-    detail("cta", 5, "Define el llamado a la acción"),
+    detail("sizes", 10, "Give the sizes and delivery formats"),
+    detail("copyReady", 10, "Confirm whether the copy is ready", "Final copy ready"),
+    detail("cta", 5, "Define the call to action"),
   ],
   eventos: [
-    detail("eventDate", 10, "Indica la fecha del evento"),
-    detail("venue", 5, "Indica el lugar"),
-    detail("attendees", 5, "Indica cuántos asistentes esperas"),
-    detail("budget", 5, "Indica el presupuesto"),
+    detail("eventDate", 10, "Give the event date"),
+    detail("venue", 5, "Give the venue"),
+    detail("attendees", 5, "Give the expected number of attendees"),
+    detail("budget", 5, "Give the budget"),
   ],
 };
 

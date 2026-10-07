@@ -17,7 +17,7 @@ export const AttachmentSchema = z.object({
 });
 
 const optionalText = (max: number) => z.string().trim().max(max).optional();
-const optionalNumber = z.union([z.literal(""), z.string().regex(/^\d{1,6}$/, "Escribe solo números")]).optional();
+const optionalNumber = z.union([z.literal(""), z.string().regex(/^\d{1,6}$/, "Enter numbers only")]).optional();
 
 /** Structured requirements; each is optional because missing ones cost points, not the submission. */
 export const DetailsSchema = z
@@ -65,7 +65,7 @@ export const RequestSchema = z
   ])
   .superRefine((request, ctx) => {
     if (request.area === "web" && request.subtype === "landing" && !request.landingSubtype) {
-      ctx.addIssue({ code: "custom", path: ["landingSubtype"], message: "Elige el tipo de landing" });
+      ctx.addIssue({ code: "custom", path: ["landingSubtype"], message: "Choose the landing type" });
     }
   });
 

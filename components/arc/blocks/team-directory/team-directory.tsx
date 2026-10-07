@@ -27,7 +27,7 @@ export interface DirectoryPerson {
 
 export interface TeamDirectoryProps {
   people: DirectoryPerson[];
-  /** Filter chips after "Todos". Only the ones somebody belongs to are shown. */
+  /** Filter chips after "All". Only the ones somebody belongs to are shown. */
   filters?: { value: string; label: string }[];
   title?: string;
   onPersonSelect?: (person: { id: string; name: string }) => void;
@@ -35,14 +35,14 @@ export interface TeamDirectoryProps {
 
 const ALL = "__all";
 
-export function TeamDirectory({ people, filters: teamFilters = [], title = "Equipo", onPersonSelect }: TeamDirectoryProps) {
+export function TeamDirectory({ people, filters: teamFilters = [], title = "Team", onPersonSelect }: TeamDirectoryProps) {
   const uid = useId();
   const reduce = useReducedMotion();
   const searchRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState(ALL);
   const [selectedId, setSelectedId] = useState(people[0]?.id);
-  const filters = [{ value: ALL, label: "Todos" }, ...teamFilters.filter((item) => people.some((person) => person.teams.includes(item.value)))];
+  const filters = [{ value: ALL, label: "All" }, ...teamFilters.filter((item) => people.some((person) => person.teams.includes(item.value)))];
   const teamLabel = (value: string) => teamFilters.find((item) => item.value === value)?.label ?? value;
 
   const needle = query.trim().toLowerCase();
@@ -72,13 +72,13 @@ export function TeamDirectory({ people, filters: teamFilters = [], title = "Equi
         <h2 id={`${uid}-title`}>{title} <span className={styles.count}>{people.length}</span></h2>
         <label className={styles.search}>
           <Search size={16} strokeWidth={1.75} aria-hidden="true" />
-          <span className={styles.srOnly}>Buscar personas</span>
-          <input ref={searchRef} type="search" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape" && query) { event.preventDefault(); setQuery(""); } }} placeholder="Buscar nombre, rol o área" />
-          <span className={styles.clearSlot}>{query && <button type="button" onClick={() => { setQuery(""); searchRef.current?.focus(); }} aria-label="Borrar búsqueda"><X size={14} strokeWidth={1.75} aria-hidden="true" /></button>}</span>
+          <span className={styles.srOnly}>Search people</span>
+          <input ref={searchRef} type="search" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Escape" && query) { event.preventDefault(); setQuery(""); } }} placeholder="Search name, role or area" />
+          <span className={styles.clearSlot}>{query && <button type="button" onClick={() => { setQuery(""); searchRef.current?.focus(); }} aria-label="Clear search"><X size={14} strokeWidth={1.75} aria-hidden="true" /></button>}</span>
         </label>
       </header>
 
-      <div className={styles.filters} role="group" aria-label="Filtrar por área">
+      <div className={styles.filters} role="group" aria-label="Filter by area">
         {filters.map((item) => {
           const count = item.value === ALL ? people.length : people.filter((person) => person.teams.includes(item.value)).length;
           return <button key={item.value} type="button" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>
@@ -112,8 +112,8 @@ export function TeamDirectory({ people, filters: teamFilters = [], title = "Equi
             </AnimatePresence>
           </ul>
           {visible.length === 0 && <div className={styles.empty}>
-            <p>Nadie coincide con{needle ? ` “${query.trim()}”` : ""}</p>
-            <button type="button" onClick={reset}>Quitar filtros</button>
+            <p>No one matches{needle ? ` “${query.trim()}”` : ""}</p>
+            <button type="button" onClick={reset}>Clear filters</button>
           </div>}
         </div>
 
@@ -138,10 +138,10 @@ export function TeamDirectory({ people, filters: teamFilters = [], title = "Equi
             </div>
             {selected.about && <p className={styles.about}>{selected.about}</p>}
             <dl className={styles.facts}>
-              <div><dt>Estado</dt><dd><span className={styles.dot} data-available={selected.available || undefined} aria-hidden="true" />{selected.available ? "Trabajando" : "Sin trabajo en curso"}</dd></div>
+              <div><dt>Status</dt><dd><span className={styles.dot} data-available={selected.available || undefined} aria-hidden="true" />{selected.available ? "Working" : "Nothing in progress"}</dd></div>
               {selected.facts.map((fact) => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}
             </dl>
-          </motion.article> : <motion.div key="none" className={styles.noProfile} initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: reduce ? 0 : motionTokens.duration.exit } }} transition={{ duration: reduce ? 0 : motionTokens.duration.standard, ease: [...motionTokens.ease.standard] }}><p>Nadie seleccionado</p><span>Borra la búsqueda para ver al equipo.</span></motion.div>}
+          </motion.article> : <motion.div key="none" className={styles.noProfile} initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: reduce ? 0 : motionTokens.duration.exit } }} transition={{ duration: reduce ? 0 : motionTokens.duration.standard, ease: [...motionTokens.ease.standard] }}><p>No one selected</p><span>Clear the search to see the team.</span></motion.div>}
           </AnimatePresence>
         </motion.div>
       </div>

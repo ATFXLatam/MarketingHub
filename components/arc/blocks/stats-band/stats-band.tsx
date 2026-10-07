@@ -193,7 +193,7 @@ export const StatsBand = forwardRef<HTMLElement, StatsBandProps>(function StatsB
   const reduced = useReducedMotionSafe();
   const withVisuals = stats.some(stat => stat.visual);
   return <section ref={ref} className={[styles.band, className].filter(Boolean).join(" ")} data-layout={layout} data-in-view={inView || reduced ? "" : undefined}
-    aria-labelledby={title ? `${id}-title` : undefined} aria-label={title ? undefined : "Cifras clave"}>
+    aria-labelledby={title ? `${id}-title` : undefined} aria-label={title ? undefined : "Key figures"}>
     <div className={styles.inner}>
       {(title || description) && <header className={styles.header}>
         {title && <h2 id={`${id}-title`} className={styles.title}>{title}</h2>}

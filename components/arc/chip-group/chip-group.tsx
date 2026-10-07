@@ -184,7 +184,7 @@ interface MoreChipProps { hidden: number; expanded: boolean; tabbable: boolean; 
 
 function MoreChip({ hidden, expanded, tabbable, reduce, onToggle, onFocusChip, ref }: MoreChipProps) {
   const body = useRef<HTMLSpanElement>(null);
-  const text = expanded ? "Ver menos" : `+${hidden} más`;
+  const text = expanded ? "Show less" : `+${hidden} more`;
   const lag = useWidthLag(body, text, reduce);
   const edge = useTransform(lag, value => -value);
   // The text stays centred on the visible surface while its edge catches up.
