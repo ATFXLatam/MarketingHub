@@ -1,3 +1,10 @@
+/* Running total beside the actions */
+.total { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.totalDays { font-family: var(--font-display); font-size: var(--text-2xl); font-weight: 500; letter-spacing: var(--tracking-display); line-height: 1; font-variant-numeric: tabular-nums; }
+.totalText { display: grid; min-width: 0; font-size: var(--text-sm); line-height: 1.25; }
+.totalDate { color: var(--text-muted); font-size: var(--text-xs); white-space: nowrap; }
+.rest { margin: 0; color: var(--text-muted); font-size: var(--text-xs); }
+
 /* Checklist */
 .checklist { display: grid; min-width: 0; gap: 10px; padding-top: 16px; border-top: 1px solid var(--border-subtle); }
 .tierLine { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 0; }
@@ -50,8 +57,8 @@ span.check { border: 1.5px dashed var(--border-strong); border-radius: 50%; }
 
 /* On a narrow form only the next missing requirement shows, as the link; the rest wait until it is filled in. */
 @container msf (max-width: 719px) {
-  .checklist { padding-top: 8px; }
-  .meter, .tierLine, .feature:not([data-missing]), .feature[data-missing] ~ .feature[data-missing] { display: none; }
+  .checklist { gap: 0; padding-top: 0; border-top: 0; }
+  .meter, .tierLine, .rest, .feature[data-missing] ~ .feature[data-missing] { display: none; }
 }
 
 @media (hover: hover) and (pointer: fine) {

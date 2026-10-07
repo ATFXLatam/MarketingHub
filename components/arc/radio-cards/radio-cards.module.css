@@ -9,7 +9,8 @@
   line-height: var(--leading-body);
 }
 .root *, .root *::before, .root *::after { box-sizing: border-box; }
-.root[data-layout="grid"] { grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--min-column, 180px)), 1fr)); }
+/* Equal rows, so cards with and without a meta line keep one grid. */
+.root[data-layout="grid"] { grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--min-column, 180px)), 1fr)); grid-auto-rows: 1fr; }
 .root[data-layout="list"] { grid-template-columns: minmax(0, 1fr); gap: 8px; }
 
 /* The one moving part: a ring that springs from card to card. It sits over the card border so the card itself never changes size. */

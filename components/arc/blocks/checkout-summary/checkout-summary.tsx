@@ -32,7 +32,10 @@ export interface CheckoutSummaryProps {
   title: string;
   item: CheckoutSummaryItem;
   lines: CheckoutSummaryLine[];
-  total: { label: string; value: number; unit: string; note?: string };
+  /** Left out when the total is shown elsewhere, such as beside the actions. */
+  total?: { label: string; value: number; unit: string; note?: string };
+  /** "none" drops the card frame when the summary already sits in a bordered column. */
+  surface?: "card" | "none";
   /** Below the total, such as what is still missing. */
   children?: ReactNode;
   className?: string;
@@ -45,10 +48,10 @@ const signed = (value: number) => `${value > 0 ? "+" : value < 0 ? "−" : ""}${
  * A summary of what is being asked for, adapted from Arc's checkout summary: the item, the lines that move the total,
  * and a total that counts to its new value. Lines open and close as they start or stop affecting the total.
  */
-export function CheckoutSummary({ title, item, lines, total, children, className }: CheckoutSummaryProps) {
+export function CheckoutSummary({ title, item, lines, total, surface = "card", children, className }: CheckoutSummaryProps) {
   const reduced = !!useReducedMotion();
   return (
-    <section className={[styles.root, className].filter(Boolean).join(" ")} aria-label={title}>
+    <section className={[styles.root, className].filter(Boolean).join(" ")} data-surface={surface} aria-label={title}>
       <h3 className={styles.title}>{title}</h3>
 
       <div className={styles.item}>
@@ -78,13 +81,13 @@ export function CheckoutSummary({ title, item, lines, total, children, className
             </motion.div>
           ))}
         </AnimatePresence>
-        <div className={`${styles.line} ${styles.total}`}>
+        {total && <div className={`${styles.line} ${styles.total}`}>
           <dt>{total.label}{total.note ? <span className={styles.lineNote}>{total.note}</span> : null}</dt>
           <dd>
             <span className={styles.srOnly}>{`${total.value} ${total.unit}`}</span>
             <span className={styles.totalValue} aria-hidden="true"><span className={styles.inline}><AnimatedCounter value={total.value} locale="es-MX" /></span><span className={styles.totalUnit}>{total.unit}</span></span>
           </dd>
-        </div>
+        </div>}
       </dl>
 
       {children}

@@ -33,8 +33,10 @@ export type MultiStepFormProps = {
   aside?: ReactNode;
   /** Moves to a step from outside, such as a link from a summary. A new nonce repeats a jump; focus names the element to focus there. */
   jump?: { step: number; nonce: number; focus?: string };
-  /** Fill a fixed height parent: progress on top, the step scrolling in the middle, actions pinned under it, the aside beside it. */
+  /** Fill a fixed height parent: progress on top, the step scrolling in the middle beside the aside, actions pinned across the bottom. */
   fill?: boolean;
+  /** Left end of the actions row, such as a running total. */
+  actionsStart?: ReactNode;
 };
 const exitFade = { duration: motionTokens.duration.instant, ease: [...motionTokens.ease.standard] } as const;
 const stepVariants: Variants = {
@@ -104,6 +106,7 @@ export function MultiStepForm({
   aside,
   jump,
   fill = false,
+  actionsStart,
 }: MultiStepFormProps) {
   const [step, setStep] = useState(Math.min(Math.max(initialStep, 0), Math.max(steps.length - 1, 0)));
   const [direction, setDirection] = useState(1);
@@ -192,7 +195,6 @@ export function MultiStepForm({
       <span className={styles.srOnly} aria-live="polite">{stepCountLabel(step + 1, steps.length)}</span>
     </nav>
     <div className={styles.body} data-aside={(aside && !complete) || undefined}>
-    <div className={styles.main}>
     <motion.div ref={viewportRef} className={styles.viewport} initial={false} animate={fill ? undefined : { height }} transition={reduced ? { duration: 0 } : motionTokens.spring.smooth} onAnimationStart={() => clip(true)} onAnimationComplete={() => clip(false)}>
       <AnimatePresence initial={false} custom={direction}>
         {complete
@@ -208,14 +210,13 @@ export function MultiStepForm({
           </motion.fieldset>}
       </AnimatePresence>
     </motion.div>
-    <AnimatePresence initial={false}>
-      {!complete && <motion.div key="actions" className={styles.actionsShell} exit={reduced ? undefined : { opacity: 0, height: 0, overflow: "hidden", transition: { height: motionTokens.spring.smooth, opacity: exitFade } }}>
-        <div className={styles.actions}><button className={styles.back} type="button" onClick={() => { pendingFocus.current = true; setDirection(-1); setStep(value => Math.max(0, value - 1)); }} disabled={step === 0 || pending}><ArrowLeft aria-hidden="true" width={16} height={16} /> {backLabel}</button><button className={styles.next} type="submit" disabled={pending} aria-busy={pending || undefined}><MorphLabel label={pending ? "Enviando" : last ? completeLabel : nextLabel} reduced={reduced} /><ArrowRight aria-hidden="true" width={16} height={16} /></button></div>
-      </motion.div>}
-    </AnimatePresence>
-    </div>
     {aside && !complete && <div className={styles.aside}>{aside}</div>}
     </div>
+    <AnimatePresence initial={false}>
+      {!complete && <motion.div key="actions" className={styles.actionsShell} exit={reduced ? undefined : { opacity: 0, height: 0, overflow: "hidden", transition: { height: motionTokens.spring.smooth, opacity: exitFade } }}>
+        <div className={styles.actions}>{actionsStart && <div className={styles.actionsStart}>{actionsStart}</div>}<button className={styles.back} type="button" onClick={() => { pendingFocus.current = true; setDirection(-1); setStep(value => Math.max(0, value - 1)); }} disabled={step === 0 || pending}><ArrowLeft aria-hidden="true" width={16} height={16} /> {backLabel}</button><button className={styles.next} type="submit" disabled={pending} aria-busy={pending || undefined}><MorphLabel label={pending ? "Enviando" : last ? completeLabel : nextLabel} reduced={reduced} /><ArrowRight aria-hidden="true" width={16} height={16} /></button></div>
+      </motion.div>}
+    </AnimatePresence>
   </form>;
 }
 

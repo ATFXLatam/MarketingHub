@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { SummaryRows } from "@/components/arc/blocks/usage-pricing/usage-pricing";
+import { EstimateTotal, SummaryRows } from "@/components/arc/blocks/usage-pricing/usage-pricing";
 import { Avatar } from "@/components/arc/avatar/avatar";
 import { upload } from "@vercel/blob/client";
 import { submitRequest } from "@/app/(app)/solicitar/actions";
@@ -232,6 +232,7 @@ function RequestWizard({
       onComplete={onComplete}
       jump={jump}
       fill
+      actionsStart={<EstimateTotal result={preview} />}
       aside={<RequestSummary area={area} pieceLabel={pieceLabel} priority={draft.priority} owner={owner} result={preview} onFix={fix} />}
       successTitle="Solicitud enviada"
       successNote={
@@ -279,7 +280,9 @@ function RequestWizard({
                         <Avatar name={lead.name} src={lead.photo ?? undefined} size="sm" />
                         {`${lead.assigned ? "La toma" : "Suele tomarla"} ${lead.name.split(" ")[0]}`}
                       </>
-                    ) : undefined,
+                    ) : (
+                      "La asigna el equipo"
+                    ),
                   };
                 })}
               />

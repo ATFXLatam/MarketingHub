@@ -292,35 +292,29 @@
   .next:active:not(:disabled) { transform: none; }
 }
 
-/* A summary beside the steps when there is room; on a narrow form it sits between the step and its actions. */
+/* The step and an optional summary share one row; the actions run under both. */
 .form { container: msf / inline-size; }
 .body { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
-.main { display: flex; min-width: 0; flex-direction: column; }
 .aside { min-width: 0; }
+.actionsStart { display: flex; min-width: 0; margin-right: auto; align-items: center; }
 @container msf (min-width: 720px) {
-  .body[data-aside] { grid-template-columns: minmax(0, 1fr) minmax(240px, 300px); align-items: start; }
-  .body[data-aside] .aside { position: sticky; top: 0; }
-}
-@container msf (max-width: 719px) {
-  .body[data-aside] { display: flex; flex-direction: column; }
-  .body[data-aside] .main { display: contents; }
-  .body[data-aside] .aside { order: 1; }
-  .body[data-aside] .actionsShell { order: 2; }
+  .body[data-aside] { grid-template-columns: minmax(0, 1fr) 300px; align-items: start; gap: 0; }
+  .body[data-aside] .viewport { padding-right: var(--space-6); }
+  .body[data-aside] .aside { padding-left: var(--space-6); border-left: 1px solid var(--border-subtle); }
 }
 
-/* Fixed grid: the parent holds the height, so steps of any length scroll in place and the actions never move. */
-.form[data-fill] { display: grid; height: 100%; min-height: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+/* Fixed grid: progress, then the step (scrolling) beside the summary, then the actions across the full width. Nothing
+   moves between steps because the parent holds the height. */
+.form[data-fill] { display: grid; height: 100%; min-height: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; }
 .form[data-fill] .body { min-height: 0; }
-.form[data-fill] .main { display: grid; min-height: 0; grid-template-rows: minmax(0, 1fr) auto; }
-.form[data-fill] .viewport { min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-bottom: var(--space-4); }
-.form[data-fill] .actionsShell { padding-block: var(--space-3) var(--space-4); border-top: 1px solid var(--border-subtle); }
-.form[data-fill] .actions { margin-top: 0; }
+.form[data-fill] .viewport { height: 100%; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-bottom: var(--space-4); }
+.form[data-fill] .actionsShell { padding-block: var(--space-3); border-top: 1px solid var(--border-subtle); }
+.form[data-fill] .actions { align-items: center; margin-top: 0; }
 @container msf (min-width: 720px) {
   .form[data-fill] .body[data-aside] { height: 100%; align-items: stretch; }
-  .form[data-fill] .body[data-aside] .aside { position: static; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding-bottom: var(--space-4); }
+  .form[data-fill] .body[data-aside] .aside { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
 }
 @container msf (max-width: 719px) {
-  .form[data-fill] .body[data-aside] { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto; gap: 0; }
-  .form[data-fill] .body[data-aside] .main { display: contents; }
+  .form[data-fill] .body[data-aside] { grid-template-rows: minmax(0, 1fr) auto; gap: 0; }
   .form[data-fill] .body[data-aside] .aside { padding-top: var(--space-3); border-top: 1px solid var(--border-subtle); }
 }

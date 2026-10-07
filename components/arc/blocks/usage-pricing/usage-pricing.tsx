@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { formatDay } from "@/lib/dates";
 import type { BriefGap, BriefTier, Estimate } from "@/lib/estimate";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { AnimatedCounter } from "../../animated-counter/animated-counter";
@@ -53,10 +54,12 @@ export interface EstimateChecklistProps {
   result: Estimate | null;
   /** Takes the person to where a missing piece is filled in. */
   onFix?: (gap: BriefGap) => void;
+  /** Missing requirements listed before the rest collapse into a count, so the list never outgrows a fixed column. */
+  limit?: number;
 }
 
 /** How complete the brief is, as a three step meter and the requirements it meets or misses, each missing one a link. */
-export function EstimateChecklist({ result, onFix }: EstimateChecklistProps) {
+export function EstimateChecklist({ result, onFix, limit = Infinity }: EstimateChecklistProps) {
   const id = useId();
   const reduce = useReducedMotion();
   const [listRef, listHeight] = useContentHeight<HTMLUListElement>();
@@ -70,7 +73,9 @@ export function EstimateChecklist({ result, onFix }: EstimateChecklistProps) {
 
   if (!result) return <p className={styles.reason}>Elige un área y verás qué necesita su brief.</p>;
   const plan = TIERS[tier];
-  const rows = [...result.gaps.map((gap) => ({ gap, done: false })), ...result.met.map((gap) => ({ gap, done: true }))];
+  const shownGaps = result.gaps.slice(0, limit);
+  const hidden = result.gaps.length - shownGaps.length;
+  const rows = shownGaps.map((gap) => ({ gap, done: false }));
 
   return (
     <div className={styles.checklist} aria-labelledby={`${id}-tier`}>
@@ -113,9 +118,26 @@ export function EstimateChecklist({ result, onFix }: EstimateChecklistProps) {
           </AnimatePresence>
         </ul>
       </motion.div>
+      <p className={styles.rest}>
+        {[hidden > 0 && `${hidden} ${hidden === 1 ? "pendiente más" : "pendientes más"}`, `${result.met.length} de ${result.met.length + result.gaps.length} cumplidos`].filter(Boolean).join(" · ")}
+      </p>
       {/* Only a change of tier is announced, so typing in the brief does not read the list out on every key. */}
       <p className={styles.srOnly} role="status">{plan.title}</p>
     </div>
+  );
+}
+
+/** The running delivery estimate for the actions row: days counting to their new value and the date they land on. */
+export function EstimateTotal({ result }: { result: Estimate | null }) {
+  if (!result) return null;
+  return (
+    <span className={styles.total}>
+      <span className={styles.totalDays}><Days value={result.days} /></span>
+      <span className={styles.totalText}>
+        <span>{result.days === 1 ? "día hábil" : "días hábiles"}</span>
+        <span className={styles.totalDate}>{`Estimada para el ${formatDay(result.date)}`}</span>
+      </span>
+    </span>
   );
 }
 
