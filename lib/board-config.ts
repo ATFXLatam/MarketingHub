@@ -45,7 +45,7 @@ export const TEAM: readonly { id: string; areas: readonly Area[]; linkedin?: str
   { id: "77121579", areas: ["video"], linkedin: "https://www.linkedin.com/in/naomi-greene-ortiz-b59421158/" }, // Naomi Greene, Videographer & Photographer
   { id: "106517133", areas: ["diseno"], linkedin: "https://www.linkedin.com/in/sergio-arciga-bustamante-021538155/" }, // Sergio Arciga Bustamante
   { id: "60519988", areas: ["video"], linkedin: "https://www.linkedin.com/in/diegoalbuja-finance/" }, // Diego Albuja, webinars and video
-  { id: "28982466", areas: ["eventos"] }, // Maritza Perez, Marketing Event Executive
+  { id: "28982466", areas: ["eventos"], linkedin: "https://www.linkedin.com/in/maritza-perez-marketing/" }, // Maritza Perez, Marketing Event Executive
   { id: "75156089", areas: ["copy"], linkedin: "https://www.linkedin.com/in/ane-rojas/" }, // Ane Rojas, Copywriter/Social Media Community Coordinator
   { id: "74311964", areas: ["digital"], linkedin: "https://www.linkedin.com/in/memolara1/" }, // Guillermo Lara Mosqueda, Senior Digital Marketing Executive
   { id: "70986061", areas: ["data"], linkedin: "https://www.linkedin.com/in/manuel-esteban-pinz%C3%B3n-9186b0259/" }, // Esteban Pinzón Mejía, Data Analyst
