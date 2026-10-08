@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import type { PublicCampaign, PublicEvent, PublicTask } from "@/lib/public-dto";
 import { TEAM_TIME_ZONE } from "@/lib/dates";
-import type { TeamMember } from "@/lib/team";
+import { scopeToPerson, type TeamMember } from "@/lib/team";
 import { AtfxLogo } from "@/components/brand/atfx-logo";
 import { SiteFooter } from "@/components/arc/blocks/site-footer/site-footer";
 import { TeamActivity } from "./team-activity";
@@ -12,6 +12,7 @@ import { TeamCampaigns } from "./team-campaigns";
 import { TeamHeader } from "./team-header";
 import { TeamOverview } from "./team-overview";
 import { TeamTrends } from "./team-trends";
+import { PERSON_PARAM, useUrlParam } from "./url-state";
 import styles from "./team-page.module.css";
 
 export interface TeamPageProps {
@@ -63,6 +64,8 @@ export function TeamPage({
   today,
   actions,
 }: TeamPageProps) {
+  const personId = useUrlParam(PERSON_PARAM);
+  const scoped = scopeToPerson(tasks, activity, members.some((member) => member.id === personId) ? personId : null);
   return (
     <div className={styles.page}>
       <main className={styles.main}>
@@ -72,14 +75,14 @@ export function TeamPage({
           members={members}
           actions={actions}
         />
-        <TeamOverview tasks={tasks} today={today} />
-        <TeamTrends tasks={tasks} activity={activity} today={today} />
+        <TeamOverview tasks={scoped.tasks} today={today} />
+        <TeamTrends tasks={scoped.tasks} activity={scoped.activity} today={today} />
         <TeamBoard tasks={tasks} members={members} linkToMonday={linkToMonday} activity={activity} now={now} today={today} />
         <TeamCampaigns campaigns={campaigns} today={today} linkToMonday={linkToMonday} />
         <TeamActivity
-          tasks={tasks}
+          tasks={scoped.tasks}
           members={members}
-          activity={activity}
+          activity={scoped.activity}
           now={now}
           today={today}
         />

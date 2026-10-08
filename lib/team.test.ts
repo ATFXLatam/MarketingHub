@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { PublicOwner, PublicTask } from "./public-dto";
-import { daysUntil, deliveriesByDate, memberShares, nextDelivery, teamMembers, upcomingDeliveries } from "./team";
+import type { PublicEvent, PublicOwner, PublicTask } from "./public-dto";
+import { daysUntil, deliveriesByDate, memberShares, nextDelivery, scopeToPerson, teamMembers, upcomingDeliveries } from "./team";
 
 const ana: PublicOwner = { id: "1", name: "Ana", photo: null, title: "Diseño", timeZone: "America/Lima" };
 const leo: PublicOwner = { id: "2", name: "Leo", photo: null, title: null, timeZone: null };
@@ -83,5 +83,21 @@ describe("deliveriesByDate", () => {
     );
     expect(overdue.map((item) => item.id)).toEqual(["late"]);
     expect(upcoming.map((item) => item.id)).toEqual(["today", "next"]);
+  });
+});
+
+describe("scopeToPerson", () => {
+  const event = (taskId: string): PublicEvent => ({ id: `e${taskId}`, taskId, taskTitle: taskId, stage: "en-curso", at: "2026-10-01T00:00:00Z" });
+  const tasks = [task({ id: "a", owners: [ana] }), task({ id: "b", owners: [leo] }), task({ id: "c", owners: [ana, leo] })];
+  const activity = [event("a"), event("b"), event("c")];
+
+  it("keeps the person's tasks and only the activity on them", () => {
+    const scoped = scopeToPerson(tasks, activity, "2");
+    expect(scoped.tasks.map((item) => item.id)).toEqual(["b", "c"]);
+    expect(scoped.activity.map((item) => item.taskId)).toEqual(["b", "c"]);
+  });
+
+  it("returns the whole team when nobody is picked", () => {
+    expect(scopeToPerson(tasks, activity, null)).toEqual({ tasks, activity });
   });
 });

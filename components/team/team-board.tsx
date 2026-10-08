@@ -69,20 +69,16 @@ export function TeamBoard({ tasks, members, linkToMonday, activity, now, today }
   const personId = useUrlParam(PERSON_PARAM);
   const person = members.find((member) => member.id === personId);
 
+  // The drawer still opens any task by id, so only the list is scoped to the person, not the lookup above.
+  const mine = useMemo(() => (person ? tasks.filter((task) => task.owners.some((owner) => owner.id === person.id)) : tasks), [tasks, person]);
   const areaOptions = useMemo(
     () =>
       [...AREAS.map((area) => ({ value: area, label: AREA_LABEL[area] })), ...OTHER_SOURCES.map((source) => ({ value: source, label: SOURCE_LABEL[source] }))].map(
-        (option) => ({ ...option, label: `${option.label} · ${tasks.filter((task) => filterKeyOf(task) === option.value).length}` }),
+        (option) => ({ ...option, label: `${option.label} · ${mine.filter((task) => filterKeyOf(task) === option.value).length}` }),
       ),
-    [tasks],
+    [mine],
   );
-  const shown = useMemo(
-    () =>
-      tasks.filter(
-        (task) => (!areas.length || areas.includes(filterKeyOf(task))) && (!person || task.owners.some((owner) => owner.id === person.id)),
-      ),
-    [tasks, areas, person],
-  );
+  const shown = useMemo(() => mine.filter((task) => !areas.length || areas.includes(filterKeyOf(task))), [mine, areas]);
   const team = [...new Map(shown.flatMap((task) => task.owners).map((owner) => [owner.id, { name: owner.name, src: owner.photo ?? undefined }])).values()];
   const rows: DataGridRow[] = shown.map((task) => ({
     id: task.id,

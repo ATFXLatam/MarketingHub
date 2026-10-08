@@ -1,12 +1,12 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { TeamDirectory, type DirectoryPerson } from "@/components/arc/blocks/team-directory/team-directory";
+import { TeamDirectory, type DirectoryPerson, type TeamDirectoryProps } from "@/components/arc/blocks/team-directory/team-directory";
 import { AtfxLogo } from "@/components/brand/atfx-logo";
 import { LinkedinMark } from "@/components/brand/linkedin-mark";
 import { InViewTitle } from "@/components/arc/in-view-title/in-view-title";
 import { TextShimmer } from "@/components/arc/text-shimmer/text-shimmer";
-import { AREA_LABEL, STAGE_LABEL, type Area } from "@/lib/board-config";
+import { AREA_LABEL, DEFAULT_AVATAR, STAGE_LABEL, type Area } from "@/lib/board-config";
 import { formatDay } from "@/lib/dates";
 import type { TeamMember } from "@/lib/team";
 import { LocalTime } from "./local-time";
@@ -53,11 +53,25 @@ function toPerson(member: TeamMember): DirectoryPerson {
   };
 }
 
+/** The idle state of the directory: the whole team, which is what every widget shows until someone is picked. */
+function everyone(members: TeamMember[]): NonNullable<TeamDirectoryProps["everyone"]> {
+  const working = members.filter((member) => member.current.length > 0);
+  return {
+    name: "Show All Tasks",
+    role: `${members.length} people · Marketing LATAM`,
+    photo: DEFAULT_AVATAR,
+    available: working.length > 0,
+    about: "Every widget shows the whole team. Pick someone to see only their work.",
+    facts: working.length ? [{ label: "Working now", value: working.map((member) => member.name.split(" ")[0]).join(", ") }] : [],
+  };
+}
+
 /** Who is on the team and what each person is on right now, before any board or number. */
 export function TeamHeader({ title, description, members, actions }: TeamHeaderProps) {
   const personId = useUrlParam(PERSON_PARAM);
-  // Picking someone filters the board and deliveries to their work; picking them again shows everyone.
-  const pick = ({ id }: { id: string }) => setUrlParam(PERSON_PARAM, personId === id ? null : id);
+  // Picking someone scopes every widget to their work; Show All Tasks clears it.
+  const pick = (person: { id: string } | null) => setUrlParam(PERSON_PARAM, person?.id ?? null);
+  const selectedId = members.some((member) => member.id === personId) ? personId : null;
   return (
     <header className={styles.root}>
       <div className={styles.top}>
@@ -70,7 +84,7 @@ export function TeamHeader({ title, description, members, actions }: TeamHeaderP
         </div>
         <div className={styles.actions}>{actions}</div>
       </div>
-      {members.length > 0 && <TeamDirectory people={members.map(toPerson)} filters={AREA_FILTERS} title="Team" onPersonSelect={pick} />}
+      {members.length > 0 && <TeamDirectory people={members.map(toPerson)} filters={AREA_FILTERS} title="Team" everyone={everyone(members)} selectedId={selectedId} onPersonSelect={pick} />}
     </header>
   );
 }

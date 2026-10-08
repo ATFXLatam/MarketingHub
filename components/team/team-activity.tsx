@@ -67,8 +67,7 @@ export function TeamActivity({
   }
   const personId = useUrlParam(PERSON_PARAM);
   const person = members.find((member) => member.id === personId);
-  const mine = person ? tasks.filter((task) => task.owners.some((owner) => owner.id === personId)) : tasks;
-  const { overdue, upcoming } = deliveriesByDate(mine, today);
+  const { overdue, upcoming } = deliveriesByDate(tasks, today);
   // Overdue work leads and never collapses: it is what someone has to act on first.
   const rows: DeliveryRow[] = [
     ...(overdue.length
@@ -201,9 +200,10 @@ export function TeamActivity({
         </h2>
         {people.length ? (
           <ActivityRings
+            key={person?.id ?? "all"}
             metrics={SHARES}
             days={people}
-            defaultDay={people[0].id}
+            defaultDay={person?.id ?? people[0].id}
             label="Progress by person"
             pickerLabel="Person"
           />

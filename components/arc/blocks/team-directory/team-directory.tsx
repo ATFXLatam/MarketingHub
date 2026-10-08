@@ -32,18 +32,24 @@ export interface TeamDirectoryProps {
   /** Filter chips after "All". Only the ones somebody belongs to are shown. */
   filters?: { value: string; label: string }[];
   title?: string;
-  onPersonSelect?: (person: { id: string; name: string }) => void;
+  /** An entry above the people that stands for the whole team. It is the idle state, and picking it reports null. */
+  everyone?: Omit<DirectoryPerson, "id" | "teams">;
+  /** Controlled selection; null is the everyone entry. Leave undefined to let the directory keep its own. */
+  selectedId?: string | null;
+  onPersonSelect?: (person: { id: string; name: string } | null) => void;
 }
 
 const ALL = "__all";
+const EVERYONE = "__everyone";
 
-export function TeamDirectory({ people, filters: teamFilters = [], title = "Team", onPersonSelect }: TeamDirectoryProps) {
+export function TeamDirectory({ people, filters: teamFilters = [], title = "Team", everyone, selectedId: controlledId, onPersonSelect }: TeamDirectoryProps) {
   const uid = useId();
   const reduce = useReducedMotion();
   const searchRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState(ALL);
-  const [selectedId, setSelectedId] = useState(people[0]?.id);
+  const [ownSelectedId, setOwnSelectedId] = useState(everyone ? EVERYONE : people[0]?.id);
+  const selectedId = controlledId === undefined ? ownSelectedId : (controlledId ?? EVERYONE);
   const filters = [{ value: ALL, label: "All" }, ...teamFilters.filter((item) => people.some((person) => person.teams.includes(item.value)))];
   const teamLabel = (value: string) => teamFilters.find((item) => item.value === value)?.label ?? value;
 
@@ -53,11 +59,13 @@ export function TeamDirectory({ people, filters: teamFilters = [], title = "Team
     const terms = `${person.name} ${person.role} ${person.teams.map(teamLabel).join(" ")}`.toLowerCase();
     return matchesFilter && terms.includes(needle);
   });
-  const selected = visible.find((person) => person.id === selectedId) ?? visible[0];
+  // The everyone entry stays above any filter or search, so the way back to the whole team is never hidden.
+  const rows = everyone ? [{ ...everyone, id: EVERYONE, teams: [] }, ...visible] : visible;
+  const selected = rows.find((person) => person.id === selectedId) ?? rows[0];
 
   function choose(person: DirectoryPerson) {
-    setSelectedId(person.id);
-    onPersonSelect?.({ id: person.id, name: person.name });
+    setOwnSelectedId(person.id);
+    onPersonSelect?.(person.id === EVERYONE ? null : { id: person.id, name: person.name });
   }
 
   function reset() {
@@ -94,7 +102,7 @@ export function TeamDirectory({ people, filters: teamFilters = [], title = "Team
         <div className={styles.listPane}>
           <ul className={styles.peopleList} aria-label="Team members">
             <AnimatePresence mode="popLayout" initial={false}>
-              {visible.map((person) => {
+              {rows.map((person) => {
                 const isSelected = selected?.id === person.id;
                 return <motion.li
                   key={person.id}

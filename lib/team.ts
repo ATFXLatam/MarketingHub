@@ -1,5 +1,5 @@
 import { TEAM_AREAS, TEAM_LINKEDIN } from "./board-config";
-import type { PublicOwner, PublicTask } from "./public-dto";
+import type { PublicEvent, PublicOwner, PublicTask } from "./public-dto";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -37,6 +37,21 @@ export function teamMembers(tasks: PublicTask[], roster: PublicOwner[] = []): Te
       };
     })
     .sort((a, b) => b.current.length - a.current.length || b.open - a.open || a.name.localeCompare(b.name));
+}
+
+/**
+ * One person's slice of the board, so every widget answers for the same person. Activity follows the tasks it belongs
+ * to, which keeps the feed and the trend lines from counting someone else's moves. No person means the whole team.
+ */
+export function scopeToPerson(
+  tasks: PublicTask[],
+  activity: PublicEvent[],
+  personId: string | null,
+): { tasks: PublicTask[]; activity: PublicEvent[] } {
+  if (!personId) return { tasks, activity };
+  const mine = tasks.filter((task) => task.owners.some((owner) => owner.id === personId));
+  const ids = new Set(mine.map((task) => task.id));
+  return { tasks: mine, activity: activity.filter((event) => ids.has(event.taskId)) };
 }
 
 /** Whole calendar days from today to a YYYY-MM-DD date; negative when it already passed. */
