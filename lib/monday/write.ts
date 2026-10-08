@@ -3,7 +3,7 @@ import { z } from "zod";
 import { AREA_TEAM, BOARD_ID, STAGE_GROUP, type Area } from "../board-config";
 import type { Estimate } from "../estimate";
 import type { IntakeRequest } from "../intake/schema";
-import { mondayQuery } from "./client";
+import { MondayError, mondayQuery } from "./client";
 import { buildColumnValues, type Requester } from "./columns";
 
 const OwnersSchema = z.record(z.string(), z.array(z.number().int().positive()));
@@ -29,15 +29,39 @@ export function ownersFor(area: Area): number[] {
 
 const CreatedSchema = z.object({ create_item: z.object({ id: z.string() }) });
 
+/** monday refused the action for this user, as opposed to an outage or a bad payload. */
+export function isPermissionError(error: unknown): boolean {
+  return error instanceof MondayError && /unauthori[sz]ed|permission/i.test(`${error.code ?? ""} ${error.message}`);
+}
+
+/**
+ * Runs a write as the requester so monday records it under their name, and keeps the hub's own token off writes. Only a
+ * permission refusal falls back to the hub's token: monday rejects those before writing anything, so nothing is doubled.
+ */
+export async function asRequesterOrHub<T>(
+  userToken: string | undefined,
+  run: (token: string | undefined) => Promise<T>,
+): Promise<{ value: T; token: string | undefined }> {
+  if (!userToken) return { value: await run(undefined), token: undefined };
+  try {
+    return { value: await run(userToken), token: userToken };
+  } catch (error) {
+    if (!isPermissionError(error)) throw error;
+    return { value: await run(undefined), token: undefined };
+  }
+}
+
 export async function createRequestItem(
   request: IntakeRequest,
   requester: Requester,
   result: Estimate,
   idempotencyKey: string,
+  requesterToken?: string,
 ): Promise<string> {
   const columnValues = buildColumnValues(request, requester, result, ownersFor(request.area));
-  const created = CreatedSchema.parse(
-    await mondayQuery(
+  const { value: created, token } = await asRequesterOrHub(requesterToken, async (token) =>
+    CreatedSchema.parse(
+      await mondayQuery(
       `mutation ($board: ID!, $group: String!, $name: String!, $values: JSON!) {
         create_item(board_id: $board, group_id: $group, item_name: $name, column_values: $values, create_labels_if_missing: false) { id }
       }`,
@@ -47,7 +71,8 @@ export async function createRequestItem(
         name: request.title,
         values: JSON.stringify(columnValues),
       },
-      { idempotencyKey },
+      { idempotencyKey, token },
+      ),
     ),
   );
   const itemId = created.create_item.id;
@@ -58,7 +83,7 @@ export async function createRequestItem(
     await mondayQuery(
       `mutation ($item: ID!, $body: String!) { create_update(item_id: $item, body: $body) { id } }`,
       { item: itemId, body: `<p>Request attachments</p><ul>${list}</ul>` },
-      { idempotencyKey: `${idempotencyKey}:attachments` },
+      { idempotencyKey: `${idempotencyKey}:attachments`, token },
     );
   }
   return itemId;

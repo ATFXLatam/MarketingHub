@@ -8,6 +8,8 @@ export class MondayError extends Error {
   constructor(
     message: string,
     readonly retryInSeconds?: number,
+    /** monday's error code, such as UserUnauthorizedException, when it sent one. */
+    readonly code?: string,
   ) {
     super(message);
   }
@@ -53,7 +55,7 @@ export async function mondayQuery<T>(
   const first = payload.errors?.[0];
   if (!response.ok || first || payload.error_message || !payload.data) {
     const retry = first?.extensions?.retry_in_seconds;
-    throw new MondayError(first?.message ?? payload.error_message ?? `monday answered ${response.status}`, retry);
+    throw new MondayError(first?.message ?? payload.error_message ?? `monday answered ${response.status}`, retry, first?.extensions?.code);
   }
   return payload.data;
 }

@@ -61,7 +61,8 @@ export async function submitRequest(input: unknown, idempotencyKey: string): Pro
   const requester = { name: user.name, email: user.email };
 
   try {
-    const itemId = await createRequestItem(request, requester, result, idempotencyKey);
+    // Board members write as themselves; monday cannot let someone who does not see the board add to it.
+    const itemId = await createRequestItem(request, requester, result, idempotencyKey, user.board ? user.token : undefined);
     updateTag(BOARD_TAG);
     // After the response, so the requester never waits on Teams.
     after(async () => {
