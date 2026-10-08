@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   AREA_LABEL_ID,
   COLUMNS,
+  MARKETS,
   PRIORITY_LABEL_ID,
   STAGE_MONDAY_TEXT,
   STAGE_LABEL_ID,
@@ -113,6 +114,22 @@ function stageFrom(labelId: number | null | undefined, text: string | null): Sta
   return byText ? byText[0] : "nueva";
 }
 
+const fold = (text: string) => text.normalize("NFD").replace(/\p{Diacritic}/gu, "").trim().toLowerCase();
+const KNOWN_MARKETS = new Map<string, string>(MARKETS.map((market) => [fold(market), market]));
+
+/**
+ * The market column is free text in monday, so one market arrives as "MEXICO", "Mexico" and "México" and the
+ * breakdowns split it in three. Each part of "A / B" snaps to the form's own spelling when it is a known market.
+ */
+export function canonicalMarket(text: string | null): string | null {
+  if (!text?.trim()) return null;
+  return text
+    .split("/")
+    .map((part) => KNOWN_MARKETS.get(fold(part)) ?? part.trim())
+    .filter(Boolean)
+    .join(" / ");
+}
+
 export const nonEmpty = (value: string | null | undefined) => (value && value.trim() ? value.trim() : null);
 
 const PHOTO_HOST = "files.monday.com";
@@ -122,7 +139,9 @@ export function ownerPhoto(value: string | null): string | null {
   if (!value) return null;
   try {
     const url = new URL(value);
-    return url.protocol === "https:" && url.hostname === PHOTO_HOST && url.pathname.includes("/photos/") ? url.href : null;
+    // monday stores a generated initials picture as the photo of anyone who never uploaded one; it is not a photo of them.
+    const uploaded = url.pathname.includes("/photos/") && !url.pathname.includes("user_photo_initials");
+    return url.protocol === "https:" && url.hostname === PHOTO_HOST && uploaded ? url.href : null;
   } catch {
     return null;
   }
@@ -158,7 +177,7 @@ export function toPublicTask(item: RawItem, people: ReadonlyMap<string, PublicOw
     priority: byLabelId(PRIORITY_LABEL_ID, column(COLUMNS.priority)?.index),
     dueDate: nonEmpty(column(COLUMNS.dueDate)?.text),
     slaDays: Number.isFinite(sla) && sla > 0 ? sla : null,
-    market: nonEmpty(column(COLUMNS.market)?.text),
+    market: canonicalMarket(nonEmpty(column(COLUMNS.market)?.text)),
     createdAt: item.created_at,
     updatedAt: item.updated_at,
   };

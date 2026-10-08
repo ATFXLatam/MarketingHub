@@ -75,7 +75,7 @@ export function TeamPage({
         <TeamOverview tasks={tasks} today={today} />
         <TeamTrends tasks={tasks} activity={activity} today={today} />
         <TeamBoard tasks={tasks} members={members} linkToMonday={linkToMonday} activity={activity} now={now} today={today} />
-        <TeamCampaigns campaigns={campaigns} linkToMonday={linkToMonday} />
+        <TeamCampaigns campaigns={campaigns} today={today} linkToMonday={linkToMonday} />
         <TeamActivity
           tasks={tasks}
           members={members}

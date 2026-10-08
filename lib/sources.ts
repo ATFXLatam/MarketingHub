@@ -116,3 +116,24 @@ export const SourceBoardsSchema = z.object({
     }),
   ),
 });
+
+export type CampaignPhase = "Live" | "Planned" | "Ended";
+
+/**
+ * monday's status alone reads "Live" for campaigns that ended months ago, since nobody moves it after the end date. The
+ * dates decide whether a campaign is over or still ahead; only inside its window does the status say if it launched.
+ */
+export function campaignPhase(campaign: Pick<PublicCampaign, "status" | "start" | "end">, today: string): CampaignPhase {
+  if (campaign.end && campaign.end < today) return "Ended";
+  if (campaign.start && campaign.start > today) return "Planned";
+  return campaign.status === "Live" ? "Live" : "Planned";
+}
+
+const PHASE_ORDER: Record<CampaignPhase, number> = { Live: 0, Planned: 1, Ended: 2 };
+
+/** Running campaigns first, then what is coming, then what ended, each by start date. */
+export function byPhase(campaigns: PublicCampaign[], today: string): (PublicCampaign & { phase: CampaignPhase })[] {
+  return campaigns
+    .map((campaign) => ({ ...campaign, phase: campaignPhase(campaign, today) }))
+    .sort((a, b) => PHASE_ORDER[a.phase] - PHASE_ORDER[b.phase] || (a.start ?? "9999").localeCompare(b.start ?? "9999"));
+}

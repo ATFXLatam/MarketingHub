@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { COLUMNS } from "./board-config";
-import { ownerIds, ownerPhoto, toPublicEvent, toPublicTask, visibleTasks, type RawItem } from "./public-dto";
+import { canonicalMarket, ownerIds, ownerPhoto, toPublicEvent, toPublicTask, visibleTasks, type RawItem } from "./public-dto";
 
 const item: RawItem = {
   id: "1",
@@ -48,10 +48,21 @@ describe("owners", () => {
   });
 });
 
+describe("canonicalMarket", () => {
+  it("merges the spellings of one market so the breakdown counts it once", () => {
+    expect(canonicalMarket("MEXICO")).toBe("México");
+    expect(canonicalMarket("Mexico / Argentina")).toBe(canonicalMarket("México / Argentina"));
+    expect(canonicalMarket("Mexico / Argentina")).toBe("México / Argentina");
+    expect(canonicalMarket("Monterrey")).toBe("Monterrey");
+    expect(canonicalMarket("  ")).toBeNull();
+  });
+});
+
 describe("ownerPhoto", () => {
   it("keeps uploaded monday photos and drops anything next/image would refuse", () => {
     expect(ownerPhoto("https://files.monday.com/use1/photos/1/thumb_small/1.png?1")).toBe("https://files.monday.com/use1/photos/1/thumb_small/1.png?1");
     expect(ownerPhoto("https://cdn1.monday.com/dapulse_default_photo.png")).toBeNull();
+    expect(ownerPhoto("https://files.monday.com/use1/photos/60519988/thumb/60519988-user_photo_initials_2024_05_24_17_48_05.png?1")).toBeNull();
     expect(ownerPhoto("http://files.monday.com/use1/photos/1.png")).toBeNull();
     expect(ownerPhoto(null)).toBeNull();
   });

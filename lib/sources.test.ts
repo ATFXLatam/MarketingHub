@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SOURCE_BOARDS } from "./board-config";
 import type { PublicOwner, RawItem } from "./public-dto";
-import { dueFrom, isCurrent, ownerByFirstName, toSourceTask } from "./sources";
+import { byPhase, campaignPhase, dueFrom, isCurrent, ownerByFirstName, toSourceTask } from "./sources";
 
 const [team, webinars] = SOURCE_BOARDS;
 const person = (id: string, name: string): PublicOwner => ({ id, name, photo: null, title: null, timeZone: null });
@@ -37,6 +37,28 @@ describe("isCurrent", () => {
     expect(isCurrent({ ...task, updatedAt: "2024-01-17T00:00:00Z", dueDate: "2024-01-31" }, now)).toBe(false);
     expect(isCurrent({ ...task, updatedAt: "2024-01-17T00:00:00Z", dueDate: "2026-10-20" }, now)).toBe(true);
     expect(isCurrent({ ...task, updatedAt: "2026-09-29T00:00:00Z", dueDate: null }, now)).toBe(true);
+  });
+});
+
+describe("campaignPhase", () => {
+  it("lets the dates overrule a status nobody moved after the campaign ended", () => {
+    expect(campaignPhase({ status: "Live", start: "2026-01-12", end: "2026-01-31" }, "2026-10-07")).toBe("Ended");
+    expect(campaignPhase({ status: "Planned", start: "2026-11-01", end: "2026-11-30" }, "2026-10-07")).toBe("Planned");
+    expect(campaignPhase({ status: "Live", start: "2026-10-01", end: "2026-10-31" }, "2026-10-07")).toBe("Live");
+    expect(campaignPhase({ status: "Planned", start: "2026-10-01", end: null }, "2026-10-07")).toBe("Planned");
+  });
+
+  it("lists running campaigns before planned and ended ones", () => {
+    const base = { id: "", name: "", region: null, country: null, channel: null, kpi: null, target: null, achieved: null };
+    const sorted = byPhase(
+      [
+        { ...base, id: "ended", status: "Live", start: "2026-01-01", end: "2026-01-31" },
+        { ...base, id: "live", status: "Live", start: "2026-10-01", end: "2026-10-31" },
+        { ...base, id: "next", status: "Planned", start: "2026-11-01", end: null },
+      ],
+      "2026-10-07",
+    );
+    expect(sorted.map((campaign) => campaign.id)).toEqual(["live", "next", "ended"]);
   });
 });
 
