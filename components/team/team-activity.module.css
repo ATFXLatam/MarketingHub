@@ -1,6 +1,9 @@
 /* Desktop keeps the history tall on the left; on phones what is coming next reads first. */
 .root { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); grid-template-areas: "past upcoming" "past areas"; grid-template-rows: auto 1fr; gap: 12px; align-items: start; }
-.past { grid-area: past; }
+.past { grid-area: past; --feed-height: 100%; }
+/* The history takes the height the deliveries and people panels set, and scrolls inside it instead of growing the row. */
+@media (min-width: 861px) { .past { align-self: stretch; contain: size; } }
+.feed.feed { flex: 1 1 0; min-height: 0; grid-template-rows: minmax(0, 1fr); }
 /* The feed scrolls inside a fixed frame so it can be pulled past its top edge. */
 .upcomingPanel { grid-area: upcoming; height: 440px; }
 .areasPanel { grid-area: areas; }
@@ -16,6 +19,8 @@
 
 @media (max-width: 860px) {
   .root { grid-template-columns: 1fr; grid-template-areas: "upcoming" "areas" "past"; grid-template-rows: none; }
+  .past { --feed-height: 620px; }
+  .feed.feed { flex: none; }
 }
 @media (max-width: 520px) {
   .panel { padding: 16px; }

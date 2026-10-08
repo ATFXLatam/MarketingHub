@@ -118,7 +118,8 @@ export function TeamActivity({
             locale="en-US"
             timeZone={TEAM_TIME_ZONE}
             scrollToNew={false}
-            maxHeight={620}
+            className={styles.feed}
+            maxHeight="var(--feed-height)"
             events={activity.map((event) => {
               const done = event.stage === "hecha";
               return {
