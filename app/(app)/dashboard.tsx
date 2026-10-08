@@ -21,12 +21,10 @@ export async function Dashboard({ requestOpen = false }: { requestOpen?: boolean
   }
   const configured = Object.fromEntries(Object.entries(configuredOwners()).map(([area, ids]) => [area, ids.map(String)]));
   const known = await getAreaPeople(Object.values(configured).flat());
-  const token = process.env.PUBLIC_BOARD_TOKEN;
   return (
     <InternalDashboard
       user={{ name: session.name, email: session.email, avatarSrc: session.photo ?? DEFAULT_AVATAR }}
       canRequest={session.canRequest}
-      publicPath={token ? `/p/${encodeURIComponent(token)}` : undefined}
       today={todayIn()}
       requestOpen={requestOpen}
       areaOwners={areaOwners(snapshot.tasks, configured, known)}

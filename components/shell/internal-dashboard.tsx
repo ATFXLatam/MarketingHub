@@ -18,8 +18,6 @@ const COPIED_MS = 2000;
 
 interface InternalDashboardProps extends Omit<TeamPageProps, "actions"> {
   user: { name: string; email: string; avatarSrc?: string };
-  /** Absent when PUBLIC_BOARD_TOKEN is not configured. */
-  publicPath?: string;
   /** /request opens the dashboard with the request flow already up, so the link can go out by email. */
   requestOpen?: boolean;
   areaOwners: Record<Area, AreaOwner[]>;
@@ -28,7 +26,7 @@ interface InternalDashboardProps extends Omit<TeamPageProps, "actions"> {
 }
 
 /** The team's page plus what only the team does: ask the board, request work, and the account menu that shares the board. */
-export function InternalDashboard({ user, publicPath, requestOpen = false, areaOwners, canRequest, ...page }: InternalDashboardProps) {
+export function InternalDashboard({ user, requestOpen = false, areaOwners, canRequest, ...page }: InternalDashboardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [requesting, setRequesting] = useState(requestOpen && canRequest);
@@ -50,9 +48,9 @@ export function InternalDashboard({ user, publicPath, requestOpen = false, areaO
   }
 
   async function copyLink() {
-    if (!publicPath) return;
     try {
-      await navigator.clipboard.writeText(new URL(publicPath, window.location.origin).href);
+      // The hub itself, not a token link: whoever opens it signs in with monday and sees what monday lets them see.
+      await navigator.clipboard.writeText(window.location.origin);
       setCopied("done");
     } catch {
       setCopied("failed");
@@ -77,7 +75,7 @@ export function InternalDashboard({ user, publicPath, requestOpen = false, areaO
             <UserMenu
               user={user}
               align="end"
-              items={publicPath ? [{ label: copied === "done" ? "Board link copied" : copied === "failed" ? "Could not copy the link" : "Share board", icon: <Link2 {...icon} />, onSelect: () => void copyLink() }] : []}
+              items={[{ label: copied === "done" ? "Hub link copied" : copied === "failed" ? "Could not copy the link" : "Share board", icon: <Link2 {...icon} />, onSelect: () => void copyLink() }]}
               theme={theme}
               onThemeChange={(next) => {
                 setPicked(next);

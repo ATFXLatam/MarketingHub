@@ -33,7 +33,7 @@ export interface TeamPageProps {
   actions: ReactNode;
 }
 
-// Same links for the team and for clients: the board in monday checks its own permissions.
+// The board in monday checks its own permissions, so the link is safe for anyone signed in.
 const FOOTER_COLUMNS = [
   {
     title: "Requests",
@@ -63,7 +63,7 @@ function dueSummary(who: string, tasks: PublicTask[], today: string): string {
   return `${who} open work: ${overdue.length} overdue, ${upcoming.length} upcoming.`;
 }
 
-/** Ordered by what someone acts on: who, what is due, where the work stands, the board, then trends. Same page for the team and for clients. */
+/** Ordered by what someone acts on: who, what is due, where the work stands, the board, then trends. */
 export function TeamPage({
   tasks,
   activity,

@@ -2,9 +2,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { accessFor, type SignInError } from "@/lib/access";
 import { cookieOptions, openSession, RECHECK_MS, SESSION_COOKIE, sealSession, sessionKey, withAccess, type Session } from "@/lib/auth/session";
 import { hubAccountId, identify } from "@/lib/monday/oauth";
-import { safeEqual } from "@/lib/secrets";
 
-// The board link and monday's webhook carry their own secret in the URL; sign-in and its OAuth hops are open by nature.
+// monday's webhook carries its own secret in the URL; sign-in and its OAuth hops are open by nature. Everything else
+// needs a session: the hub has no public view.
 const OPEN = [/^\/api\/monday\/webhook\//, /^\/api\/monday\/oauth\//, /^\/sign-in(\/|$)/];
 // All a person without the board in monday may reach: the form, its Server Action and the upload signer.
 const REQUEST_ONLY = [/^\/request$/, /^\/api\/blob-upload$/];
@@ -33,16 +33,6 @@ async function recheck(session: Session, now: number): Promise<Session | SignInE
 
 export default async function proxy(request: NextRequest): Promise<NextResponse | undefined> {
   const { pathname } = request.nextUrl;
-  if (pathname.startsWith("/p/")) {
-    // Checked here as well as in the page: the page streams, so its notFound() would already answer 200.
-    let token = "";
-    try {
-      token = decodeURIComponent(pathname.split("/")[2] ?? "");
-    } catch {
-      // A malformed escape is just a wrong token.
-    }
-    return safeEqual(token, process.env.PUBLIC_BOARD_TOKEN) ? undefined : new NextResponse(null, { status: 404 });
-  }
   if (OPEN.some((pattern) => pattern.test(pathname))) return undefined;
 
   const key = sessionKey(process.env.MONDAY_TOKEN_KEY);

@@ -2,4 +2,3 @@
 .stage { display: grid; min-height: 0; transform-origin: 50% 40%; }
 /* Two classes so the page-filling size wins over the block's fixed demo height. */
 .frame.frame { height: 100%; box-shadow: var(--shadow-resting); }
-.signIn { display: grid; }

@@ -1,7 +1,8 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 
 export const SESSION_COOKIE = "hub_session";
-export const SESSION_MAX_AGE = 30 * 24 * 60 * 60;
+// Seven days without a visit ends the session; each access recheck renews it, so active people never sign in again.
+export const SESSION_MAX_AGE = 7 * 24 * 60 * 60;
 /** How long a permission check stands before the proxy asks monday again; access removed there ends here within this window. */
 export const RECHECK_MS = 10 * 60 * 1000;
 
@@ -44,7 +45,7 @@ export function openSession(value: string | undefined, key: Buffer, now: number)
   const [iv, tag, body] = value.split(".").map((part) => Buffer.from(part ?? "", "base64url"));
   if (!iv || !tag || !body || iv.length !== IV_BYTES || tag.length !== 16) return null;
   try {
-    const decipher = createDecipheriv(ALGORITHM, key, iv);
+    const decipher = createDecipheriv(ALGORITHM, key, iv, { authTagLength: 16 });
     decipher.setAuthTag(tag);
     const session = JSON.parse(Buffer.concat([decipher.update(body), decipher.final()]).toString("utf8")) as Session;
     return session.expiresAt > now ? session : null;
@@ -60,7 +61,7 @@ export function cookieOptions(maxAge: number) {
   return { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/", maxAge };
 }
 
-/** A fresh session from what monday just confirmed, keeping the token and the original expiry. */
-export function withAccess(base: Omit<Session, "board" | "canRequest" | "checkedAt">, access: { board: boolean; canRequest: boolean }, now: number): Session {
-  return { ...base, board: access.board, canRequest: access.canRequest, checkedAt: now };
+/** A fresh session from what monday just confirmed: same token, expiry pushed SESSION_MAX_AGE past this check. */
+export function withAccess(base: Omit<Session, "board" | "canRequest" | "checkedAt" | "expiresAt">, access: { board: boolean; canRequest: boolean }, now: number): Session {
+  return { ...base, board: access.board, canRequest: access.canRequest, checkedAt: now, expiresAt: now + SESSION_MAX_AGE * 1000 };
 }

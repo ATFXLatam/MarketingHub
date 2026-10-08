@@ -37,7 +37,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const now = Date.now();
     const session = withAccess(
-      { userId: identity.id, name: identity.name, email: identity.email, photo: identity.photo, token, expiresAt: now + SESSION_MAX_AGE * 1000 },
+      { userId: identity.id, name: identity.name, email: identity.email, photo: identity.photo, token },
       access,
       now,
     );
