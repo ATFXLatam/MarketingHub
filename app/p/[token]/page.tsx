@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Alert } from "@/components/arc/alert/alert";
-import { Skeleton } from "@/components/arc/skeleton/skeleton";
+import { BoardLoader } from "@/components/shell/board-loader";
 import { TeamPage } from "@/components/team/team-page";
 import { todayIn } from "@/lib/dates";
 import { AskAiSignIn } from "@/components/team/ask-ai-sign-in";
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 
 export default function PublicBoardPage({ params }: PageProps<"/p/[token]">) {
   return (
-    <Suspense fallback={<Skeleton label="Loading the board" lines={8} />}>
+    <Suspense fallback={<BoardLoader />}>
       <Board params={params} />
     </Suspense>
   );

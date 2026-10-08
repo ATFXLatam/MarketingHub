@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { DEFAULT_AVATAR } from "@/lib/board-config";
 import { Suspense } from "react";
 import { Alert } from "@/components/arc/alert/alert";
-import { Skeleton } from "@/components/arc/skeleton/skeleton";
+import { BoardLoader } from "@/components/shell/board-loader";
 import { RequestOnlyPage } from "@/components/intake/request-only-page";
 import { areaOwners } from "@/lib/area-owners";
 import { currentSession } from "@/lib/auth/current";
@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "New request" };
 
 export default function SolicitarPage() {
   return (
-    <Suspense fallback={<Skeleton label="Loading" lines={8} />}>
+    <Suspense fallback={<BoardLoader label="Loading the request form" />}>
       <Request />
     </Suspense>
   );

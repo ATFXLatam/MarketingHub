@@ -1,0 +1,2 @@
+.root { display: grid; min-height: 60vh; min-height: 60dvh; place-content: center; justify-items: center; gap: 12px; color: var(--text-secondary); }
+.label { margin: 0; font-size: var(--text-sm); line-height: var(--leading-body); }

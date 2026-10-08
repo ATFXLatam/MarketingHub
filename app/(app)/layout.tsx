@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 import { Alert } from "@/components/arc/alert/alert";
-import { Skeleton } from "@/components/arc/skeleton/skeleton";
+import { BoardLoader } from "@/components/shell/board-loader";
 import { currentSession } from "@/lib/auth/current";
 import styles from "./layout.module.css";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
-    <Suspense fallback={<div className={styles.center}><Skeleton label="Loading" lines={4} /></div>}>
+    <Suspense fallback={<BoardLoader label="Checking your monday access" />}>
       <Gate>{children}</Gate>
     </Suspense>
   );
