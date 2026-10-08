@@ -1,4 +1,4 @@
-import { TEAM_AREAS } from "./board-config";
+import { TEAM_AREAS, TEAM_LINKEDIN } from "./board-config";
 import type { PublicOwner, PublicTask } from "./public-dto";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -13,6 +13,8 @@ export interface TeamMember extends PublicOwner {
   areas: NonNullable<PublicTask["area"]>[];
   /** Open work by due date, so the profile can list what comes next. */
   queue: PublicTask[];
+  /** Public LinkedIn profile from the team core, so the team shows who built the work. */
+  linkedin: string | null;
 }
 
 const byDue = (a: PublicTask, b: PublicTask) => (a.dueDate ?? "9999").localeCompare(b.dueDate ?? "9999");
@@ -31,6 +33,7 @@ export function teamMembers(tasks: PublicTask[], roster: PublicOwner[] = []): Te
         done: mine.filter((task) => task.stage === "hecha").length,
         areas: [...(TEAM_AREAS.get(owner.id) ?? [])],
         queue: mine.filter((task) => task.stage !== "hecha").sort(byDue),
+        linkedin: TEAM_LINKEDIN.get(owner.id) ?? null,
       };
     })
     .sort((a, b) => b.current.length - a.current.length || b.open - a.open || a.name.localeCompare(b.name));

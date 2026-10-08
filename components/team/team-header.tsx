@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { TeamDirectory, type DirectoryPerson } from "@/components/arc/blocks/team-directory/team-directory";
 import { AtfxLogo } from "@/components/brand/atfx-logo";
+import { LinkedinMark } from "@/components/brand/linkedin-mark";
 import { InViewTitle } from "@/components/arc/in-view-title/in-view-title";
 import { TextShimmer } from "@/components/arc/text-shimmer/text-shimmer";
 import { AREA_LABEL, STAGE_LABEL, type Area } from "@/lib/board-config";
@@ -32,6 +33,11 @@ function toPerson(member: TeamMember): DirectoryPerson {
     teams: member.areas,
     photo: member.photo ?? undefined,
     available: member.current.length > 0,
+    action: member.linkedin ? (
+      <a href={member.linkedin} target="_blank" rel="noopener noreferrer" aria-label={`${member.name} on LinkedIn`} title="LinkedIn">
+        <LinkedinMark />
+      </a>
+    ) : undefined,
     about: working ? (
       <>
         Working on <TextShimmer>{working.title}</TextShimmer>

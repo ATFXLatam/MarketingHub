@@ -33,6 +33,12 @@
 .body { display: grid; grid-template-columns: minmax(196px, 36%) minmax(0, 1fr); min-height: 320px; }
 .listPane { min-width: 0; padding: 8px; border-right: 1px solid var(--border); }
 .peopleList { position: relative; display: grid; gap: 2px; }
+.peopleList > li { position: relative; }
+.personRow[data-action] { padding-right: 48px; }
+.personAction { position: absolute; z-index: 1; top: 50%; right: 10px; transform: translateY(-50%); }
+.profileAction { margin-left: auto; }
+:is(.personAction, .profileAction) > a { display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid var(--border); border-radius: var(--radius-control); background: color-mix(in oklab, var(--surface-muted) 65%, transparent); color: var(--text-secondary); transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard); }
+@media (hover: hover) and (pointer: fine) { :is(.personAction, .profileAction) > a:hover { background: var(--surface-muted); color: var(--foreground); } }
 .personRow { position: relative; isolation: isolate; display: flex; width: 100%; min-height: 52px; align-items: center; gap: 12px; border: 0; border-radius: 10px; padding: 8px 10px; background: transparent; color: var(--foreground); font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background-color var(--duration-fast) var(--ease-standard); }
 @media (hover: hover) and (pointer: fine) { .personRow:hover:not([aria-pressed="true"]) { background: color-mix(in oklab, var(--surface-muted) 60%, transparent); } }
 .rowHighlight { position: absolute; z-index: -1; inset: 0; border-radius: inherit; background: var(--surface-muted); }

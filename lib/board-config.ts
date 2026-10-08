@@ -40,21 +40,22 @@ export type Area = (typeof AREAS)[number];
  * and the directory filters by it, so a person's area follows their job and not whatever tasks they happened to touch.
  * People not listed still appear once they have work on any board, with no area.
  */
-export const TEAM: readonly { id: string; areas: readonly Area[] }[] = [
-  { id: "97526256", areas: ["web"] }, // Karen Ortiz, Web Developer
-  { id: "77121579", areas: ["video"] }, // Naomi Greene, Videographer & Photographer
-  { id: "106517133", areas: ["diseno"] }, // Sergio Arciga Bustamante
-  { id: "60519988", areas: ["video"] }, // Diego Albuja, webinars and video
+export const TEAM: readonly { id: string; areas: readonly Area[]; linkedin?: string }[] = [
+  { id: "97526256", areas: ["web"], linkedin: "https://www.linkedin.com/in/karen-rebeca-ortiz-b5a860282/" }, // Karen Ortiz, Web Developer
+  { id: "77121579", areas: ["video"], linkedin: "https://www.linkedin.com/in/naomi-greene-ortiz-b59421158/" }, // Naomi Greene, Videographer & Photographer
+  { id: "106517133", areas: ["diseno"], linkedin: "https://www.linkedin.com/in/sergio-arciga-bustamante-021538155/" }, // Sergio Arciga Bustamante
+  { id: "60519988", areas: ["video"], linkedin: "https://www.linkedin.com/in/diegoalbuja-finance/" }, // Diego Albuja, webinars and video
   { id: "28982466", areas: ["eventos"] }, // Maritza Perez, Marketing Event Executive
-  { id: "75156089", areas: ["copy"] }, // Ane Rojas, Copywriter/Social Media Community Coordinator
-  { id: "74311964", areas: ["digital"] }, // Guillermo Lara Mosqueda, Senior Digital Marketing Executive
-  { id: "70986061", areas: ["data"] }, // Esteban Pinzón Mejía, Data Analyst
+  { id: "75156089", areas: ["copy"], linkedin: "https://www.linkedin.com/in/ane-rojas/" }, // Ane Rojas, Copywriter/Social Media Community Coordinator
+  { id: "74311964", areas: ["digital"], linkedin: "https://www.linkedin.com/in/memolara1/" }, // Guillermo Lara Mosqueda, Senior Digital Marketing Executive
+  { id: "70986061", areas: ["data"], linkedin: "https://www.linkedin.com/in/manuel-esteban-pinz%C3%B3n-9186b0259/" }, // Esteban Pinzón Mejía, Data Analyst
 ];
 
 /** monday users who belong to the team even with nothing assigned yet, so the directory shows the whole team. */
 export const TEAM_ROSTER = TEAM.map((member) => member.id);
 
 export const TEAM_AREAS: ReadonlyMap<string, readonly Area[]> = new Map(TEAM.map((member) => [member.id, member.areas]));
+export const TEAM_LINKEDIN: ReadonlyMap<string, string> = new Map(TEAM.flatMap((member) => (member.linkedin ? [[member.id, member.linkedin] as const] : [])));
 
 /** Who a new request in each area is assigned to. */
 export const AREA_TEAM: Record<Area, number[]> = Object.fromEntries(

@@ -23,6 +23,8 @@ export interface DirectoryPerson {
   /** Short line under the name in the profile. */
   about?: ReactNode;
   facts: DirectoryFact[];
+  /** A small control beside the person in the list and in their profile, such as a link to their profile elsewhere. */
+  action?: ReactNode;
 }
 
 export interface TeamDirectoryProps {
@@ -90,7 +92,7 @@ export function TeamDirectory({ people, filters: teamFilters = [], title = "Team
 
       <div className={styles.body}>
         <div className={styles.listPane}>
-          <ul className={styles.peopleList} aria-label="Integrantes">
+          <ul className={styles.peopleList} aria-label="Team members">
             <AnimatePresence mode="popLayout" initial={false}>
               {visible.map((person) => {
                 const isSelected = selected?.id === person.id;
@@ -102,11 +104,13 @@ export function TeamDirectory({ people, filters: teamFilters = [], title = "Team
                   exit={{ opacity: 0, transition: { duration: reduce ? 0 : motionTokens.duration.exit } }}
                   transition={{ layout: listTransition, opacity: { duration: reduce ? 0 : motionTokens.duration.fast } }}
                 >
-                  <button type="button" className={styles.personRow} aria-pressed={isSelected} onClick={() => choose(person)}>
+                  <button type="button" className={styles.personRow} data-action={person.action ? "" : undefined} aria-pressed={isSelected} onClick={() => choose(person)}>
                     {isSelected && <RowHighlight layoutId={`${uid}-row-${filter}-${needle}`} reduce={Boolean(reduce)} />}
                     <Avatar name={person.name} src={person.photo} status={person.available ? "online" : "offline"} />
                     <span className={styles.personText}><span className={styles.personName}>{person.name}</span><span className={styles.personRole}>{person.role}</span></span>
                   </button>
+                  {/* Beside the row button, not inside it: a link nested in a button is neither valid nor reachable by keyboard. */}
+                  {person.action && <span className={styles.personAction}>{person.action}</span>}
                 </motion.li>;
               })}
             </AnimatePresence>
@@ -135,6 +139,7 @@ export function TeamDirectory({ people, filters: teamFilters = [], title = "Team
                 <h3>{selected.name}</h3>
                 <p>{selected.role}</p>
               </div>
+              {selected.action && <span className={styles.profileAction}>{selected.action}</span>}
             </div>
             {selected.about && <p className={styles.about}>{selected.about}</p>}
             <dl className={styles.facts}>
