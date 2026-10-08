@@ -10,7 +10,7 @@ import { askBoard } from "@/app/actions/assistant";
 import { AREA_LABEL } from "@/lib/board-config";
 import { formatDay } from "@/lib/dates";
 import type { PublicOwner, PublicTask } from "@/lib/public-dto";
-import { teamMembers } from "@/lib/team";
+import type { TeamMember } from "@/lib/team";
 import styles from "./board-assistant.module.css";
 
 const SHOWN = 20;
@@ -26,11 +26,11 @@ function statusOf(task: PublicTask, today: string): Milestone["status"] {
 }
 
 /** The board as the block's page: open requests by due date, overdue first, so the chips the person picks are real tasks. */
-function planFrom(tasks: PublicTask[], roster: PublicOwner[], today: string): PlanPage {
+function planFrom(tasks: PublicTask[], members: TeamMember[], today: string): PlanPage {
   const open = tasks.filter((task) => task.stage !== "hecha").sort((a, b) => (a.dueDate ?? "9999").localeCompare(b.dueDate ?? "9999"));
   const overdue = open.filter((task) => task.dueDate && task.dueDate < today).length;
   const next = open.find((task) => task.dueDate && task.dueDate >= today);
-  const [busiest] = teamMembers(tasks, roster);
+  const [busiest] = members;
   return {
     title: "Delivery plan",
     project: "Marketing LATAM",
@@ -60,12 +60,12 @@ async function ask(question: string, focus: string[]): Promise<ScriptedAnswer> {
 
 export interface BoardAssistantProps {
   tasks: PublicTask[];
-  roster: PublicOwner[];
+  members: TeamMember[];
   today: string;
 }
 
 /** Ask AI over the board: monday's own model answers from the same data the page shows, and never changes the board. */
-export function BoardAssistant({ tasks, roster, today }: BoardAssistantProps) {
+export function BoardAssistant({ tasks, members, today }: BoardAssistantProps) {
   const [open, setOpen] = useState(false);
   const reduced = !!useReducedMotion();
 
@@ -105,7 +105,7 @@ export function BoardAssistant({ tasks, roster, today }: BoardAssistantProps) {
           >
           <AiSidePanel
             className={styles.frame}
-            defaultPage={planFrom(tasks, roster, today)}
+            defaultPage={planFrom(tasks, members, today)}
             onAsk={(question, context) => ask(question, context)}
             prompts={PROMPTS}
             assistantName="Ask the board"

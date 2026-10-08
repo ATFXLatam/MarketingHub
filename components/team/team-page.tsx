@@ -1,13 +1,14 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { PublicEvent, PublicOwner, PublicTask } from "@/lib/public-dto";
+import type { PublicCampaign, PublicEvent, PublicTask } from "@/lib/public-dto";
 import { TEAM_TIME_ZONE } from "@/lib/dates";
-import { teamMembers } from "@/lib/team";
+import type { TeamMember } from "@/lib/team";
 import { AtfxLogo } from "@/components/brand/atfx-logo";
 import { SiteFooter } from "@/components/arc/blocks/site-footer/site-footer";
 import { TeamActivity } from "./team-activity";
 import { TeamBoard } from "./team-board";
+import { TeamCampaigns } from "./team-campaigns";
 import { TeamHeader } from "./team-header";
 import { TeamOverview } from "./team-overview";
 import { TeamTrends } from "./team-trends";
@@ -16,8 +17,9 @@ import styles from "./team-page.module.css";
 export interface TeamPageProps {
   tasks: PublicTask[];
   activity: PublicEvent[];
-  /** Team members listed even with nothing assigned. */
-  roster: PublicOwner[];
+  /** The snapshot's team list; every widget reads it instead of deriving its own. */
+  members: TeamMember[];
+  campaigns: PublicCampaign[];
   /** Server time of the snapshot, so the first render matches on server and client. */
   now: number;
   /** Today in the team's time zone. */
@@ -52,7 +54,8 @@ const UPDATED = new Intl.DateTimeFormat("en-US", {
 export function TeamPage({
   tasks,
   activity,
-  roster,
+  members,
+  campaigns,
   now,
   today,
   actions,
@@ -63,14 +66,16 @@ export function TeamPage({
         <TeamHeader
           title="Marketing LATAM"
           description="Who is on what, when each request is due, and how it is moving. Statuses update from monday."
-          members={teamMembers(tasks, roster)}
+          members={members}
           actions={actions}
         />
         <TeamOverview tasks={tasks} today={today} />
         <TeamTrends tasks={tasks} activity={activity} today={today} />
-        <TeamBoard tasks={tasks} activity={activity} now={now} today={today} />
+        <TeamBoard tasks={tasks} members={members} activity={activity} now={now} today={today} />
+        <TeamCampaigns campaigns={campaigns} />
         <TeamActivity
           tasks={tasks}
+          members={members}
           activity={activity}
           now={now}
           today={today}

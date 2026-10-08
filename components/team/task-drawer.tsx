@@ -6,7 +6,7 @@ import { Badge } from "@/components/arc/badge/badge";
 import { Drawer, DrawerContent } from "@/components/arc/drawer/drawer";
 import { Stepper } from "@/components/arc/stepper/stepper";
 import { Timeline } from "@/components/arc/timeline/timeline";
-import { AREA_LABEL, PRIORITY_LABEL, STAGE_LABEL, type Stage } from "@/lib/board-config";
+import { AREA_LABEL, PRIORITY_LABEL, SOURCE_LABEL, STAGE_LABEL, type Stage } from "@/lib/board-config";
 import { formatDay, TEAM_TIME_ZONE } from "@/lib/dates";
 import type { PublicEvent, PublicTask } from "@/lib/public-dto";
 import { daysUntil } from "@/lib/team";
@@ -38,7 +38,7 @@ export function TaskDrawer({ task, history, now, today, onClose }: TaskDrawerPro
   return (
     <Drawer open={task !== null} onOpenChange={(open) => !open && onClose()}>
       {task && (
-        <DrawerContent title={task.title} description={task.area ? `${AREA_LABEL[task.area]}${task.market ? ` · ${task.market}` : ""}` : undefined}>
+        <DrawerContent title={task.title} description={task.area ? `${AREA_LABEL[task.area]}${task.market ? ` · ${task.market}` : ""}` : SOURCE_LABEL[task.source]}>
           <TaskDetail task={task} history={history.filter((event) => event.taskId === task.id)} now={now} today={today} />
         </DrawerContent>
       )}

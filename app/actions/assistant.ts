@@ -40,7 +40,7 @@ export async function askBoard(input: unknown): Promise<AskResult> {
     const snapshot = await getBoardSnapshot();
     const today = todayIn();
     const focus = parsed.data.focus.length ? `\n\nThe person selected these requests as context: ${parsed.data.focus.join(", ")}.` : "";
-    const prompt = `Board data:\n${boardContext(snapshot.tasks, snapshot.activity, snapshot.roster, today)}${focus}\n\nQuestion from ${promptName(session.name)}: ${parsed.data.question}`;
+    const prompt = `Board data:\n${boardContext(snapshot.tasks, snapshot.activity, snapshot.members, today)}${focus}\n\nQuestion from ${promptName(session.name)}: ${parsed.data.question}`;
     return { success: true, data: { text: withoutLinks(await runPrompt(prompt, SYSTEM)) } };
   } catch (error) {
     console.error("askBoard", error);

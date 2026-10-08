@@ -1,10 +1,12 @@
 import "server-only";
 import { z } from "zod";
-import { BOARD_ID, COLUMNS } from "../board-config";
+import { BOARD_ID, COLUMNS, SOURCE_BOARDS } from "../board-config";
 import { commentHtml, RawUpdateSchema, toConversation, type Conversation } from "../conversation";
 import { mondayQuery } from "./client";
 
 const UPDATES_LIMIT = 50;
+// Boards whose tasks the hub shows; their comments open in the drawer too. Only requests carry a brief.
+const TASK_BOARDS = new Set([BOARD_ID, ...SOURCE_BOARDS.map((board) => board.id)].map(String));
 
 const ItemSchema = z.object({
   items: z.array(
@@ -18,7 +20,7 @@ const ItemSchema = z.object({
 
 /**
  * The item's brief and its updates, read with the person's own token so monday applies their permissions. Null when the
- * id is not an item of this board: their token reaches other boards too.
+ * id is not an item of a board the hub shows: their token reaches other boards too.
  */
 export async function readConversation(itemId: string, token: string): Promise<Conversation | null> {
   const { items } = ItemSchema.parse(
@@ -38,7 +40,7 @@ export async function readConversation(itemId: string, token: string): Promise<C
     ),
   );
   const item = items[0];
-  if (!item || String(item.board?.id) !== String(BOARD_ID)) return null;
+  if (!item || !TASK_BOARDS.has(String(item.board?.id))) return null;
   const brief = item.column_values.find((value) => value.id === COLUMNS.brief)?.text ?? null;
   return toConversation(brief, item.updates ?? []);
 }

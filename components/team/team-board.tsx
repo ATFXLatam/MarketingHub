@@ -10,10 +10,10 @@ import { ChipGroup } from "@/components/arc/chip-group/chip-group";
 import { DataGrid } from "@/components/arc/data-grid/data-grid";
 import type { DataGridColumn, DataGridRow } from "@/components/arc/data-grid/data-grid-model";
 import SegmentedControl from "@/components/arc/segmented-control/segmented-control";
-import { AREA_LABEL, AREAS, PRIORITIES, PRIORITY_LABEL, STAGE_LABEL, STAGES, type Priority } from "@/lib/board-config";
+import { AREA_LABEL, AREAS, PRIORITIES, PRIORITY_LABEL, SOURCE_LABEL, STAGE_LABEL, STAGES, type Priority, type Source } from "@/lib/board-config";
 import { formatDay } from "@/lib/dates";
 import type { PublicEvent, PublicTask } from "@/lib/public-dto";
-import { daysUntil } from "@/lib/team";
+import { daysUntil, type TeamMember } from "@/lib/team";
 import { TaskDrawer } from "./task-drawer";
 import { PERSON_PARAM, setUrlParam, useUrlParam } from "./url-state";
 import styles from "./team-board.module.css";
@@ -22,11 +22,16 @@ const PRIORITY_TONE: Record<Priority, BadgeTone> = { normal: "neutral", media: "
 const TASK_PARAM = "task";
 const PHONE_QUERY = "(max-width: 700px)";
 
+// Requests filter by area; the other boards have no areas, so each filters as a whole.
+const OTHER_SOURCES = (Object.keys(SOURCE_LABEL) as Source[]).filter((source) => source !== "requests");
+const filterKeyOf = (task: PublicTask) => (task.source === "requests" ? (task.area ?? "") : task.source);
+const groupOf = (task: PublicTask) => (task.source === "requests" ? (task.area ? AREA_LABEL[task.area] : null) : SOURCE_LABEL[task.source]);
+
 // Status is edited in monday, so no column is editable here.
 const COLUMNS: DataGridColumn[] = [
   { key: "title", label: "Request", width: 300, editable: false },
   { key: "stage", label: "Status", type: "select", options: STAGES.map((stage) => STAGE_LABEL[stage]), width: 130, editable: false },
-  { key: "area", label: "Area", type: "select", options: AREAS.map((area) => AREA_LABEL[area]), width: 120, editable: false },
+  { key: "area", label: "Area", type: "select", options: [...AREAS.map((area) => AREA_LABEL[area]), ...OTHER_SOURCES.map((source) => SOURCE_LABEL[source])], width: 130, editable: false },
   { key: "priority", label: "Priority", type: "select", options: PRIORITIES.map((priority) => PRIORITY_LABEL[priority]), width: 120, editable: false },
   { key: "owners", label: "Owners", width: 220, editable: false },
   { key: "market", label: "Market", type: "select", width: 150, editable: false },
@@ -46,12 +51,13 @@ const select = (id: string | null) => setUrlParam(TASK_PARAM, id);
 
 export interface TeamBoardProps {
   tasks: PublicTask[];
+  members: TeamMember[];
   activity: PublicEvent[];
   now: number;
   today: string;
 }
 
-export function TeamBoard({ tasks, activity, now, today }: TeamBoardProps) {
+export function TeamBoard({ tasks, members, activity, now, today }: TeamBoardProps) {
   // Until someone picks a view, it follows the screen: kanban on desktop, table on a phone.
   const [picked, setPicked] = useState<string | null>(null);
   const isPhone = useSyncExternalStore(subscribeToPhone, () => matchMedia(PHONE_QUERY).matches, () => false);
@@ -60,16 +66,19 @@ export function TeamBoard({ tasks, activity, now, today }: TeamBoardProps) {
   const selectedId = useUrlParam(TASK_PARAM);
   const selected = tasks.find((task) => task.id === selectedId) ?? null;
   const personId = useUrlParam(PERSON_PARAM);
-  const person = tasks.flatMap((task) => task.owners).find((owner) => owner.id === personId);
+  const person = members.find((member) => member.id === personId);
 
   const areaOptions = useMemo(
-    () => AREAS.map((area) => ({ value: area, label: `${AREA_LABEL[area]} · ${tasks.filter((task) => task.area === area).length}` })),
+    () =>
+      [...AREAS.map((area) => ({ value: area, label: AREA_LABEL[area] })), ...OTHER_SOURCES.map((source) => ({ value: source, label: SOURCE_LABEL[source] }))].map(
+        (option) => ({ ...option, label: `${option.label} · ${tasks.filter((task) => filterKeyOf(task) === option.value).length}` }),
+      ),
     [tasks],
   );
   const shown = useMemo(
     () =>
       tasks.filter(
-        (task) => (!areas.length || (task.area && areas.includes(task.area))) && (!person || task.owners.some((owner) => owner.id === person.id)),
+        (task) => (!areas.length || areas.includes(filterKeyOf(task))) && (!person || task.owners.some((owner) => owner.id === person.id)),
       ),
     [tasks, areas, person],
   );
@@ -78,7 +87,7 @@ export function TeamBoard({ tasks, activity, now, today }: TeamBoardProps) {
     id: task.id,
     title: task.title,
     stage: STAGE_LABEL[task.stage],
-    area: task.area ? AREA_LABEL[task.area] : null,
+    area: groupOf(task),
     priority: task.priority ? PRIORITY_LABEL[task.priority] : null,
     owners: task.owners.map((owner) => owner.name).join(", ") || null,
     market: task.market,
@@ -98,7 +107,7 @@ export function TeamBoard({ tasks, activity, now, today }: TeamBoardProps) {
               <X size={14} strokeWidth={1.75} aria-hidden="true" />
             </Button>
           )}
-          <ChipGroup label="Filter by area" options={areaOptions} value={areas} onValueChange={setAreas} multiple />
+          <ChipGroup label="Filter by area or board" options={areaOptions} value={areas} onValueChange={setAreas} multiple />
           <SegmentedControl
             label="View"
             value={view}
@@ -122,10 +131,10 @@ export function TeamBoard({ tasks, activity, now, today }: TeamBoardProps) {
             title: task.title,
             stage: task.stage,
             owners: task.owners.map((owner) => ({ name: owner.name, src: owner.photo ?? undefined })),
-            project: [task.area ? AREA_LABEL[task.area] : null, task.market].filter(Boolean).join(" · "),
+            project: [groupOf(task), task.market].filter(Boolean).join(" · "),
             due: task.dueDate ? formatDay(task.dueDate) : undefined,
             dueSoon: Boolean(task.dueDate) && daysUntil(task.dueDate!, today) <= 2,
-            filterKey: task.area ?? "",
+            filterKey: filterKeyOf(task),
             footer: task.priority ? <Badge size="sm" tone={PRIORITY_TONE[task.priority]}>{PRIORITY_LABEL[task.priority]}</Badge> : undefined,
           }))}
         />

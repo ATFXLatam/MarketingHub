@@ -26,6 +26,9 @@ export const COLUMNS = {
   videoType: "dropdown_mm5qh6py",
 } as const;
 
+/** The team's picture for anyone without an uploaded monday photo, so no avatar falls back to bare initials. */
+export const DEFAULT_AVATAR = "/brand/team-avatar.jpg";
+
 /** monday users who belong to the team even with nothing assigned yet, so the directory shows the whole team. */
 export const TEAM_ROSTER = ["28982466", "74311964"] as const;
 
@@ -123,3 +126,68 @@ export const MARKETS = ["LATAM", "México", "Colombia", "Chile", "Perú", "Argen
 export function subtypeOf(area: Area, value: string): Subtype | undefined {
   return SUBTYPES[area].find((subtype) => subtype.value === value);
 }
+
+/**
+ * Other team boards the hub mirrors next to the requests board, read only. Each keeps its own columns and status labels,
+ * so every board maps its label ids onto the hub's stages; a label left out (Cancelled, Guideline) keeps the item off the hub.
+ */
+export const SOURCES = ["requests", "team", "webinars"] as const;
+export type Source = (typeof SOURCES)[number];
+export const SOURCE_LABEL: Record<Source, string> = { requests: "Requests", team: "Team board", webinars: "Webinars" };
+
+export interface SourceBoard {
+  id: number;
+  source: Exclude<Source, "requests">;
+  status: string;
+  owner: string;
+  /** A date column, or a timeline column whose end is the deadline. */
+  due: string;
+  /** Free-text column naming who does the task, for boards that plan by role before assigning people. */
+  role?: string;
+  /** Status label id to stage; unlabeled items count as new. */
+  stages: Readonly<Record<number, Stage>>;
+  /** Groups that hold reference material rather than work. */
+  hiddenGroups?: readonly string[];
+}
+
+export const SOURCE_BOARDS: readonly SourceBoard[] = [
+  {
+    // "LATAM MKT Team": one group per person.
+    id: 3780707918,
+    source: "team",
+    status: "status",
+    owner: "person",
+    due: "date_1",
+    stages: { 4: "nueva", 5: "nueva", 10: "ready", 0: "en-curso", 16: "en-curso", 2: "on-hold", 1: "hecha", 3: "hecha" },
+    hiddenGroups: ["new_group70457"],
+  },
+  {
+    // "Webinars for LATAM": the 27 steps of a webinar. "Bloqueada" waits on the previous step, so it reads as not started.
+    id: 18432804587,
+    source: "webinars",
+    status: "project_status",
+    owner: "project_owner",
+    due: "project_timeline",
+    role: "text_mm7hvmgs",
+    stages: { 3: "ready", 4: "nueva", 0: "en-curso", 2: "on-hold", 1: "hecha" },
+  },
+];
+
+/** Open work on the other boards older than this, by last update and by deadline, is left behind as abandoned. */
+export const SOURCE_STALE_DAYS = 60;
+
+/** "Marketing Campaigns 2026": shown as campaigns, never as tasks. Budget and spend are not read. */
+export const CAMPAIGNS_BOARD = {
+  id: 18394596201,
+  columns: {
+    status: "color_mkzdd0r5",
+    region: "dropdown_mkzdw25g",
+    country: "dropdown_mkzdt1wk",
+    channel: "dropdown_mkzdsa06",
+    start: "date_mkzdb8hh",
+    end: "date_mkzdsk4p",
+    kpi: "dropdown_mkzd5evp",
+    target: "text_mkzdx0zp",
+    achieved: "text_mkzd5phy",
+  },
+} as const;

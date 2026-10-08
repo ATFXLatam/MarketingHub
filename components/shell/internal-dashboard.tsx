@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Check, Link2, Plus } from "lucide-react";
+import { Link2, Plus } from "lucide-react";
 import { Button } from "@/components/arc/button/button";
 import { UserMenu } from "@/components/arc/user-menu/user-menu";
 import { RequestFlow } from "@/components/intake/request-flow";
@@ -27,7 +27,7 @@ interface InternalDashboardProps extends Omit<TeamPageProps, "actions"> {
   canRequest: boolean;
 }
 
-/** The team's page plus what only the team does: request work, share the client link, and the account menu. */
+/** The team's page plus what only the team does: ask the board, request work, and the account menu that shares the board. */
 export function InternalDashboard({ user, publicPath, requestOpen = false, areaOwners, canRequest, ...page }: InternalDashboardProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -66,13 +66,7 @@ export function InternalDashboard({ user, publicPath, requestOpen = false, areaO
         {...page}
         actions={
           <>
-            <BoardAssistant tasks={page.tasks} roster={page.roster} today={page.today} />
-            {publicPath && (
-              <Button variant="secondary" size="sm" onClick={copyLink}>
-                {copied === "done" ? <Check {...icon} /> : <Link2 {...icon} />}
-                {copied === "done" ? "Link copied" : copied === "failed" ? "Could not copy" : "Client link"}
-              </Button>
-            )}
+            <BoardAssistant tasks={page.tasks} members={page.members} today={page.today} />
             {canRequest && (
               <Button size="sm" onClick={() => setRequesting(true)}>
                 <Plus {...icon} />
@@ -82,6 +76,7 @@ export function InternalDashboard({ user, publicPath, requestOpen = false, areaO
             <UserMenu
               user={user}
               align="end"
+              items={publicPath ? [{ label: copied === "done" ? "Board link copied" : copied === "failed" ? "Could not copy the link" : "Share board", icon: <Link2 {...icon} />, onSelect: () => void copyLink() }] : []}
               theme={theme}
               onThemeChange={(next) => {
                 setPicked(next);

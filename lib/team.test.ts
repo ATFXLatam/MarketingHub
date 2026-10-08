@@ -6,7 +6,7 @@ const ana: PublicOwner = { id: "1", name: "Ana", photo: null, title: "Diseño", 
 const leo: PublicOwner = { id: "2", name: "Leo", photo: null, title: null, timeZone: null };
 
 const task = (over: Partial<PublicTask>): PublicTask => ({
-  id: "t", title: "t", owners: [ana], area: "web", stage: "nueva", priority: null, dueDate: null, slaDays: null,
+  id: "t", title: "t", source: "requests", owners: [ana], area: "web", stage: "nueva", priority: null, dueDate: null, slaDays: null,
   market: null, createdAt: "2026-10-01T00:00:00Z", updatedAt: "2026-10-01T00:00:00Z", ...over,
 });
 

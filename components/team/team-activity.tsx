@@ -11,8 +11,8 @@ import type { PublicEvent, PublicTask } from "@/lib/public-dto";
 import {
   daysUntil,
   memberShares,
-  teamMembers,
   deliveriesByDate,
+  type TeamMember,
 } from "@/lib/team";
 import { dueText } from "./team-overview";
 import styles from "./team-activity.module.css";
@@ -45,6 +45,7 @@ type DeliveryRow =
 
 export interface TeamActivityProps {
   tasks: PublicTask[];
+  members: TeamMember[];
   activity: PublicEvent[];
   now: number;
   today: string;
@@ -52,6 +53,7 @@ export interface TeamActivityProps {
 
 export function TeamActivity({
   tasks,
+  members,
   activity,
   now,
   today,
@@ -64,7 +66,7 @@ export function TeamActivity({
     return "Up to date";
   }
   const personId = useUrlParam(PERSON_PARAM);
-  const person = tasks.flatMap((task) => task.owners).find((owner) => owner.id === personId);
+  const person = members.find((member) => member.id === personId);
   const mine = person ? tasks.filter((task) => task.owners.some((owner) => owner.id === personId)) : tasks;
   const { overdue, upcoming } = deliveriesByDate(mine, today);
   // Overdue work leads and never collapses: it is what someone has to act on first.
@@ -95,7 +97,7 @@ export function TeamActivity({
       : []),
   ];
   // One ring set per person: the picker under the dial switches between people instead of days.
-  const people = teamMembers(tasks).map((member) => ({
+  const people = members.map((member) => ({
     id: member.id,
     label: member.name,
     short: member.name.split(" ")[0],

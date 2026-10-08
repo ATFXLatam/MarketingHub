@@ -25,7 +25,7 @@ describe("toPublicTask", () => {
   it("returns only whitelisted fields, never requester data or the brief", () => {
     const task = toPublicTask(item);
     expect(Object.keys(task).sort()).toEqual(
-      ["area", "createdAt", "dueDate", "id", "market", "owners", "priority", "slaDays", "stage", "title", "updatedAt"].sort(),
+      ["area", "createdAt", "dueDate", "id", "market", "owners", "priority", "slaDays", "source", "stage", "title", "updatedAt"].sort(),
     );
     expect(JSON.stringify(task)).not.toMatch(/persona@|brief interno/);
     expect(task).toMatchObject({ stage: "en-curso", area: "web", priority: "alta", slaDays: 7 });

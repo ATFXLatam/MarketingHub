@@ -1,6 +1,6 @@
-import { AREA_LABEL, PRIORITY_LABEL, STAGE_LABEL } from "./board-config";
-import type { PublicEvent, PublicOwner, PublicTask } from "./public-dto";
-import { daysUntil, deliveriesByDate, teamMembers } from "./team";
+import { AREA_LABEL, PRIORITY_LABEL, SOURCE_LABEL, STAGE_LABEL } from "./board-config";
+import type { PublicEvent, PublicTask } from "./public-dto";
+import { daysUntil, deliveriesByDate, type TeamMember } from "./team";
 
 const RECENT_DAYS = 30;
 
@@ -8,19 +8,19 @@ const names = (task: PublicTask) => (task.owners.length ? task.owners.map((owner
 
 function line(task: PublicTask, today: string): string {
   const due = task.dueDate ? `due ${task.dueDate} (${daysUntil(task.dueDate, today) < 0 ? `${-daysUntil(task.dueDate, today)} days overdue` : `in ${daysUntil(task.dueDate, today)} days`})` : "no due date";
-  return `- [${task.id}] ${task.title} | ${task.area ? AREA_LABEL[task.area] : "no area"} | ${STAGE_LABEL[task.stage]} | ${task.priority ? `${PRIORITY_LABEL[task.priority]} priority` : "no priority"} | ${due} | ${names(task)}`;
+  return `- [${task.id}] ${task.title} | ${task.area ? AREA_LABEL[task.area] : SOURCE_LABEL[task.source]} | ${STAGE_LABEL[task.stage]} | ${task.priority ? `${PRIORITY_LABEL[task.priority]} priority` : "no priority"} | ${due} | ${names(task)}`;
 }
 
 /**
  * The board as plain text for the model: only what the hub already shows, built on the server from the cached snapshot,
  * so a question can never make the model see more than the person asking can see on the page.
  */
-export function boardContext(tasks: PublicTask[], activity: PublicEvent[], roster: PublicOwner[], today: string): string {
+export function boardContext(tasks: PublicTask[], activity: PublicEvent[], members: TeamMember[], today: string): string {
   const open = tasks.filter((task) => task.stage !== "hecha");
   const { overdue, upcoming } = deliveriesByDate(tasks, today);
   const since = Date.parse(`${today}T00:00:00Z`) - RECENT_DAYS * 24 * 60 * 60 * 1000;
   const delivered = activity.filter((event) => event.stage === "hecha" && Date.parse(event.at) >= since).length;
-  const people = teamMembers(tasks, roster).map(
+  const people = members.map(
     (member) => `- ${member.name}${member.title ? ` (${member.title})` : ""}: ${member.current.length} in progress, ${member.open} open, ${member.done} done`,
   );
   return [
@@ -30,7 +30,7 @@ export function boardContext(tasks: PublicTask[], activity: PublicEvent[], roste
     "People and their load:",
     ...people,
     "",
-    "Open requests (id | title | area | stage | priority | due | owners):",
+    "Open work across the requests, team and webinars boards (id | title | area or board | stage | priority | due | owners):",
     ...open.map((task) => line(task, today)),
   ].join("\n");
 }

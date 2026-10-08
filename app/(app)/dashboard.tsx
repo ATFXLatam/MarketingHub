@@ -1,6 +1,7 @@
 import { Alert } from "@/components/arc/alert/alert";
 import { InternalDashboard } from "@/components/shell/internal-dashboard";
 import { currentSession } from "@/lib/auth/current";
+import { DEFAULT_AVATAR } from "@/lib/board-config";
 import { todayIn } from "@/lib/dates";
 import { areaOwners } from "@/lib/area-owners";
 import { getAreaPeople, getBoardSnapshot } from "@/lib/monday/read";
@@ -23,7 +24,7 @@ export async function Dashboard({ requestOpen = false }: { requestOpen?: boolean
   const token = process.env.PUBLIC_BOARD_TOKEN;
   return (
     <InternalDashboard
-      user={{ name: session.name, email: session.email, avatarSrc: session.photo ?? undefined }}
+      user={{ name: session.name, email: session.email, avatarSrc: session.photo ?? DEFAULT_AVATAR }}
       canRequest={session.canRequest}
       publicPath={token ? `/p/${encodeURIComponent(token)}` : undefined}
       today={todayIn()}
@@ -31,7 +32,8 @@ export async function Dashboard({ requestOpen = false }: { requestOpen?: boolean
       areaOwners={areaOwners(snapshot.tasks, configured, known)}
       tasks={snapshot.tasks}
       activity={snapshot.activity}
-      roster={snapshot.roster}
+      members={snapshot.members}
+      campaigns={snapshot.campaigns}
       now={Date.parse(snapshot.fetchedAt)}
     />
   );

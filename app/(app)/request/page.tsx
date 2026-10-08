@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DEFAULT_AVATAR } from "@/lib/board-config";
 import { Suspense } from "react";
 import { Alert } from "@/components/arc/alert/alert";
 import { Skeleton } from "@/components/arc/skeleton/skeleton";
@@ -31,7 +32,7 @@ async function Request() {
   const known = await getAreaPeople(Object.values(configured).flat());
   return (
     <RequestOnlyPage
-      user={{ name: session.name, email: session.email, avatarSrc: session.photo ?? undefined }}
+      user={{ name: session.name, email: session.email, avatarSrc: session.photo ?? DEFAULT_AVATAR }}
       areaOwners={areaOwners([], configured, known)}
       today={todayIn()}
     />

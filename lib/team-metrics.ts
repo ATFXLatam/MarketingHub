@@ -28,7 +28,8 @@ export function shiftDay(isoDate: string, offset: number): string {
 export function dailyCounts(tasks: PublicTask[], activity: PublicEvent[], today: string, days: number): DayValues[] {
   const rows = Array.from({ length: days }, (_, index) => ({ date: shiftDay(today, index - days + 1), values: { nuevas: 0, movimientos: 0, entregadas: 0 } }));
   const byDate = new Map(rows.map((row) => [row.date, row.values]));
-  tasks.forEach((task) => {
+  // Only the requests board takes requests; the other boards' items are planned work, not intake.
+  tasks.filter((task) => task.source === "requests").forEach((task) => {
     const values = byDate.get(teamDay(task.createdAt));
     if (values) values.nuevas += 1;
   });
@@ -44,7 +45,7 @@ export function dailyCounts(tasks: PublicTask[], activity: PublicEvent[], today:
 /** Requests created in the last `days` days, counted by area and by market, largest first. */
 export function requestBreakdowns(tasks: PublicTask[], today: string, days: number): { areas: BreakdownRow[]; markets: BreakdownRow[] } {
   const from = shiftDay(today, -days + 1);
-  const recent = tasks.filter((task) => teamDay(task.createdAt) >= from);
+  const recent = tasks.filter((task) => task.source === "requests" && teamDay(task.createdAt) >= from);
   const count = (names: string[]) =>
     [...names.reduce((map, name) => map.set(name, (map.get(name) ?? 0) + 1), new Map<string, number>())]
       .map(([name, value]) => ({ name, value }))

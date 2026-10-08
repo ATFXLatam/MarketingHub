@@ -6,6 +6,7 @@ import {
   STAGE_MONDAY_TEXT,
   STAGE_LABEL_ID,
   type Area,
+  type Source,
   type Priority,
   type Stage,
 } from "./board-config";
@@ -28,6 +29,8 @@ export interface PublicOwner {
 export interface PublicTask {
   id: string;
   title: string;
+  /** Which monday board the task lives on. */
+  source: Source;
   /** The team members responsible: names and photos only, never their emails. */
   owners: PublicOwner[];
   area: Area | null;
@@ -38,6 +41,21 @@ export interface PublicTask {
   market: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+/** A campaign from the campaigns board: what runs where and against which goal. Money columns are never read. */
+export interface PublicCampaign {
+  id: string;
+  name: string;
+  status: string | null;
+  region: string | null;
+  country: string | null;
+  channel: string | null;
+  start: string | null;
+  end: string | null;
+  kpi: string | null;
+  target: string | null;
+  achieved: string | null;
 }
 
 export interface PublicEvent {
@@ -72,6 +90,7 @@ const ColumnValueSchema = z.object({
 export const RawItemSchema = z.object({
   id: z.string(),
   name: z.string(),
+  group: z.object({ id: z.string() }).nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
   column_values: z.array(ColumnValueSchema),
@@ -94,7 +113,7 @@ function stageFrom(labelId: number | null | undefined, text: string | null): Sta
   return byText ? byText[0] : "nueva";
 }
 
-const nonEmpty = (value: string | null | undefined) => (value && value.trim() ? value.trim() : null);
+export const nonEmpty = (value: string | null | undefined) => (value && value.trim() ? value.trim() : null);
 
 const PHOTO_HOST = "files.monday.com";
 
@@ -132,6 +151,7 @@ export function toPublicTask(item: RawItem, people: ReadonlyMap<string, PublicOw
   return {
     id: item.id,
     title: item.name,
+    source: "requests",
     owners,
     area: byLabelId(AREA_LABEL_ID, column(COLUMNS.area)?.index),
     stage: stageFrom(status?.index, status?.text ?? null),
@@ -152,7 +172,7 @@ export function visibleTasks(tasks: PublicTask[], now: number): PublicTask[] {
   return tasks.filter((task) => task.stage !== "hecha" || Date.parse(task.updatedAt) >= cutoff);
 }
 
-const ActivityDataSchema = z.object({
+export const ActivityDataSchema = z.object({
   pulse_id: z.union([z.number(), z.string()]),
   pulse_name: z.string(),
   column_id: z.string(),
@@ -168,7 +188,7 @@ export const RawActivitySchema = z.object({
 export type RawActivity = z.infer<typeof RawActivitySchema>;
 
 /** monday stamps activity logs in 100-nanosecond units since the epoch. */
-const activityTime = (value: string) => new Date(Number(value) / 10_000).toISOString();
+export const activityTime = (value: string) => new Date(Number(value) / 10_000).toISOString();
 
 /** Status changes only, and only the title and the new stage: the log also carries user ids and previous values. */
 export function toPublicEvent(log: RawActivity): PublicEvent | null {
