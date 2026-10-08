@@ -1,9 +1,6 @@
 "use client";
 
 import { useMemo, useState, useSyncExternalStore } from "react";
-import { X } from "lucide-react";
-import { Avatar } from "@/components/arc/avatar/avatar";
-import { Button } from "@/components/arc/button/button";
 import { Badge, type BadgeTone } from "@/components/arc/badge/badge";
 import { ProjectBoard } from "@/components/arc/blocks/project-board/project-board";
 import { ChipGroup } from "@/components/arc/chip-group/chip-group";
@@ -15,12 +12,15 @@ import { formatDay } from "@/lib/dates";
 import type { PublicEvent, PublicTask } from "@/lib/public-dto";
 import { daysUntil, type TeamMember } from "@/lib/team";
 import { TaskDrawer } from "./task-drawer";
+import { Section } from "./section";
 import { PERSON_PARAM, setUrlParam, useUrlParam } from "./url-state";
-import styles from "./team-board.module.css";
 
 const PRIORITY_TONE: Record<Priority, BadgeTone> = { normal: "neutral", media: "info", alta: "warning", critica: "danger" };
 const TASK_PARAM = "task";
 const PHONE_QUERY = "(max-width: 700px)";
+
+// Step by step plans that would bury the requests in the team view; they show when picked, or as part of one person's work.
+const PROJECT_SOURCES: readonly Source[] = ["webinars", "hub"];
 
 // Requests filter by area; the other boards have no areas, so each filters as a whole.
 const OTHER_SOURCES = (Object.keys(SOURCE_LABEL) as Source[]).filter((source) => source !== "requests");
@@ -78,7 +78,10 @@ export function TeamBoard({ tasks, members, linkToMonday, activity, now, today }
       ),
     [mine],
   );
-  const shown = useMemo(() => mine.filter((task) => !areas.length || areas.includes(filterKeyOf(task))), [mine, areas]);
+  const shown = useMemo(
+    () => mine.filter((task) => (areas.length ? areas.includes(filterKeyOf(task)) : person || !PROJECT_SOURCES.includes(task.source))),
+    [mine, areas, person],
+  );
   const team = [...new Map(shown.flatMap((task) => task.owners).map((owner) => [owner.id, { name: owner.name, src: owner.photo ?? undefined }])).values()];
   const rows: DataGridRow[] = shown.map((task) => ({
     id: task.id,
@@ -93,18 +96,11 @@ export function TeamBoard({ tasks, members, linkToMonday, activity, now, today }
   }));
 
   return (
-    <section className={styles.root} aria-labelledby="board-title">
-      <div className={styles.head}>
-        <h2 id="board-title" className={styles.heading}>Requests</h2>
-        <div className={styles.toolbar}>
-          {person && (
-            <Button variant="secondary" size="sm" onClick={() => setUrlParam(PERSON_PARAM, null)} aria-label={`Clear filter: ${person.name}`}>
-              <Avatar name={person.name} src={person.photo ?? undefined} size="sm" />
-              {person.name.split(" ")[0]}
-              <X size={14} strokeWidth={1.75} aria-hidden="true" />
-            </Button>
-          )}
-          <ChipGroup label="Filter by area or board" options={areaOptions} value={areas} onValueChange={setAreas} multiple />
+    <Section
+      title="Requests"
+      subtitle={`${shown.length} ${shown.length === 1 ? "item" : "items"} from New to Done. Open one to see its brief and comments.`}
+      hint="Requests and the team board show by default. Webinar and hub plans join when you pick their chip or a person."
+      actions={
           <SegmentedControl
             label="View"
             value={view}
@@ -114,8 +110,9 @@ export function TeamBoard({ tasks, members, linkToMonday, activity, now, today }
               { value: "table", label: "Table" },
             ]}
           />
-        </div>
-      </div>
+      }
+    >
+      <ChipGroup label="Filter by area or board" options={areaOptions} value={areas} onValueChange={setAreas} multiple />
       {view === "board" ? (
         <ProjectBoard
           title="Team flow"
@@ -149,6 +146,6 @@ export function TeamBoard({ tasks, members, linkToMonday, activity, now, today }
         />
       )}
       <TaskDrawer task={selected} linkToMonday={linkToMonday} history={activity} now={now} today={today} onClose={() => select(null)} />
-    </section>
+    </Section>
   );
 }

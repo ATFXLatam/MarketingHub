@@ -1,12 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { Badge, type BadgeTone } from "@/components/arc/badge/badge";
+import { Button } from "@/components/arc/button/button";
 import { Card } from "@/components/arc/card/card";
 import { MondayMark } from "@/components/auth/monday-mark";
 import { mondayItemUrl } from "@/lib/board-config";
 import { formatDay } from "@/lib/dates";
 import type { PublicCampaign } from "@/lib/public-dto";
 import { byPhase, type CampaignPhase } from "@/lib/sources";
+import { Section } from "./section";
 import styles from "./team-campaigns.module.css";
 
 const PHASE_TONE: Record<CampaignPhase, BadgeTone> = { Live: "success", Planned: "info", Ended: "neutral" };
@@ -19,12 +22,28 @@ const goal = (campaign: PublicCampaign) =>
 
 /** The campaigns board next to the work: what runs, where, and how it tracks against its goal. Never counts as load. */
 export function TeamCampaigns({ campaigns, today, linkToMonday }: { campaigns: PublicCampaign[]; today: string; linkToMonday: boolean }) {
+  const [showEnded, setShowEnded] = useState(false);
   if (!campaigns.length) return null;
+  const all = byPhase(campaigns, today);
+  const ended = all.filter((campaign) => campaign.phase === "Ended").length;
+  const current = all.length - ended;
+  // Ended campaigns are history; they stay one click away instead of filling the strip.
+  const shown = showEnded || !current ? all : all.filter((campaign) => campaign.phase !== "Ended");
   return (
-    <section className={styles.root} aria-labelledby="campaigns-title">
-      <h2 id="campaigns-title" className={styles.heading}>Campaigns</h2>
+    <Section
+      title="Campaigns"
+      subtitle={current ? `${current} live or planned` : "Nothing live or planned right now"}
+      hint="From the campaigns board in monday. A campaign counts as live only between its start and end dates."
+      actions={
+        ended > 0 && current > 0 ? (
+          <Button variant="primary" size="sm" aria-expanded={showEnded} onClick={() => setShowEnded((open) => !open)}>
+            {showEnded ? "Hide ended" : `Show ${ended} ended`}
+          </Button>
+        ) : undefined
+      }
+    >
       <div className={styles.grid}>
-        {byPhase(campaigns, today).map((campaign) => (
+        {shown.map((campaign) => (
           <Card
             key={campaign.id}
             title={campaign.name}
@@ -44,6 +63,6 @@ export function TeamCampaigns({ campaigns, today, linkToMonday }: { campaigns: P
           />
         ))}
       </div>
-    </section>
+    </Section>
   );
 }

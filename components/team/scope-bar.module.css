@@ -1,0 +1,4 @@
+.root { position: sticky; z-index: 20; top: 12px; display: flex; align-items: center; gap: 10px; align-self: center; padding: 6px 6px 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-panel); background: color-mix(in oklab, var(--surface) 88%, transparent); backdrop-filter: blur(12px); box-shadow: var(--shadow-raised); }
+.text { margin: 0; color: var(--text-secondary); font-size: var(--text-sm); white-space: nowrap; }
+.text strong { color: var(--foreground); font-weight: 500; }
+@media (max-width: 520px) { .text { white-space: normal; } }
