@@ -24,7 +24,7 @@ export function boardContext(tasks: PublicTask[], activity: PublicEvent[], membe
     (member) => `- ${member.name}${member.title ? ` (${member.title})` : ""}: ${member.current.length} in progress, ${member.open} open, ${member.done} done`,
   );
   return [
-    `Today is ${today}. Team: ATFX LATAM marketing. Areas: Web, Video, Events, Design.`,
+    `Today is ${today}. Team: ATFX LATAM marketing. Areas: ${Object.values(AREA_LABEL).join(", ")}.`,
     `Open requests: ${open.length}. Overdue: ${overdue.length}. Upcoming with a date: ${upcoming.length}. Delivered in the last ${RECENT_DAYS} days: ${delivered}.`,
     "",
     "People and their load:",

@@ -24,12 +24,15 @@ export const COLUMNS = {
   designType: "dropdown_mm5qw1x",
   eventType: "dropdown_mm5qacgt",
   videoType: "dropdown_mm5qh6py",
+  copyType: "dropdown_mm7ygdep",
+  digitalType: "dropdown_mm7yfde0",
+  dataType: "dropdown_mm7ynctj",
 } as const;
 
 /** The team's picture for anyone without an uploaded monday photo, so no avatar falls back to bare initials. */
 export const DEFAULT_AVATAR = "/brand/team-avatar.jpg";
 
-export const AREAS = ["web", "video", "eventos", "diseno"] as const;
+export const AREAS = ["web", "video", "eventos", "diseno", "copy", "digital", "data"] as const;
 export type Area = (typeof AREAS)[number];
 
 /**
@@ -41,8 +44,11 @@ export const TEAM: readonly { id: string; areas: readonly Area[] }[] = [
   { id: "97526256", areas: ["web"] }, // Karen Ortiz, Web Developer
   { id: "77121579", areas: ["video"] }, // Naomi Greene, Videographer & Photographer
   { id: "106517133", areas: ["diseno"] }, // Sergio Arciga Bustamante
+  { id: "60519988", areas: ["video"] }, // Diego Albuja, webinars and video
   { id: "28982466", areas: ["eventos"] }, // Maritza Perez, Marketing Event Executive
-  { id: "74311964", areas: [] }, // Guillermo Lara Mosqueda, Senior Digital Marketing Executive
+  { id: "75156089", areas: ["copy"] }, // Ane Rojas, Copywriter/Social Media Community Coordinator
+  { id: "74311964", areas: ["digital"] }, // Guillermo Lara Mosqueda, Senior Digital Marketing Executive
+  { id: "70986061", areas: ["data"] }, // Esteban Pinzón Mejía, Data Analyst
 ];
 
 /** monday users who belong to the team even with nothing assigned yet, so the directory shows the whole team. */
@@ -55,8 +61,16 @@ export const AREA_TEAM: Record<Area, number[]> = Object.fromEntries(
   AREAS.map((area) => [area, TEAM.filter((member) => member.areas.includes(area)).map((member) => Number(member.id))]),
 ) as Record<Area, number[]>;
 
-export const AREA_LABEL: Record<Area, string> = { web: "Web", video: "Video", eventos: "Events", diseno: "Design" };
-export const AREA_LABEL_ID: Record<Area, number> = { web: 7, video: 4, eventos: 9, diseno: 12 };
+export const AREA_LABEL: Record<Area, string> = {
+  web: "Web",
+  video: "Video",
+  eventos: "Events",
+  diseno: "Design",
+  copy: "Copy & social",
+  digital: "Digital & campaigns",
+  data: "Data & reporting",
+};
+export const AREA_LABEL_ID: Record<Area, number> = { web: 7, video: 4, eventos: 9, diseno: 12, copy: 108, digital: 19, data: 160 };
 
 export const PRIORITIES = ["normal", "media", "alta", "critica"] as const;
 export type Priority = (typeof PRIORITIES)[number];
@@ -123,6 +137,28 @@ export const SUBTYPES: Record<Area, readonly Subtype[]> = {
     { value: "impreso", label: "Print", labelId: 7, days: 5 },
     { value: "otro", label: "Other", labelId: 6, days: 3 },
   ],
+  copy: [
+    { value: "social", label: "Social posts", labelId: 1, days: 2 },
+    { value: "pieza", label: "Copy for a piece", labelId: 2, days: 2 },
+    { value: "email", label: "Email copy", labelId: 3, days: 2 },
+    { value: "traduccion", label: "Translation or proofreading", labelId: 4, days: 1 },
+    { value: "calendario", label: "Content calendar", labelId: 5, days: 5 },
+    { value: "otro", label: "Other", labelId: 6, days: 2 },
+  ],
+  digital: [
+    { value: "pagada", label: "Paid campaign", labelId: 1, days: 3 },
+    { value: "funnel", label: "Funnel or automation", labelId: 2, days: 5 },
+    { value: "whatsapp", label: "WhatsApp or CRM", labelId: 3, days: 5 },
+    { value: "estrategia", label: "Channel strategy", labelId: 4, days: 5 },
+    { value: "otro", label: "Other", labelId: 5, days: 3 },
+  ],
+  data: [
+    { value: "reporte", label: "Campaign report", labelId: 1, days: 2 },
+    { value: "dashboard", label: "Dashboard", labelId: 2, days: 5 },
+    { value: "analisis", label: "One-off analysis", labelId: 3, days: 3 },
+    { value: "extraccion", label: "Data extraction", labelId: 4, days: 1 },
+    { value: "otro", label: "Other", labelId: 5, days: 3 },
+  ],
 };
 
 export const SUBTYPE_COLUMN: Record<Area, string> = {
@@ -130,6 +166,9 @@ export const SUBTYPE_COLUMN: Record<Area, string> = {
   video: COLUMNS.videoType,
   eventos: COLUMNS.eventType,
   diseno: COLUMNS.designType,
+  copy: COLUMNS.copyType,
+  digital: COLUMNS.digitalType,
+  data: COLUMNS.dataType,
 };
 
 export const LANDING_SUBTYPES = [
@@ -195,6 +234,14 @@ export const SOURCE_BOARDS: readonly SourceBoard[] = [
 
 /** Open work on the other boards older than this, by last update and by deadline, is left behind as abandoned. */
 export const SOURCE_STALE_DAYS = 60;
+
+const MONDAY_HOST = "https://atfx.monday.com";
+
+/** The item's page in monday; monday itself decides whether the person may open it. */
+export function mondayItemUrl(source: Source | "campaigns", itemId: string): string {
+  const board = source === "requests" ? BOARD_ID : source === "campaigns" ? CAMPAIGNS_BOARD.id : SOURCE_BOARDS.find((entry) => entry.source === source)!.id;
+  return `${MONDAY_HOST}/boards/${board}/pulses/${encodeURIComponent(itemId)}`;
+}
 
 /** "Marketing Campaigns 2026": shown as campaigns, never as tasks. Budget and spend are not read. */
 export const CAMPAIGNS_BOARD = {

@@ -128,6 +128,20 @@ const BY_AREA: Record<Area, Requirement[]> = {
     detail("attendees", 5, "Give the expected number of attendees"),
     detail("budget", 5, "Give the budget"),
   ],
+  copy: [
+    detail("cta", 10, "Define the call to action"),
+    detail("url", 10, "Paste the destination or reference URL"),
+    detail("sizes", 5, "Give the channels and formats", "Channels and formats given"),
+  ],
+  digital: [
+    detail("budget", 10, "Give the budget"),
+    detail("url", 10, "Paste the landing or destination URL"),
+    detail("cta", 5, "Define the call to action"),
+  ],
+  data: [
+    detail("url", 15, "Link the data source or the current report", "Data source linked"),
+    detail("sizes", 10, "Say how it should be delivered: dashboard, sheet or slides", "Delivery format given"),
+  ],
 };
 
 /** Every requirement for an area, heaviest first; the weights add up to 100 so the score reads as a percentage. */

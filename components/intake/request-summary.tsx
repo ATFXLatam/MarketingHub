@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar } from "@/components/arc/avatar/avatar";
+import { AvatarGroup } from "@/components/arc/avatar-group/avatar-group";
 import { CheckoutSummary } from "@/components/arc/blocks/checkout-summary/checkout-summary";
 import { EstimateChecklist } from "@/components/arc/blocks/usage-pricing/usage-pricing";
 import type { AreaOwner } from "@/lib/area-owners";
@@ -20,13 +20,15 @@ export interface RequestSummaryProps {
   area: Area | null;
   pieceLabel?: string;
   priority: Priority;
-  owner?: AreaOwner;
+  owners: AreaOwner[];
   result: Estimate | null;
   onFix: (gap: BriefGap) => void;
 }
 
 /** The fixed column of the request flow: what is being asked, who takes it, the date it would get now, and what is missing. */
-export function RequestSummary({ area, pieceLabel, priority, owner, result, onFix }: RequestSummaryProps) {
+const names = (owners: AreaOwner[]) => owners.map((owner) => owner.name).join(" & ");
+
+export function RequestSummary({ area, pieceLabel, priority, owners, result, onFix }: RequestSummaryProps) {
   if (!area || !result) return <EstimateChecklist result={null} />;
   const { base, priority: faster, brief: slower } = result.breakdown;
   return (
@@ -34,8 +36,12 @@ export function RequestSummary({ area, pieceLabel, priority, owner, result, onFi
       title="Your request"
       item={{
         name: pieceLabel ?? "Piece type not chosen",
-        description: owner ? `${owner.assigned ? `${owner.name} takes it` : `Usually ${owner.name}`}` : `${AREA_LABEL[area]}, no owner assigned`,
-        media: owner ? <Avatar name={owner.name} src={owner.photo ?? undefined} size="md" /> : undefined,
+        description: owners.length
+          ? owners[0].assigned
+            ? `${names(owners)} ${owners.length > 1 ? "take" : "takes"} it`
+            : `Usually ${names(owners)}`
+          : `${AREA_LABEL[area]}, no owner assigned`,
+        media: owners.length ? <AvatarGroup size="md" label={`${AREA_LABEL[area]} owners`} members={owners.map((owner) => ({ name: owner.name, src: owner.photo ?? undefined }))} /> : undefined,
         aside: `${base} base ${base === 1 ? "day" : "days"}`,
       }}
       lines={[

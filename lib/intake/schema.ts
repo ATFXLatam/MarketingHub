@@ -62,6 +62,9 @@ export const RequestSchema = z
     z.object({ ...common, area: z.literal("video"), subtype: z.enum(values(SUBTYPES.video)) }),
     z.object({ ...common, area: z.literal("eventos"), subtype: z.enum(values(SUBTYPES.eventos)) }),
     z.object({ ...common, area: z.literal("diseno"), subtype: z.enum(values(SUBTYPES.diseno)) }),
+    z.object({ ...common, area: z.literal("copy"), subtype: z.enum(values(SUBTYPES.copy)) }),
+    z.object({ ...common, area: z.literal("digital"), subtype: z.enum(values(SUBTYPES.digital)) }),
+    z.object({ ...common, area: z.literal("data"), subtype: z.enum(values(SUBTYPES.data)) }),
   ])
   .superRefine((request, ctx) => {
     if (request.area === "web" && request.subtype === "landing" && !request.landingSubtype) {

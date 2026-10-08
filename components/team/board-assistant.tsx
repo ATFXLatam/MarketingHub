@@ -37,7 +37,7 @@ function planFrom(tasks: PublicTask[], members: TeamMember[], today: string): Pl
     status: overdue ? "At risk" : "On track",
     target: next?.dueDate ? formatDay(next.dueDate) : "No date",
     lead: busiest ? { name: busiest.name, avatar: busiest.photo ?? undefined } : { name: "No one yet" },
-    intro: `${open.length} open requests across Web, Video, Events and Design. ${overdue ? `${overdue} are past their due date.` : "Nothing is overdue."} Pick a request to ask about it.`,
+    intro: `${open.length} open tasks across the requests, team and webinars boards. ${overdue ? `${overdue} are past their due date.` : "Nothing is overdue."} Pick a request to ask about it.`,
     milestones: open.slice(0, SHOWN).map((task) => ({
       id: task.id,
       name: task.area ? `${task.title} · ${AREA_LABEL[task.area]}` : task.title,

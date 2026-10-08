@@ -37,6 +37,13 @@ describe("buildColumnValues", () => {
     expect(values).not.toHaveProperty(COLUMNS.webType);
     expect(values).not.toHaveProperty(COLUMNS.owner);
   });
+
+  it("writes the new areas to the labels and piece columns created for them in monday", () => {
+    const request = RequestSchema.parse({ ...base, area: "data", subtype: "dashboard" });
+    const values = buildColumnValues(request, { name: "Ana", email: "ana@atfxgm.com" }, estimate({ ...request, attachmentCount: 0, today: "2026-10-05" }), []);
+    expect(values[COLUMNS.area]).toEqual({ index: 160 });
+    expect(values[COLUMNS.dataType]).toEqual({ ids: [2] });
+  });
 });
 
 describe("RequestSchema", () => {

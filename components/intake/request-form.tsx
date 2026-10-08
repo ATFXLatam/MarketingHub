@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { EstimateTotal, SummaryRows } from "@/components/arc/blocks/usage-pricing/usage-pricing";
-import { Avatar } from "@/components/arc/avatar/avatar";
+import { AvatarGroup } from "@/components/arc/avatar-group/avatar-group";
 import { upload } from "@vercel/blob/client";
 import { submitRequest } from "@/app/(app)/request/actions";
 import { Alert } from "@/components/arc/alert/alert";
@@ -48,6 +48,9 @@ const AREA_HINT: Record<Area, string> = {
   video: "Reels, promos, webinars and testimonials",
   eventos: "Internal or client events",
   diseno: "Pieces for Meta, Google, email and print",
+  copy: "Social posts, copy, email and translations",
+  digital: "Paid campaigns, funnels, WhatsApp and CRM",
+  data: "Reports, dashboards and analysis",
 };
 
 const BRIEF_HINT: Record<Area, string> = {
@@ -57,6 +60,9 @@ const BRIEF_HINT: Record<Area, string> = {
   eventos:
     "Date and venue, expected attendees, what you need from marketing and budget if it applies.",
   diseno: "Piece type, audience, language, copy, CTA, size and format.",
+  copy: "Channel, audience, language, key message, tone and CTA.",
+  digital: "Channel, audience, budget, dates, landing and the KPI that defines success.",
+  data: "The question to answer, period, sources and who will read it.",
 };
 
 const EMPTY: Draft = {
@@ -137,7 +143,7 @@ function RequestWizard({
   };
   const validFiles = files.filter((item) => !item.error);
   const area = draft.area || null;
-  const owner = area ? areaOwners[area][0] : undefined;
+  const owners = area ? areaOwners[area] : [];
 
   const preview = area
     ? estimate({
@@ -233,7 +239,7 @@ function RequestWizard({
       jump={jump}
       fill
       actionsStart={<EstimateTotal result={preview} />}
-      aside={<RequestSummary area={area} pieceLabel={pieceLabel} priority={draft.priority} owner={owner} result={preview} onFix={fix} />}
+      aside={<RequestSummary area={area} pieceLabel={pieceLabel} priority={draft.priority} owners={owners} result={preview} onFix={fix} />}
       successTitle="Request sent"
       successNote={
         sent &&
@@ -270,15 +276,18 @@ function RequestWizard({
                   setErrors({});
                 }}
                 options={AREAS.map((value) => {
-                  const [lead] = areaOwners[value];
+                  const owners = areaOwners[value];
+                  const [lead] = owners;
+                  // Every owner of the area shows: an area answered by two people reads as both, not as whoever is listed first.
+                  const names = owners.map((owner) => owner.name.split(" ")[0]).join(" & ");
                   return {
                     value,
                     label: AREA_LABEL[value],
                     description: AREA_HINT[value],
                     meta: lead ? (
                       <>
-                        <Avatar name={lead.name} src={lead.photo ?? undefined} size="sm" />
-                        {`${lead.assigned ? `${lead.name.split(" ")[0]} takes it` : `Usually ${lead.name.split(" ")[0]}`}`}
+                        <AvatarGroup size="sm" label={`${AREA_LABEL[value]} owners`} members={owners.map((owner) => ({ name: owner.name, src: owner.photo ?? undefined }))} />
+                        {lead.assigned ? `${names} ${owners.length > 1 ? "take" : "takes"} it` : `Usually ${names}`}
                       </>
                     ) : (
                       "Assigned by the team"
@@ -465,7 +474,7 @@ function RequestWizard({
                   rows={[
                     { label: "Title", value: draft.title || "No title" },
                     { label: "Area", value: AREA_LABEL[area], note: pieceLabel },
-                    { label: "Owner", value: owner?.name ?? "Assigned by the team", note: owner && !owner.assigned ? "Usually takes this area" : undefined },
+                    { label: owners.length > 1 ? "Owners" : "Owner", value: owners.map((owner) => owner.name).join(" & ") || "Assigned by the team", note: owners[0] && !owners[0].assigned ? "Usually takes this area" : undefined },
                     { label: "Due date", value: draft.dueDate ? formatDay(toIsoDate(draft.dueDate)) : "No date" },
                     { label: "Priority", value: PRIORITY_LABEL[draft.priority] },
                     { label: "Market", value: draft.market || "No market" },
