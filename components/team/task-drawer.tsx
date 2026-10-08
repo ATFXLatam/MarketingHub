@@ -64,7 +64,8 @@ function TaskDetail({ task, history, now, today }: { task: PublicTask; history: 
 
   return (
     <div className={styles.body}>
-      <div className={styles.tags}>
+      <section className={styles.section} aria-label="Status">
+        <div className={styles.tags}>
         <Badge size="sm" tone={done ? "success" : held ? "warning" : "neutral"}>{STAGE_LABEL[task.stage]}</Badge>
         {task.priority && <Badge size="sm">{`${PRIORITY_LABEL[task.priority]} priority`}</Badge>}
         {task.dueDate && (
@@ -75,7 +76,8 @@ function TaskDetail({ task, history, now, today }: { task: PublicTask; history: 
         {task.slaDays && !done && <Badge size="sm" icon={<Clock {...icon} />}>{`${task.slaDays} business ${task.slaDays === 1 ? "day" : "days"} estimated`}</Badge>}
       </div>
 
-      <Stepper steps={steps} current={current} details="all" label="Request progress" completeLabel="Delivered" />
+        <Stepper steps={steps} current={current} details="all" label="Request progress" completeLabel="Delivered" />
+      </section>
 
       <TaskConversation key={task.id} taskId={task.id} />
 

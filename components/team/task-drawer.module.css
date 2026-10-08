@@ -1,7 +1,8 @@
-.body { display: flex; flex-direction: column; gap: 24px; padding-bottom: 8px; }
+/* Each block sits on its own recessed surface, so status, brief, comments, owners and history read as separate parts. */
+.body { --drawer-recessed: color-mix(in oklab, var(--foreground) 4%, var(--surface-raised)); display: flex; flex-direction: column; gap: 12px; padding-bottom: 8px; }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; }
 
-.section { display: flex; flex-direction: column; gap: 10px; }
+.section { --timeline-surface: var(--drawer-recessed); display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-surface); background: var(--drawer-recessed); }
 .section h3 { margin: 0; color: var(--text-secondary); font: 500 var(--text-xs)/var(--leading-body) var(--font-body); letter-spacing: var(--tracking-body); }
 .owners { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
 .owners li { display: flex; align-items: center; gap: 10px; }
