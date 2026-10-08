@@ -1,4 +1,4 @@
-import { AREA_LABEL, BOARD_ID, PRIORITY_LABEL } from "./board-config";
+import { AREA_LABEL, mondayItemUrl, PRIORITY_LABEL } from "./board-config";
 import { formatDay } from "./dates";
 import type { Estimate } from "./estimate";
 import type { IntakeRequest } from "./intake/schema";
@@ -47,7 +47,7 @@ export function newRequestCard({ itemId, request, requester, estimate, owners }:
             { type: "TextBlock", text: cardText(request.title), size: "Large", weight: "Bolder", wrap: true },
             { type: "FactSet", facts },
           ],
-          actions: [{ type: "Action.OpenUrl", title: "Open in monday", url: `https://atfx.monday.com/boards/${BOARD_ID}/pulses/${itemId}` }],
+          actions: [{ type: "Action.OpenUrl", title: "Open in monday", url: mondayItemUrl("requests", itemId) }],
         },
       },
     ],

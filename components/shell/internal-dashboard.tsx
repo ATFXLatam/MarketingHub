@@ -64,6 +64,7 @@ export function InternalDashboard({ user, publicPath, requestOpen = false, areaO
       {canRequest && <RequestFlow open={requesting} onOpenChange={onRequestOpenChange} requester={user.name} areaOwners={areaOwners} today={page.today} />}
       <TeamPage
         {...page}
+        linkToMonday
         actions={
           <>
             <BoardAssistant tasks={page.tasks} members={page.members} today={page.today} />

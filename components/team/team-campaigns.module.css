@@ -1,3 +1,7 @@
 .root { display: flex; min-width: 0; flex-direction: column; gap: 16px; }
 .heading { margin: 0; font: 500 var(--text-xl)/var(--leading-display) var(--font-display); letter-spacing: var(--tracking-display); }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 12px; }
+.actions { display: inline-flex; align-items: center; gap: 8px; }
+/* The same quiet icon control as the drawer's monday shortcut. */
+.monday { display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid var(--border); border-radius: var(--radius-control); background: color-mix(in oklab, var(--surface-muted) 65%, transparent); transition: background-color var(--duration-fast) var(--ease-standard); }
+@media (hover: hover) and (pointer: fine) { .monday:hover { background: var(--surface-muted); } }

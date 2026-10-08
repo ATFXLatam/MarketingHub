@@ -20,6 +20,8 @@ export interface TeamPageProps {
   /** The snapshot's team list; every widget reads it instead of deriving its own. */
   members: TeamMember[];
   campaigns: PublicCampaign[];
+  /** Signed-in people with the board in monday get a shortcut to each item there; the shared link does not. */
+  linkToMonday?: boolean;
   /** Server time of the snapshot, so the first render matches on server and client. */
   now: number;
   /** Today in the team's time zone. */
@@ -56,6 +58,7 @@ export function TeamPage({
   activity,
   members,
   campaigns,
+  linkToMonday = false,
   now,
   today,
   actions,
@@ -71,8 +74,8 @@ export function TeamPage({
         />
         <TeamOverview tasks={tasks} today={today} />
         <TeamTrends tasks={tasks} activity={activity} today={today} />
-        <TeamBoard tasks={tasks} members={members} activity={activity} now={now} today={today} />
-        <TeamCampaigns campaigns={campaigns} />
+        <TeamBoard tasks={tasks} members={members} linkToMonday={linkToMonday} activity={activity} now={now} today={today} />
+        <TeamCampaigns campaigns={campaigns} linkToMonday={linkToMonday} />
         <TeamActivity
           tasks={tasks}
           members={members}

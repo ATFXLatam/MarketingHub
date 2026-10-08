@@ -52,12 +52,13 @@ const select = (id: string | null) => setUrlParam(TASK_PARAM, id);
 export interface TeamBoardProps {
   tasks: PublicTask[];
   members: TeamMember[];
+  linkToMonday: boolean;
   activity: PublicEvent[];
   now: number;
   today: string;
 }
 
-export function TeamBoard({ tasks, members, activity, now, today }: TeamBoardProps) {
+export function TeamBoard({ tasks, members, linkToMonday, activity, now, today }: TeamBoardProps) {
   // Until someone picks a view, it follows the screen: kanban on desktop, table on a phone.
   const [picked, setPicked] = useState<string | null>(null);
   const isPhone = useSyncExternalStore(subscribeToPhone, () => matchMedia(PHONE_QUERY).matches, () => false);
@@ -151,7 +152,7 @@ export function TeamBoard({ tasks, members, activity, now, today }: TeamBoardPro
           emptyMessage="No requests"
         />
       )}
-      <TaskDrawer task={selected} history={activity} now={now} today={today} onClose={() => select(null)} />
+      <TaskDrawer task={selected} linkToMonday={linkToMonday} history={activity} now={now} today={today} onClose={() => select(null)} />
     </section>
   );
 }

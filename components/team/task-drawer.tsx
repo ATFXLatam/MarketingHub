@@ -6,7 +6,8 @@ import { Badge } from "@/components/arc/badge/badge";
 import { Drawer, DrawerContent } from "@/components/arc/drawer/drawer";
 import { Stepper } from "@/components/arc/stepper/stepper";
 import { Timeline } from "@/components/arc/timeline/timeline";
-import { AREA_LABEL, PRIORITY_LABEL, SOURCE_LABEL, STAGE_LABEL, type Stage } from "@/lib/board-config";
+import { MondayMark } from "@/components/auth/monday-mark";
+import { AREA_LABEL, mondayItemUrl, PRIORITY_LABEL, SOURCE_LABEL, STAGE_LABEL, type Stage } from "@/lib/board-config";
 import { formatDay, TEAM_TIME_ZONE } from "@/lib/dates";
 import type { PublicEvent, PublicTask } from "@/lib/public-dto";
 import { daysUntil } from "@/lib/team";
@@ -28,17 +29,26 @@ const icon = { size: 12, strokeWidth: 1.75, "aria-hidden": true } as const;
 
 export interface TaskDrawerProps {
   task: PublicTask | null;
+  linkToMonday?: boolean;
   history: PublicEvent[];
   now: number;
   today: string;
   onClose: () => void;
 }
 
-export function TaskDrawer({ task, history, now, today, onClose }: TaskDrawerProps) {
+export function TaskDrawer({ task, linkToMonday = false, history, now, today, onClose }: TaskDrawerProps) {
   return (
     <Drawer open={task !== null} onOpenChange={(open) => !open && onClose()}>
       {task && (
-        <DrawerContent title={task.title} description={task.area ? `${AREA_LABEL[task.area]}${task.market ? ` · ${task.market}` : ""}` : SOURCE_LABEL[task.source]}>
+        <DrawerContent title={task.title} description={task.area ? `${AREA_LABEL[task.area]}${task.market ? ` · ${task.market}` : ""}` : SOURCE_LABEL[task.source]}
+          action={
+            linkToMonday && (
+              <a href={mondayItemUrl(task.source, task.id)} target="_blank" rel="noopener noreferrer" aria-label="Open in monday" title="Open in monday">
+                <MondayMark size={16} />
+              </a>
+            )
+          }
+        >
           <TaskDetail task={task} history={history.filter((event) => event.taskId === task.id)} now={now} today={today} />
         </DrawerContent>
       )}

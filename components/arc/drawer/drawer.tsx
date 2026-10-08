@@ -37,6 +37,8 @@ export interface DrawerContentProps
   extends ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
   title: string;
   description?: string;
+  /** Icon controls beside the close button, such as a link to the record elsewhere. Links inside take the close button's look. */
+  action?: ReactNode;
   children: ReactNode;
   side?: "left" | "right" | "top" | "bottom";
   /** Renders the drawer inside this element instead of the page body, anchored to its edges. The element needs position: relative and overflow: hidden. */
@@ -71,6 +73,7 @@ function SwapText({ text }: { text: string }) {
 export function DrawerContent({
   title,
   description,
+  action,
   children,
   side = "right",
   container,
@@ -124,9 +127,12 @@ export function DrawerContent({
           </DialogPrimitive.Description>
         ) : null}
       </div>
-      <DialogPrimitive.Close className={styles.close} aria-label="Close panel">
-        <X size={16} strokeWidth={1.75} aria-hidden="true" />
-      </DialogPrimitive.Close>
+      <div className={styles.actions}>
+        {action}
+        <DialogPrimitive.Close className={styles.close} aria-label="Close panel">
+          <X size={16} strokeWidth={1.75} aria-hidden="true" />
+        </DialogPrimitive.Close>
+      </div>
     </motion.div>
     <div className={styles.body}>{children}</div>
   </>;
