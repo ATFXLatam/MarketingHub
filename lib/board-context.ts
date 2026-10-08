@@ -30,7 +30,7 @@ export function boardContext(tasks: PublicTask[], activity: PublicEvent[], membe
     "People and their load:",
     ...people,
     "",
-    "Open work across the requests, team and webinars boards (id | title | area or board | stage | priority | due | owners):",
+    `Open work across the ${Object.values(SOURCE_LABEL).join(", ")} boards (id | title | area or board | stage | priority | due | owners):`,
     ...open.map((task) => line(task, today)),
   ].join("\n");
 }

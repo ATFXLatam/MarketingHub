@@ -3,7 +3,7 @@ import { SOURCE_BOARDS } from "./board-config";
 import type { PublicOwner, RawItem } from "./public-dto";
 import { byPhase, campaignPhase, dueFrom, isCurrent, ownerByFirstName, toSourceTask } from "./sources";
 
-const [team, webinars] = SOURCE_BOARDS;
+const [team, webinars, hub] = SOURCE_BOARDS;
 const person = (id: string, name: string): PublicOwner => ({ id, name, photo: null, title: null, timeZone: null });
 const item = (values: RawItem["column_values"], over: Partial<RawItem> = {}): RawItem => ({
   id: "1", name: "Static ads", group: { id: "g" }, created_at: "2026-10-01T00:00:00Z", updated_at: "2026-10-01T00:00:00Z", column_values: values, ...over,
@@ -16,6 +16,7 @@ describe("toSourceTask", () => {
     expect(toSourceTask(team, item([status("status", null, null)]), new Map())?.stage).toBe("nueva");
     expect(toSourceTask(team, item([status("status", 7, "Cancelled")]), new Map())).toBeNull();
     expect(toSourceTask(team, item([status("status", 0, "Working on it")], { group: { id: "new_group70457" } }), new Map())).toBeNull();
+    expect(toSourceTask(hub, item([status("color_mm7yr5xp", 17, "Pendiente")]), new Map())).toMatchObject({ source: "hub", stage: "nueva" });
   });
 
   it("assigns a role-planned webinar step to the one person with that first name, and to nobody when it is ambiguous", () => {

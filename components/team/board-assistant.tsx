@@ -7,7 +7,7 @@ import { AiSidePanel, type Milestone, type PlanPage, type ScriptedAnswer } from 
 import { Button } from "@/components/arc/button/button";
 import { motionTokens } from "@/components/arc/lib/motion-tokens";
 import { askBoard } from "@/app/actions/assistant";
-import { AREA_LABEL } from "@/lib/board-config";
+import { AREA_LABEL, SOURCE_LABEL } from "@/lib/board-config";
 import { formatDay } from "@/lib/dates";
 import type { PublicOwner, PublicTask } from "@/lib/public-dto";
 import type { TeamMember } from "@/lib/team";
@@ -37,7 +37,7 @@ function planFrom(tasks: PublicTask[], members: TeamMember[], today: string): Pl
     status: overdue ? "At risk" : "On track",
     target: next?.dueDate ? formatDay(next.dueDate) : "No date",
     lead: busiest ? { name: busiest.name, avatar: busiest.photo ?? undefined } : { name: "No one yet" },
-    intro: `${open.length} open tasks across the requests, team and webinars boards. ${overdue ? `${overdue} are past their due date.` : "Nothing is overdue."} Pick a request to ask about it.`,
+    intro: `${open.length} open tasks across ${Object.keys(SOURCE_LABEL).length} monday boards. ${overdue ? `${overdue} are past their due date.` : "Nothing is overdue."} Pick a request to ask about it.`,
     milestones: open.slice(0, SHOWN).map((task) => ({
       id: task.id,
       name: task.area ? `${task.title} · ${AREA_LABEL[task.area]}` : task.title,

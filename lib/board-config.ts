@@ -191,9 +191,9 @@ export function subtypeOf(area: Area, value: string): Subtype | undefined {
  * Other team boards the hub mirrors next to the requests board, read only. Each keeps its own columns and status labels,
  * so every board maps its label ids onto the hub's stages; a label left out (Cancelled, Guideline) keeps the item off the hub.
  */
-export const SOURCES = ["requests", "team", "webinars"] as const;
+export const SOURCES = ["requests", "team", "webinars", "hub"] as const;
 export type Source = (typeof SOURCES)[number];
-export const SOURCE_LABEL: Record<Source, string> = { requests: "Requests", team: "Team board", webinars: "Webinars" };
+export const SOURCE_LABEL: Record<Source, string> = { requests: "Requests", team: "Team board", webinars: "Webinars", hub: "Hub project" };
 
 export interface SourceBoard {
   id: number;
@@ -230,6 +230,15 @@ export const SOURCE_BOARDS: readonly SourceBoard[] = [
     due: "project_timeline",
     role: "text_mm7hvmgs",
     stages: { 3: "ready", 4: "nueva", 0: "en-curso", 2: "on-hold", 1: "hecha" },
+  },
+  {
+    // "ATFX Marketing Hub · Plan de proyecto": the hub's own build, so the team sees it next to the rest of its work.
+    id: 18434509714,
+    source: "hub",
+    status: "color_mm7yr5xp",
+    owner: "multiple_person_mm7y22z8",
+    due: "date_mm7yey3y",
+    stages: { 17: "nueva", 0: "en-curso", 2: "on-hold", 1: "hecha" },
   },
 ];
 
