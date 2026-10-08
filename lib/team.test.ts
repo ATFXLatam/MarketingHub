@@ -20,8 +20,17 @@ describe("teamMembers", () => {
     ]);
     expect(members.map((member) => member.name)).toEqual(["Ana", "Leo"]);
     expect(members[0].current.map((item) => item.id)).toEqual(["c", "b"]);
-    expect(members[0]).toMatchObject({ open: 2, done: 1, title: "Diseño", areas: ["web"] });
+    expect(members[0]).toMatchObject({ open: 2, done: 1, title: "Diseño" });
     expect(members[0].queue.map((item) => item.id)).toEqual(["c", "b"]);
+  });
+});
+
+describe("teamMembers areas", () => {
+  it("takes a person's areas from the team core, not from the tasks they happened to touch", () => {
+    const naomi: PublicOwner = { id: "77121579", name: "Naomi", photo: null, title: null, timeZone: null };
+    const members = teamMembers([task({ owners: [naomi], area: "web" }), task({ id: "x", area: "diseno" })]);
+    expect(members.find((member) => member.name === "Naomi")?.areas).toEqual(["video"]);
+    expect(members.find((member) => member.name === "Ana")?.areas).toEqual([]);
   });
 });
 

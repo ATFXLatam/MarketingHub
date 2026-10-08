@@ -1,3 +1,4 @@
+import { TEAM_AREAS } from "./board-config";
 import type { PublicOwner, PublicTask } from "./public-dto";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -8,7 +9,7 @@ export interface TeamMember extends PublicOwner {
   /** Everything assigned that is not finished yet. */
   open: number;
   done: number;
-  /** Areas the member has work in, for filtering the directory. */
+  /** Request areas the member answers for, from the team core; empty for people outside it. */
   areas: NonNullable<PublicTask["area"]>[];
   /** Open work by due date, so the profile can list what comes next. */
   queue: PublicTask[];
@@ -28,7 +29,7 @@ export function teamMembers(tasks: PublicTask[], roster: PublicOwner[] = []): Te
         current: mine.filter((task) => task.stage === "en-curso").sort(byDue),
         open: mine.filter((task) => task.stage !== "hecha").length,
         done: mine.filter((task) => task.stage === "hecha").length,
-        areas: [...new Set(mine.flatMap((task) => (task.area ? [task.area] : [])))],
+        areas: [...(TEAM_AREAS.get(owner.id) ?? [])],
         queue: mine.filter((task) => task.stage !== "hecha").sort(byDue),
       };
     })

@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import { BOARD_ID, STAGE_GROUP, type Area } from "../board-config";
+import { AREA_TEAM, BOARD_ID, STAGE_GROUP, type Area } from "../board-config";
 import type { Estimate } from "../estimate";
 import type { IntakeRequest } from "../intake/schema";
 import { mondayQuery } from "./client";
@@ -9,17 +9,17 @@ import { buildColumnValues, type Requester } from "./columns";
 const OwnersSchema = z.record(z.string(), z.array(z.number().int().positive()));
 
 /**
- * Area owners as monday user ids, from MONDAY_AREA_OWNERS ({"web":[123],"video":[456]}). Optional: without it the item
- * lands unassigned and a monday automation can assign it, so changing an owner never needs a deploy.
+ * Area owners as monday user ids: the team core (AREA_TEAM), unless MONDAY_AREA_OWNERS ({"web":[123]}) overrides it,
+ * so covering for someone on leave needs an env change and not a deploy.
  */
 export function configuredOwners(): Partial<Record<Area, number[]>> {
   const raw = process.env.MONDAY_AREA_OWNERS;
-  if (!raw) return {};
+  if (!raw) return AREA_TEAM;
   try {
     return OwnersSchema.parse(JSON.parse(raw));
   } catch (error) {
-    console.error("MONDAY_AREA_OWNERS is not valid JSON; the request is created without an owner", error);
-    return {};
+    console.error("MONDAY_AREA_OWNERS is not valid JSON; the team core assigns the request", error);
+    return AREA_TEAM;
   }
 }
 

@@ -29,11 +29,31 @@ export const COLUMNS = {
 /** The team's picture for anyone without an uploaded monday photo, so no avatar falls back to bare initials. */
 export const DEFAULT_AVATAR = "/brand/team-avatar.jpg";
 
-/** monday users who belong to the team even with nothing assigned yet, so the directory shows the whole team. */
-export const TEAM_ROSTER = ["28982466", "74311964"] as const;
-
 export const AREAS = ["web", "video", "eventos", "diseno"] as const;
 export type Area = (typeof AREAS)[number];
+
+/**
+ * The team core: who is on the team and which request areas each person answers for. New requests are assigned from it,
+ * and the directory filters by it, so a person's area follows their job and not whatever tasks they happened to touch.
+ * People not listed still appear once they have work on any board, with no area.
+ */
+export const TEAM: readonly { id: string; areas: readonly Area[] }[] = [
+  { id: "97526256", areas: ["web"] }, // Karen Ortiz, Web Developer
+  { id: "77121579", areas: ["video"] }, // Naomi Greene, Videographer & Photographer
+  { id: "106517133", areas: ["diseno"] }, // Sergio Arciga Bustamante
+  { id: "28982466", areas: ["eventos"] }, // Maritza Perez, Marketing Event Executive
+  { id: "74311964", areas: [] }, // Guillermo Lara Mosqueda, Senior Digital Marketing Executive
+];
+
+/** monday users who belong to the team even with nothing assigned yet, so the directory shows the whole team. */
+export const TEAM_ROSTER = TEAM.map((member) => member.id);
+
+export const TEAM_AREAS: ReadonlyMap<string, readonly Area[]> = new Map(TEAM.map((member) => [member.id, member.areas]));
+
+/** Who a new request in each area is assigned to. */
+export const AREA_TEAM: Record<Area, number[]> = Object.fromEntries(
+  AREAS.map((area) => [area, TEAM.filter((member) => member.areas.includes(area)).map((member) => Number(member.id))]),
+) as Record<Area, number[]>;
 
 export const AREA_LABEL: Record<Area, string> = { web: "Web", video: "Video", eventos: "Events", diseno: "Design" };
 export const AREA_LABEL_ID: Record<Area, number> = { web: 7, video: 4, eventos: 9, diseno: 12 };
