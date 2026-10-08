@@ -1,6 +1,7 @@
 "use server";
 
 import { updateTag } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 import { currentSession } from "@/lib/auth/current";
 import { estimate, type Estimate } from "@/lib/estimate";
@@ -9,8 +10,9 @@ import { blobStoreHost, ownBlobHref } from "@/lib/intake/blob-url";
 import { RequestSchema } from "@/lib/intake/schema";
 import { todayIn } from "@/lib/dates";
 import { MondayError } from "@/lib/monday/client";
-import { BOARD_TAG } from "@/lib/monday/read";
-import { createRequestItem } from "@/lib/monday/write";
+import { BOARD_TAG, getAreaPeople } from "@/lib/monday/read";
+import { createRequestItem, ownersFor } from "@/lib/monday/write";
+import { notifyTeams } from "@/lib/teams";
 
 export type SubmitResult =
   | { success: true; data: { itemId: string; estimate: Estimate } }
@@ -61,6 +63,12 @@ export async function submitRequest(input: unknown, idempotencyKey: string): Pro
   try {
     const itemId = await createRequestItem(request, requester, result, idempotencyKey);
     updateTag(BOARD_TAG);
+    // After the response, so the requester never waits on Teams.
+    after(async () => {
+      const people = await getAreaPeople(ownersFor(request.area).map(String)).catch(() => new Map());
+      const owners = ownersFor(request.area).map((id) => people.get(String(id))?.name ?? `monday user ${id}`);
+      await notifyTeams({ itemId, request, requester: user.name, estimate: result, owners });
+    });
     return { success: true, data: { itemId, estimate: result } };
   } catch (error) {
     console.error("could not create the request in monday", { user: user.userId, error });
