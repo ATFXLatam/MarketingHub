@@ -30,6 +30,12 @@ Variables en `.env.example`. Mínimo para ver el tablero: `MONDAY_API_TOKEN`, `P
 
 Board → Integrate → Webhooks → "When any column changes" (y "When an item is created") → URL `https://<host>/api/monday/webhook/<MONDAY_WEBHOOK_SECRET>`. La ruta responde el challenge sola.
 
+### Desbloquear tareas en los boards de proyecto
+
+monday no tiene la receta "change the status of its dependency" en boards multinivel (como los Project nuevos), así que el hub la hace: cuando una tarea pasa a Done, las que esperaban solo por ella pasan de `Bloqueada` a `Lista para empezar`. Una tarea con dos dependencias espera a las dos, y lo que alguien ya movió a mano no se toca.
+
+En cada board de proyecto: Integrate → Webhooks → "When a column changes" → columna **Status** → URL `https://<host>/api/monday/webhook/<MONDAY_WEBHOOK_SECRET>/dependencies`. El board necesita las columnas `project_status` y `project_dependency` (las trae todo Project) y los labels `Bloqueada` y `Lista para empezar`. Escribe con `MONDAY_API_TOKEN`, así que ese token debe tener acceso al board.
+
 ## Comandos
 
 `npm run dev` · `npm run build` · `npm test` · `npm run typecheck` · `npm run lint`
