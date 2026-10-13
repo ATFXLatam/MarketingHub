@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { SOURCE_BOARDS } from "./board-config";
-import type { PublicOwner, RawItem } from "./public-dto";
+import { RawItemSchema, type PublicOwner, type RawItem } from "./public-dto";
 import { byPhase, campaignPhase, dueFrom, isCurrent, ownerByFirstName, toSourceTask } from "./sources";
 
-const [team, webinars, hub] = SOURCE_BOARDS;
+const board = (source: string) => SOURCE_BOARDS.find((entry) => entry.source === source)!;
+const [team, webinars, affiliates, hub] = ["team", "webinars", "affiliates", "hub"].map(board);
 const person = (id: string, name: string): PublicOwner => ({ id, name, photo: null, title: null, timeZone: null });
 const item = (values: RawItem["column_values"], over: Partial<RawItem> = {}): RawItem => ({
   id: "1", name: "Static ads", group: { id: "g" }, created_at: "2026-10-01T00:00:00Z", updated_at: "2026-10-01T00:00:00Z", column_values: values, ...over,
@@ -17,6 +18,11 @@ describe("toSourceTask", () => {
     expect(toSourceTask(team, item([status("status", 7, "Cancelled")]), new Map())).toBeNull();
     expect(toSourceTask(team, item([status("status", 0, "Working on it")], { group: { id: "new_group70457" } }), new Map())).toBeNull();
     expect(toSourceTask(hub, item([status("color_mm7yr5xp", 17, "Pendiente")]), new Map())).toMatchObject({ source: "hub", stage: "nueva" });
+  });
+
+  it("reads a multi-level board's status, which arrives as a one-label battery with no text", () => {
+    const raw = RawItemSchema.parse(item([{ id: "project_status", text: "", battery_value: [{ key: "3" }] } as never]));
+    expect(toSourceTask(affiliates, raw, new Map())).toMatchObject({ source: "affiliates", stage: "ready" });
   });
 
   it("assigns a role-planned webinar step to the one person with that first name, and to nobody when it is ambiguous", () => {
