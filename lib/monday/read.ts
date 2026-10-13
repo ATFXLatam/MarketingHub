@@ -27,7 +27,9 @@ const PAGE_SIZE = 500;
 const ACTIVITY_DAYS = 60;
 const ACTIVITY_LIMIT = 300;
 
-const ITEM_FIELDS = `id name group { id } created_at updated_at column_values(ids: $columns) { id text ... on StatusValue { index } ... on PeopleValue { persons_and_teams { id kind } } }`;
+// Multi-level boards return their status only with capabilities: [CALCULATED], and as a BatteryValue; classic boards
+// ignore the argument and keep StatusValue.
+const ITEM_FIELDS = `id name group { id } created_at updated_at column_values(ids: $columns, capabilities: [CALCULATED]) { id text ... on StatusValue { index } ... on BatteryValue { battery_value { key } } ... on PeopleValue { persons_and_teams { id kind } } }`;
 
 const NextPageSchema = z.object({
   next_items_page: z.object({ cursor: z.string().nullable(), items: z.array(RawItemSchema) }),

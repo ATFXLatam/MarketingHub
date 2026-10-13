@@ -8,8 +8,11 @@ const column = (item: RawItem, id: string) => item.column_values.find((value) =>
 
 /** A label the board maps, or null when the label keeps the item off the hub (Cancelled, Guideline). Unlabeled is new. */
 export function sourceStage(board: SourceBoard, labelId: number | null | undefined, text: string | null): Stage | null {
-  if (labelId === null || labelId === undefined || !text?.trim()) return "nueva";
-  return board.stages[labelId] ?? null;
+  if (labelId === null || labelId === undefined) return "nueva";
+  // A multi-level board sends the label id with no text, so a mapped id is trusted on its own.
+  const mapped = board.stages[labelId];
+  if (mapped) return mapped;
+  return text?.trim() ? null : "nueva";
 }
 
 /** A date column reads "2026-10-02"; a timeline reads "2026-09-30 - 2026-10-02" and is due on its end. */

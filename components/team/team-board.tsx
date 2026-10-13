@@ -20,7 +20,7 @@ const TASK_PARAM = "task";
 const PHONE_QUERY = "(max-width: 700px)";
 
 // Step by step plans that would bury the requests in the team view; they show when picked, or as part of one person's work.
-const PROJECT_SOURCES: readonly Source[] = ["webinars", "hub"];
+const PROJECT_SOURCES: readonly Source[] = ["webinars", "affiliates", "hub"];
 
 // Requests filter by area; the other boards have no areas, so each filters as a whole.
 const OTHER_SOURCES = (Object.keys(SOURCE_LABEL) as Source[]).filter((source) => source !== "requests");

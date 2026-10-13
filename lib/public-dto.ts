@@ -78,15 +78,21 @@ export const PUBLIC_COLUMN_IDS = [
   COLUMNS.owner,
 ] as const;
 
-const ColumnValueSchema = z.object({
-  id: z.string(),
-  text: z.string().nullable(),
-  index: z.number().nullable().optional(),
-  persons_and_teams: z
-    .array(z.object({ id: z.union([z.string(), z.number()]), kind: z.string() }))
-    .nullable()
-    .optional(),
-});
+const ColumnValueSchema = z
+  .object({
+    id: z.string(),
+    text: z.string().nullable(),
+    index: z.number().nullable().optional(),
+    battery_value: z.array(z.object({ key: z.coerce.number() })).nullable().optional(),
+    persons_and_teams: z
+      .array(z.object({ id: z.union([z.string(), z.number()]), kind: z.string() }))
+      .nullable()
+      .optional(),
+  })
+  // A task's status on a multi-level board is a battery holding its one label; read it as that label's index.
+  .transform(({ battery_value, ...value }) =>
+    value.index == null && battery_value?.length === 1 ? { ...value, index: battery_value[0].key } : value,
+  );
 
 export const RawItemSchema = z.object({
   id: z.string(),
