@@ -13,7 +13,9 @@ export const maxDuration = 120;
  */
 export async function POST(request: Request, context: RouteContext<"/api/monday/webhook/[secret]/intake">): Promise<NextResponse> {
   const { secret } = await context.params;
-  if (!safeEqual(secret, process.env.MONDAY_WEBHOOK_SECRET)) {
+  // Its own secret: the shared one is Sensitive in Vercel and nobody kept a copy, so this webhook could not be
+  // subscribed without rotating it under the webhooks already running.
+  if (!safeEqual(secret, process.env.MONDAY_INTAKE_SECRET)) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
