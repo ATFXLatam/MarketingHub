@@ -4,7 +4,7 @@ import { spawnCampaign } from "@/lib/monday/campaign";
 import { safeEqual } from "@/lib/secrets";
 
 // Copying the template and waiting for monday to finish it runs after the response, inside this budget.
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 /**
  * Subscribed on "Solicitudes Afiliados" to "When a column changes" on its Status. When a request becomes Accepted the
