@@ -68,7 +68,7 @@ async function readBoard(boardId: string | number): Promise<Copy | null> {
         items_count
         columns(ids: ["${STATUS_COLUMN}"]) { settings }
         items_page(limit: 200) { items { id name group { id }
-          column_values(ids: ["${CAMPAIGN_TEMPLATE.timeline}", "project_dependency"]) { id text ... on DependencyValue { linked_item_ids } }
+          column_values(ids: ["${CAMPAIGN_TEMPLATE.timeline}", "project_dependency"], capabilities: [CALCULATED]) { id text ... on DependencyValue { linked_item_ids } }
         } }
       } }`,
       { board: [boardId] },
