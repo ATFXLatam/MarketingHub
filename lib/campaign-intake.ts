@@ -93,3 +93,8 @@ export function spanOf(ranges: DateRange[]): DateRange | null {
     to: ranges.reduce((max, range) => (range.to > max ? range.to : max), ranges[0].to),
   };
 }
+
+/** The board id in the request's Campaign board link ("Campaign · X - https://atfx.monday.com/boards/123"). */
+export function boardIdFromLink(text: string | null | undefined): string | null {
+  return text?.match(/\/boards\/(\d+)/)?.[1] ?? null;
+}

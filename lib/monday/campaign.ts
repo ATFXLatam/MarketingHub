@@ -1,13 +1,13 @@
 import "server-only";
 import { z } from "zod";
-import { AFFILIATE_INTAKE, CAMPAIGN_PORTFOLIO, CAMPAIGN_TEMPLATE, campaignBoardName, parseRange, shiftTimelines, spanOf } from "../campaign-intake";
+import { AFFILIATE_INTAKE, boardIdFromLink, CAMPAIGN_PORTFOLIO, CAMPAIGN_TEMPLATE, campaignBoardName, parseRange, shiftTimelines, spanOf } from "../campaign-intake";
 import { STATUS_COLUMN } from "../dependencies";
 import { mondayQuery } from "./client";
 import { unblockDependents } from "./unblock";
 
 const MONDAY_HOST = "https://atfx.monday.com";
-// duplicate_board copies items in the background; a 21-task board settles in a few seconds.
-const SETTLE_TRIES = 15;
+// duplicate_board copies items in the background: seconds when monday is idle, past a minute when two run at once.
+const SETTLE_TRIES = 80;
 const SETTLE_INTERVAL_MS = 3000;
 
 const cell = z.object({ id: z.string(), text: z.string().nullable() });
@@ -108,16 +108,32 @@ const todayUtc = () => new Date().toISOString().slice(0, 10);
 /**
  * Turns an Accepted affiliate request into its own campaign board: a copy of the MVP board without the setup group,
  * dated from today, with the request step done, the dependency webhook subscribed and a Portfolio entry. The request's
- * Campaign board link is written right after the copy, so a repeated webhook never makes a second board.
+ * Campaign board link is written right after the copy, so a repeated webhook never makes a second board; moving an
+ * unfinished request back to Accepted finishes the board it already has.
  */
 export async function spawnCampaign(requestId: number, origin: string): Promise<string | null> {
   const request = await readRequest(requestId);
-  if (!request || request.status !== AFFILIATE_INTAKE.acceptedLabel || request.campaignLink) return null;
+  if (!request || request.status !== AFFILIATE_INTAKE.acceptedLabel) return null;
 
   const template = await readBoard(CAMPAIGN_TEMPLATE.boardId);
   if (!template) throw new Error(`template board ${CAMPAIGN_TEMPLATE.boardId} not readable`);
 
   const name = campaignBoardName(request.name);
+  const copyId = boardIdFromLink(request.campaignLink) ?? (await duplicateTemplate(requestId, name));
+
+  const copy = await settledCopy(copyId, template);
+  if (!copy) {
+    await comment(requestId, `Campaign board still copying: ${boardUrl(copyId)}. Move this request out of Accepted and back to finish it.`);
+    return copyId;
+  }
+  // The setup group is archived last, so a board without it is finished and a re-run leaves it alone.
+  if (!copy.items_page.items.some((item) => item.group.id === CAMPAIGN_TEMPLATE.setupGroup)) return copyId;
+
+  await finishCampaign(copyId, copy, name, request, requestId, origin);
+  return copyId;
+}
+
+async function duplicateTemplate(requestId: number, name: string): Promise<string> {
   const { duplicate_board } = DuplicateSchema.parse(
     await mondayQuery(
       `mutation ($board: ID!, $name: String!, $workspace: ID!, $folder: ID!) {
@@ -129,24 +145,36 @@ export async function spawnCampaign(requestId: number, origin: string): Promise<
   );
   const copyId = duplicate_board.board.id;
   await setColumns(AFFILIATE_INTAKE.boardId, String(requestId), { [AFFILIATE_INTAKE.campaignLink]: { url: boardUrl(copyId), text: name } });
+  return copyId;
+}
 
-  const copy = await settledCopy(copyId, template);
-  if (!copy) {
-    await comment(requestId, `Campaign board created but still copying: ${boardUrl(copyId)}. Check the dates and the setup group by hand.`);
-    return copyId;
-  }
+const WebhooksSchema = z.object({ webhooks: z.array(z.object({ event: z.string() })) });
+const NamedItemsSchema = z.object({ boards: z.array(z.object({ items_page: z.object({ items: z.array(z.object({ id: z.string() })) }) })) });
 
-  await mondayQuery(`mutation ($board: ID!, $group: String!) { archive_group(board_id: $board, group_id: $group) { id } }`, {
-    board: copyId,
-    group: CAMPAIGN_TEMPLATE.setupGroup,
-  });
-
+async function finishCampaign(
+  copyId: string,
+  copy: Copy,
+  name: string,
+  request: NonNullable<Awaited<ReturnType<typeof readRequest>>>,
+  requestId: number,
+  origin: string,
+): Promise<void> {
   const tasks = copy.items_page.items.filter((item) => item.group.id !== CAMPAIGN_TEMPLATE.setupGroup);
   const shifted = shiftTimelines(
     tasks.map((item) => ({ id: item.id, range: parseRange(item.column_values.find((value) => value.id === CAMPAIGN_TEMPLATE.timeline)?.text) })),
     todayUtc(),
   );
   for (const { id, range } of shifted) await setColumns(copyId, id, { [CAMPAIGN_TEMPLATE.timeline]: range });
+
+  // Subscribed before the request step is closed, so every later Done on this board releases the next step.
+  const secret = process.env.MONDAY_WEBHOOK_SECRET;
+  const { webhooks } = WebhooksSchema.parse(await mondayQuery(`query ($board: ID!) { webhooks(board_id: $board) { event } }`, { board: copyId }));
+  if (secret && !webhooks.some((hook) => hook.event === "change_specific_column_value")) {
+    await mondayQuery(
+      `mutation ($board: ID!, $url: String!, $config: JSON!) { create_webhook(board_id: $board, url: $url, event: change_specific_column_value, config: $config) { id } }`,
+      { board: copyId, url: `${origin}/api/monday/webhook/${secret}/dependencies`, config: JSON.stringify({ columnId: STATUS_COLUMN }) },
+    );
+  }
 
   const done = copy.columns[0]?.settings.labels.find((label) => label.is_done);
   const requestStep = tasks.find((item) => item.group.id === CAMPAIGN_TEMPLATE.requestGroup && item.name.trim().startsWith("1."));
@@ -155,28 +183,32 @@ export async function spawnCampaign(requestId: number, origin: string): Promise<
     await unblockDependents(Number(copyId), Number(requestStep.id));
   }
 
-  const secret = process.env.MONDAY_WEBHOOK_SECRET;
-  if (secret) {
+  const span = spanOf(shifted.map((task) => task.range));
+  const existing = NamedItemsSchema.parse(
     await mondayQuery(
-      `mutation ($board: ID!, $url: String!, $config: JSON!) { create_webhook(board_id: $board, url: $url, event: change_specific_column_value, config: $config) { id } }`,
-      { board: copyId, url: `${origin}/api/monday/webhook/${secret}/dependencies`, config: JSON.stringify({ columnId: STATUS_COLUMN }) },
+      `query ($board: [ID!], $name: CompareValue!) { boards(ids: $board) { items_page(limit: 1, query_params: { rules: [{ column_id: "name", compare_value: $name, operator: any_of }] }) { items { id } } } }`,
+      { board: [CAMPAIGN_PORTFOLIO.boardId], name: [name] },
+    ),
+  ).boards[0]?.items_page.items.length;
+  if (!existing) {
+    await mondayQuery(
+      `mutation ($board: ID!, $name: String!, $values: JSON!) { create_item(board_id: $board, item_name: $name, column_values: $values) { id } }`,
+      {
+        board: CAMPAIGN_PORTFOLIO.boardId,
+        name,
+        values: JSON.stringify({
+          [CAMPAIGN_PORTFOLIO.scope]: [`Affiliate: ${request.affiliate || "-"}`, `Product: ${request.product || "-"}`, `Board: ${boardUrl(copyId)}`].join(" · "),
+          ...(span ? { [CAMPAIGN_PORTFOLIO.plannedTimeline]: span } : {}),
+        }),
+      },
     );
   }
 
-  const span = spanOf(shifted.map((task) => task.range));
-  await mondayQuery(
-    `mutation ($board: ID!, $name: String!, $values: JSON!) { create_item(board_id: $board, item_name: $name, column_values: $values) { id } }`,
-    {
-      board: CAMPAIGN_PORTFOLIO.boardId,
-      name,
-      values: JSON.stringify({
-        [CAMPAIGN_PORTFOLIO.scope]: [`Affiliate: ${request.affiliate || "-"}`, `Product: ${request.product || "-"}`, `Board: ${boardUrl(copyId)}`].join(" · "),
-        ...(span ? { [CAMPAIGN_PORTFOLIO.plannedTimeline]: span } : {}),
-      }),
-    },
-  );
+  await mondayQuery(`mutation ($board: ID!, $group: String!) { archive_group(board_id: $board, group_id: $group) { id } }`, {
+    board: copyId,
+    group: CAMPAIGN_TEMPLATE.setupGroup,
+  });
 
   const launch = request.launch && span && request.launch < span.to ? ` The requested launch (${request.launch}) is before the planned end (${span.to}).` : "";
   await comment(requestId, `Campaign board ready: ${boardUrl(copyId)}. Planned ${span ? `${span.from} to ${span.to}` : "without dates"}.${launch}`);
-  return copyId;
 }

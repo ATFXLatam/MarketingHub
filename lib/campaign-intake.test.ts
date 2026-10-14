@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AFFILIATE_INTAKE, campaignBoardName, intakeStatusChange, parseRange, shiftTimelines, spanOf } from "./campaign-intake";
+import { AFFILIATE_INTAKE, boardIdFromLink, campaignBoardName, intakeStatusChange, parseRange, shiftTimelines, spanOf } from "./campaign-intake";
 
 describe("intakeStatusChange", () => {
   const event = (boardId: number, columnId: string) => ({ event: { boardId, pulseId: "42", columnId } });
@@ -42,5 +42,12 @@ describe("campaign naming and span", () => {
   it("spans from the earliest start to the latest end", () => {
     expect(spanOf([{ from: "2026-11-03", to: "2026-11-09" }, { from: "2026-11-02", to: "2026-11-02" }])).toEqual({ from: "2026-11-02", to: "2026-11-09" });
     expect(spanOf([])).toBeNull();
+  });
+});
+
+describe("boardIdFromLink", () => {
+  it("reads the board a request already has, so a second Accepted finishes it instead of copying again", () => {
+    expect(boardIdFromLink("Campaign · X - https://atfx.monday.com/boards/18435480816")).toBe("18435480816");
+    expect(boardIdFromLink("")).toBeNull();
   });
 });

@@ -4,6 +4,7 @@ import { DEPENDENCY_COLUMN, READY_LABEL, STATUS_COLUMN, unblockedBy, type Status
 import { mondayQuery } from "./client";
 
 const PAGE_SIZE = 500;
+const OWNER_COLUMN = "project_owner";
 
 // capabilities: [CALCULATED] is what makes a multi-level board return its status at all, and there it arrives as a
 // BatteryValue with one key per leaf; a classic board keeps StatusValue. Both shapes are read.
@@ -93,5 +94,35 @@ export async function unblockDependents(boardId: number, itemId: number): Promis
       { board: boardId, item: id, column: STATUS_COLUMN, value: JSON.stringify({ index: ready.id }) },
     );
   }
+  if (released.length) await notifyOwners(released);
   return released;
+}
+
+const OwnersSchema = z.object({
+  items: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      column_values: z.array(z.object({ persons_and_teams: z.array(z.object({ id: z.coerce.string(), kind: z.string() })).nullable().optional() })),
+    }),
+  ),
+});
+
+/** A status change alone tells nobody: the people on a released task get a monday notification that it can start. */
+async function notifyOwners(itemIds: string[]): Promise<void> {
+  const { items } = OwnersSchema.parse(
+    await mondayQuery(
+      `query ($items: [ID!]) { items(ids: $items) { id name column_values(ids: ["${OWNER_COLUMN}"]) { ... on PeopleValue { persons_and_teams { id kind } } } } }`,
+      { items: itemIds },
+    ),
+  );
+  for (const item of items) {
+    const people = item.column_values.flatMap((cell) => cell.persons_and_teams ?? []).filter((entry) => entry.kind === "person");
+    for (const person of people) {
+      await mondayQuery(
+        `mutation ($user: ID!, $item: ID!, $text: String!) { create_notification(user_id: $user, target_id: $item, target_type: Project, text: $text) { text } }`,
+        { user: person.id, item: item.id, text: `Ready to start: ${item.name}. The task it was waiting on is done.` },
+      );
+    }
+  }
 }
