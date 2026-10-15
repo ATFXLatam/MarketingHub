@@ -8,7 +8,7 @@ const BriefSchema = z.object({
   items: z.array(z.object({ column_values: z.array(z.object({ id: z.string(), text: z.string().nullable() })) })),
 });
 
-/** Writes the form's answers as the item's description. Reads both from the API: the webhook payload is unsigned. */
+/** Posts the form's answers as the item's pinned first update. Reads both from the API: the webhook payload is unsigned. */
 export async function writeBrief(itemId: number, formToken: string): Promise<void> {
   const { form, items } = BriefSchema.parse(
     await mondayQuery(`query ($token: String!, $item: [ID!]) { form(formToken: $token) { questions { id title type } } items(ids: $item) { column_values { id text } } }`, {
@@ -21,19 +21,18 @@ export async function writeBrief(itemId: number, formToken: string): Promise<voi
   const markdown = briefMarkdown(form.questions, new Map(item.column_values.map((value) => [value.id, value.text ?? ""])));
   if (!markdown) return;
 
-  const result = await mondayQuery<{ set_item_description_content: { success: boolean; error: string | null } }>(
-    `mutation ($item: ID!, $markdown: String!) { set_item_description_content(item_id: $item, markdown: $markdown) { success error } }`,
-    { item: itemId, markdown },
-  ).catch((error: unknown) => ({ set_item_description_content: { success: false, error: String(error) } }));
-  if (result.set_item_description_content.success) return;
-
-  // Descriptions are a 2026-04 API feature; if monday refuses one, the brief still lands on the item as its first update.
-  console.error("item description refused, posting the brief as an update", itemId, result.set_item_description_content.error);
-  await mondayQuery(`mutation ($item: ID!, $body: String!) { create_update(item_id: $item, body: $body) { id } }`, {
-    item: itemId,
-    body: markdownToUpdateHtml(markdown),
-  });
+  // set_item_description_content answers a bare 500 on this account (tested on 2026-07 from the hub and by hand), so
+  // the brief goes in an update pinned to the top: it stays first however many comments follow.
+  const { create_update } = UpdateSchema.parse(
+    await mondayQuery(`mutation ($item: ID!, $body: String!) { create_update(item_id: $item, body: $body) { id } }`, {
+      item: itemId,
+      body: markdownToUpdateHtml(markdown),
+    }),
+  );
+  await mondayQuery(`mutation ($update: ID!, $item: ID) { pin_to_top(id: $update, item_id: $item) { id } }`, { update: create_update.id, item: itemId });
 }
+
+const UpdateSchema = z.object({ create_update: z.object({ id: z.string() }) });
 
 // Updates take HTML, not markdown: bold labels and paragraphs are all the brief uses.
 function markdownToUpdateHtml(markdown: string): string {

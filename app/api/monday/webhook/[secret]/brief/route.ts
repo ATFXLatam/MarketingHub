@@ -4,8 +4,8 @@ import { writeBrief } from "@/lib/monday/brief";
 import { safeEqual } from "@/lib/secrets";
 
 /**
- * Subscribed to "When an item is created" on each board fed by a monday form. Copies the form's answers into the new
- * item's description. Shares the intake secret: both webhooks were registered by hand with the same Keychain copy.
+ * Subscribed to "When an item is created" on each board fed by a monday form. Posts the form's answers on the new
+ * item as a pinned update. Shares the intake secret: both webhooks were registered by hand with the same Keychain copy.
  */
 export async function POST(request: Request, context: RouteContext<"/api/monday/webhook/[secret]/brief">): Promise<NextResponse> {
   const { secret } = await context.params;
