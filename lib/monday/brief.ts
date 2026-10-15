@@ -4,21 +4,21 @@ import { briefMarkdown } from "../form-brief";
 import { mondayQuery } from "./client";
 
 const BriefSchema = z.object({
-  form: z.object({ questions: z.array(z.object({ id: z.string(), title: z.string(), type: z.string() })) }).nullable(),
+  form: z.object({ questions: z.array(z.object({ id: z.string(), title: z.string(), type: z.string(), visible: z.boolean() })) }).nullable(),
   items: z.array(z.object({ column_values: z.array(z.object({ id: z.string(), text: z.string().nullable() })) })),
 });
 
 /** Posts the form's answers as the item's pinned first update. Reads both from the API: the webhook payload is unsigned. */
 export async function writeBrief(itemId: number, formToken: string): Promise<void> {
   const { form, items } = BriefSchema.parse(
-    await mondayQuery(`query ($token: String!, $item: [ID!]) { form(formToken: $token) { questions { id title type } } items(ids: $item) { column_values { id text } } }`, {
+    await mondayQuery(`query ($token: String!, $item: [ID!]) { form(formToken: $token) { questions { id title type visible } } items(ids: $item) { column_values { id text } } }`, {
       token: formToken,
       item: [itemId],
     }),
   );
   const item = items[0];
   if (!form || !item) return;
-  const markdown = briefMarkdown(form.questions, new Map(item.column_values.map((value) => [value.id, value.text ?? ""])));
+  const markdown = briefMarkdown(form.questions.filter((question) => question.visible), new Map(item.column_values.map((value) => [value.id, value.text ?? ""])));
   if (!markdown) return;
 
   // set_item_description_content answers a bare 500 on this account (tested on 2026-07 from the hub and by hand), so
