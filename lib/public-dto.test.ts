@@ -54,6 +54,7 @@ describe("canonicalMarket", () => {
     expect(canonicalMarket("Mexico / Argentina")).toBe(canonicalMarket("México / Argentina"));
     expect(canonicalMarket("Mexico / Argentina")).toBe("México / Argentina");
     expect(canonicalMarket("Monterrey")).toBe("Monterrey");
+    expect(canonicalMarket("Mexico, Argentina")).toBe("México / Argentina");
     expect(canonicalMarket("  ")).toBeNull();
   });
 });

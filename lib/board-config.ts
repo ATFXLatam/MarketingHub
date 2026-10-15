@@ -18,7 +18,10 @@ export const COLUMNS = {
   drive: "link_mm5qnyxe",
   brief: "long_text_mm5qr9r0",
   blockers: "long_text_mm5q2fqt",
+  /** Free text until 15 Oct 2026; kept for items written before the list. */
   market: "text_mm5qsbx8",
+  /** "Mercado / País" as a multi-select over MARKETS, what the form asks since 15 Oct 2026. */
+  markets: "multi_selectbjtkvy32",
   webType: "dropdown_mm5qpws4",
   landingSubtype: "dropdown_mm5q9r7g",
   designType: "dropdown_mm5qw1x",

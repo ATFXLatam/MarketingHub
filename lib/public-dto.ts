@@ -75,6 +75,7 @@ export const PUBLIC_COLUMN_IDS = [
   COLUMNS.dueDate,
   COLUMNS.slaDays,
   COLUMNS.market,
+  COLUMNS.markets,
   COLUMNS.owner,
 ] as const;
 
@@ -125,12 +126,13 @@ const KNOWN_MARKETS = new Map<string, string>(MARKETS.map((market) => [fold(mark
 
 /**
  * The market column is free text in monday, so one market arrives as "MEXICO", "Mexico" and "México" and the
- * breakdowns split it in three. Each part of "A / B" snaps to the form's own spelling when it is a known market.
+ * breakdowns split it in three. Each part of "A / B" (or the list column's "A, B") snaps to the form's own spelling
+ * when it is a known market.
  */
 export function canonicalMarket(text: string | null): string | null {
   if (!text?.trim()) return null;
   return text
-    .split("/")
+    .split(/[/,]/)
     .map((part) => KNOWN_MARKETS.get(fold(part)) ?? part.trim())
     .filter(Boolean)
     .join(" / ");
@@ -183,7 +185,7 @@ export function toPublicTask(item: RawItem, people: ReadonlyMap<string, PublicOw
     priority: byLabelId(PRIORITY_LABEL_ID, column(COLUMNS.priority)?.index),
     dueDate: nonEmpty(column(COLUMNS.dueDate)?.text),
     slaDays: Number.isFinite(sla) && sla > 0 ? sla : null,
-    market: canonicalMarket(nonEmpty(column(COLUMNS.market)?.text)),
+    market: canonicalMarket(nonEmpty(column(COLUMNS.markets)?.text) ?? nonEmpty(column(COLUMNS.market)?.text)),
     createdAt: item.created_at,
     updatedAt: item.updated_at,
   };

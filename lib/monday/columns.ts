@@ -58,6 +58,7 @@ export function buildColumnValues(
     [COLUMNS.dueDate]: date(request.dueDate),
     [COLUMNS.brief]: longText(briefWithDetails(request)),
     [COLUMNS.market]: request.market,
+    [COLUMNS.markets]: { labels: [request.market] },
   };
   if (subtype) values[SUBTYPE_COLUMN[request.area]] = dropdown([subtype.labelId]);
   if (request.drive) values[COLUMNS.drive] = link(request.drive, "Drive folder");
