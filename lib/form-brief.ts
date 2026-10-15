@@ -3,8 +3,8 @@ import { AFFILIATE_INTAKE } from "./campaign-intake";
 import { BOARD_ID } from "./board-config";
 
 /**
- * Boards fed by a monday form, with that form's token. Every item they get carries the form's answers as its
- * description, so whoever opens the task reads the whole brief in one place instead of across twenty columns.
+ * Boards fed by a monday form, with that form's token. Every item they get carries the form's answers in a pinned
+ * update, so whoever opens the task reads the whole brief in one place instead of across twenty columns.
  */
 export const BRIEF_FORMS: Readonly<Record<number, string>> = {
   [BOARD_ID]: "1db69245acb26fea6719f4a2aa52ad7f",
