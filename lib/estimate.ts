@@ -74,9 +74,10 @@ export function deliveryDays(area: Area, subtype: string | undefined, priority: 
 // HACK: Monday to Friday only, no holidays. Add a holiday calendar per market when a date lands on one and someone notices.
 export function addBusinessDays(isoDate: string, days: number): string {
   const date = new Date(`${isoDate}T00:00:00Z`);
-  let remaining = days;
+  const step = days < 0 ? -1 : 1;
+  let remaining = Math.abs(days);
   while (remaining > 0) {
-    date.setUTCDate(date.getUTCDate() + 1);
+    date.setUTCDate(date.getUTCDate() + step);
     const weekday = date.getUTCDay();
     if (weekday !== 0 && weekday !== 6) remaining -= 1;
   }

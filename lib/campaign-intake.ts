@@ -40,13 +40,16 @@ const EventSchema = z.object({
   }),
 });
 
-/** The request whose status changed. The label itself is re-read from the API: the payload is unsigned. */
-export function intakeStatusChange(body: unknown): number | null {
+/** The item whose column changed on that board. The value itself is re-read from the API: the payload is unsigned. */
+export function columnChangeOn(body: unknown, board: number, column: string): number | null {
   const parsed = EventSchema.safeParse(body);
   if (!parsed.success) return null;
   const { boardId, pulseId, columnId } = parsed.data.event;
-  return boardId === AFFILIATE_INTAKE.boardId && columnId === AFFILIATE_INTAKE.status ? pulseId : null;
+  return boardId === board && columnId === column ? pulseId : null;
 }
+
+/** The affiliate request whose status changed. */
+export const intakeStatusChange = (body: unknown): number | null => columnChangeOn(body, AFFILIATE_INTAKE.boardId, AFFILIATE_INTAKE.status);
 
 // monday caps board names; the request title is free text from the form.
 const MAX_BOARD_NAME = 100;

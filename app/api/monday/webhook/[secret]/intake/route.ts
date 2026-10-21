@@ -1,15 +1,17 @@
 import { after, NextResponse } from "next/server";
 import { intakeStatusChange } from "@/lib/campaign-intake";
 import { spawnCampaign } from "@/lib/monday/campaign";
+import { spawnWebinar } from "@/lib/monday/webinar";
 import { safeEqual } from "@/lib/secrets";
+import { webinarStatusChange } from "@/lib/webinar-intake";
 
 // Copying the template and waiting for monday to finish it runs after the response, inside this budget.
 export const maxDuration = 300;
 
 /**
- * Subscribed on "Solicitudes Afiliados" to "When a column changes" on its Status. When a request becomes Accepted the
- * hub copies the campaign template into a board of its own. The payload is unsigned and only names the item; the
- * request is re-read before anything is created.
+ * Subscribed to "When a column changes" on the Status of "Solicitudes Afiliados" and of "Webinars LATAM · Calendario".
+ * An Accepted request or an Aprobado webinar gets its template copied into a board of its own. The payload is unsigned
+ * and only names the item; the item is re-read before anything is created.
  */
 export async function POST(request: Request, context: RouteContext<"/api/monday/webhook/[secret]/intake">): Promise<NextResponse> {
   const { secret } = await context.params;
@@ -30,14 +32,24 @@ export async function POST(request: Request, context: RouteContext<"/api/monday/
     return NextResponse.json({ challenge: (body as { challenge: unknown }).challenge });
   }
 
+  const origin = new URL(request.url).origin;
   const requestId = intakeStatusChange(body);
   if (requestId) {
-    const origin = new URL(request.url).origin;
     after(async () => {
       try {
         await spawnCampaign(requestId, origin);
       } catch (error) {
         console.error("affiliate campaign board", requestId, error);
+      }
+    });
+  }
+  const webinarId = webinarStatusChange(body);
+  if (webinarId) {
+    after(async () => {
+      try {
+        await spawnWebinar(webinarId, origin);
+      } catch (error) {
+        console.error("webinar board", webinarId, error);
       }
     });
   }
