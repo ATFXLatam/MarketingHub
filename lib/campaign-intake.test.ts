@@ -28,6 +28,18 @@ describe("shiftTimelines", () => {
     ]);
   });
 
+  it("counts every template day as a business day, so a step crossing a weekend ends after it", () => {
+    const tasks = [
+      { id: "a", range: parseRange("2026-10-13 - 2026-10-13") },
+      { id: "b", range: parseRange("2026-10-14 - 2026-10-16") },
+    ];
+    expect(shiftTimelines(tasks, "2026-11-06")).toEqual([
+      { id: "a", range: { from: "2026-11-06", to: "2026-11-06" } },
+      { id: "b", range: { from: "2026-11-09", to: "2026-11-11" } },
+    ]);
+    expect(shiftTimelines(tasks, "2026-11-07")[0].range).toEqual({ from: "2026-11-09", to: "2026-11-09" });
+  });
+
   it("refuses a start that is not a date", () => {
     expect(() => shiftTimelines([], "tomorrow")).toThrow();
   });

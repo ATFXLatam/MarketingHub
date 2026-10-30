@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { addBusinessDays } from "./estimate";
 
 /**
  * Affiliate campaigns run one monday Project board each, copied from the MVP board. A request on "Solicitudes
@@ -74,19 +75,22 @@ export function parseRange(text: string | null | undefined): DateRange | null {
   return { from: dates[0], to: dates[dates.length - 1] };
 }
 
-const addDays = (date: string, days: number) => new Date(Date.parse(`${date}T00:00:00Z`) + days * DAY_MS).toISOString().slice(0, 10);
+const daysBetween = (from: string, to: string) => Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS);
+const isWeekend = (date: string) => [0, 6].includes(new Date(`${date}T00:00:00Z`).getUTCDay());
 
 /**
- * The template's dates are a worked example starting on its first task. A copy keeps the same spacing and moves it so
- * the first task starts on `start`; tasks without dates stay empty.
+ * The template's dates are a worked example starting on its first task. Each of its days counts as one business day
+ * of the copy, so a step that crosses a weekend grows by the weekend instead of having it eaten from its deadline. The
+ * copy starts on `start`, or the next Monday when that is a weekend; tasks without dates stay empty.
  */
 export function shiftTimelines<T extends { id: string; range: DateRange | null }>(tasks: T[], start: string): { id: string; range: DateRange }[] {
   if (!ISO_DATE.test(start)) throw new Error(`start must be YYYY-MM-DD, got ${start}`);
   const dated = tasks.flatMap((task) => (task.range ? [{ id: task.id, range: task.range }] : []));
   if (!dated.length) return [];
   const anchor = dated.reduce((min, task) => (task.range.from < min ? task.range.from : min), dated[0].range.from);
-  const offset = Math.round((Date.parse(`${start}T00:00:00Z`) - Date.parse(`${anchor}T00:00:00Z`)) / DAY_MS);
-  return dated.map(({ id, range }) => ({ id, range: { from: addDays(range.from, offset), to: addDays(range.to, offset) } }));
+  const first = isWeekend(start) ? addBusinessDays(start, 1) : start;
+  const at = (date: string) => addBusinessDays(first, daysBetween(anchor, date));
+  return dated.map(({ id, range }) => ({ id, range: { from: at(range.from), to: at(range.to) } }));
 }
 
 export function spanOf(ranges: DateRange[]): DateRange | null {
