@@ -127,7 +127,15 @@ export async function getBoardSnapshot(): Promise<BoardSnapshot> {
   // One read per board, all at once; the snapshot is still a single cache entry every widget shares.
   const [requests, sources, campaigns] = await Promise.all([
     readBoard(BOARD_ID, [...PUBLIC_COLUMN_IDS], from, PUBLIC_COLUMN_IDS[0]),
-    Promise.all(SOURCE_BOARDS.map((board) => readBoard(board.id, sourceColumns(board), from, board.status))),
+    // A deleted or unshared source board drops its tasks instead of taking the whole hub down.
+    Promise.all(
+      SOURCE_BOARDS.map((board) =>
+        readBoard(board.id, sourceColumns(board), from, board.status).catch((error: unknown) => {
+          console.warn(`source board ${board.id} (${board.source}) skipped:`, error instanceof Error ? error.message : error);
+          return { items: [], activity: [] };
+        }),
+      ),
+    ),
     readBoard(CAMPAIGNS_BOARD.id, CAMPAIGN_COLUMN_IDS, from),
   ]);
 
