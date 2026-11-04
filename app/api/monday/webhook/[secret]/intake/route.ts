@@ -1,7 +1,9 @@
 import { after, NextResponse } from "next/server";
 import { intakeStatusChange } from "@/lib/campaign-intake";
 import { spawnCampaign } from "@/lib/monday/campaign";
+import { spawnRetail } from "@/lib/monday/retail";
 import { spawnWebinar } from "@/lib/monday/webinar";
+import { retailStatusChange } from "@/lib/retail-intake";
 import { safeEqual } from "@/lib/secrets";
 import { webinarStatusChange } from "@/lib/webinar-intake";
 
@@ -9,9 +11,9 @@ import { webinarStatusChange } from "@/lib/webinar-intake";
 export const maxDuration = 300;
 
 /**
- * Subscribed to "When a column changes" on the Status of "Solicitudes Afiliados" and of "Webinars LATAM · Calendario".
- * An Accepted request or an Aprobado webinar gets its template copied into a board of its own. The payload is unsigned
- * and only names the item; the item is re-read before anything is created.
+ * Subscribed to "When a column changes" on the Status of "Solicitudes Afiliados", "Webinars LATAM · Calendario" and
+ * "Campañas Retail · Solicitudes". An Accepted or Aprobado item gets its template copied into a board of its own. The
+ * payload is unsigned and only names the item; the item is re-read before anything is created.
  */
 export async function POST(request: Request, context: RouteContext<"/api/monday/webhook/[secret]/intake">): Promise<NextResponse> {
   const { secret } = await context.params;
@@ -50,6 +52,16 @@ export async function POST(request: Request, context: RouteContext<"/api/monday/
         await spawnWebinar(webinarId, origin);
       } catch (error) {
         console.error("webinar board", webinarId, error);
+      }
+    });
+  }
+  const retailId = retailStatusChange(body);
+  if (retailId) {
+    after(async () => {
+      try {
+        await spawnRetail(retailId, origin);
+      } catch (error) {
+        console.error("retail campaign board", retailId, error);
       }
     });
   }
