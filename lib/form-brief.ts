@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { AFFILIATE_INTAKE } from "./campaign-intake";
 import { BOARD_ID } from "./board-config";
+import { RETAIL_INTAKE } from "./retail-intake";
 
 /**
  * Boards fed by a monday form, with that form's token. Every item they get carries the form's answers in a pinned
@@ -9,6 +10,7 @@ import { BOARD_ID } from "./board-config";
 export const BRIEF_FORMS: Readonly<Record<number, string>> = {
   [BOARD_ID]: "1db69245acb26fea6719f4a2aa52ad7f",
   [AFFILIATE_INTAKE.boardId]: "49abbb29b7ce43c91ad31b39357ef9b0",
+  [RETAIL_INTAKE.boardId]: RETAIL_INTAKE.formToken,
 };
 
 export interface FormQuestion {
