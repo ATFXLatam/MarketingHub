@@ -5,7 +5,7 @@ import { RETAIL_INTAKE } from "./retail-intake";
 
 export interface BriefForm {
   formToken: string;
-  /** The form's requester name column: the update is posted with the hub's token, so it names who really asked. */
+  /** The form's free-text requester name, shown only when it differs from the account that submitted. */
   requester: string;
 }
 
@@ -51,8 +51,14 @@ export function briefMarkdown(questions: FormQuestion[], answers: ReadonlyMap<st
     .join("\n\n");
 }
 
-/** The brief opens with who sent it, since monday shows the hub's token owner as the update's author. */
-export function withSubmitter(markdown: string, requester: string | undefined): string {
-  const name = requester?.trim();
-  return name ? `**Submitted by ${name} through the request form.**\n\n${markdown}` : markdown;
+/**
+ * The brief opens with who sent it, since monday shows the hub's token owner as the update's author. The submitter is
+ * the item's creator, the logged-in account monday records and nobody can edit; the typed name is only a "for" note.
+ */
+export function withSubmitter(markdown: string, submitter: string | undefined, requester: string | undefined): string {
+  const by = submitter?.trim();
+  if (!by) return markdown;
+  const typed = requester?.trim();
+  const onBehalf = typed && typed.toLowerCase() !== by.toLowerCase() ? ` for ${typed}` : "";
+  return `**Submitted by ${by}${onBehalf} through the request form.**\n\n${markdown}`;
 }
