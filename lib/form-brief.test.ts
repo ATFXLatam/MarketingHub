@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { AFFILIATE_INTAKE } from "./campaign-intake";
-import { briefMarkdown, createdOnFormBoard } from "./form-brief";
+import { briefMarkdown, createdOnFormBoard, withSubmitter } from "./form-brief";
 
 describe("briefMarkdown", () => {
   const questions = [
@@ -26,5 +26,12 @@ describe("createdOnFormBoard", () => {
   it("names the item only on boards fed by a form", () => {
     expect(createdOnFormBoard({ event: { boardId: AFFILIATE_INTAKE.boardId, pulseId: "7" } })).toMatchObject({ itemId: 7 });
     expect(createdOnFormBoard({ event: { boardId: 1, pulseId: "7" } })).toBeNull();
+  });
+});
+
+describe("withSubmitter", () => {
+  it("opens the brief with the requester, and leaves it alone when the form has no name", () => {
+    expect(withSubmitter("**Area:** Web", " Thomas Corona ")).toBe("**Submitted by Thomas Corona through the request form.**\n\n**Area:** Web");
+    expect(withSubmitter("**Area:** Web", "")).toBe("**Area:** Web");
   });
 });

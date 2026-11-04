@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import { briefMarkdown } from "../form-brief";
+import { briefMarkdown, type BriefForm, withSubmitter } from "../form-brief";
 import { mondayQuery } from "./client";
 
 const BriefSchema = z.object({
@@ -9,7 +9,7 @@ const BriefSchema = z.object({
 });
 
 /** Posts the form's answers as the item's pinned first update. Reads both from the API: the webhook payload is unsigned. */
-export async function writeBrief(itemId: number, formToken: string): Promise<void> {
+export async function writeBrief(itemId: number, { formToken, requester }: BriefForm): Promise<void> {
   const { form, items } = BriefSchema.parse(
     await mondayQuery(`query ($token: String!, $item: [ID!]) { form(formToken: $token) { questions { id title type visible } } items(ids: $item) { column_values { id text } } }`, {
       token: formToken,
@@ -18,8 +18,10 @@ export async function writeBrief(itemId: number, formToken: string): Promise<voi
   );
   const item = items[0];
   if (!form || !item) return;
-  const markdown = briefMarkdown(form.questions.filter((question) => question.visible), new Map(item.column_values.map((value) => [value.id, value.text ?? ""])));
-  if (!markdown) return;
+  const answers = new Map(item.column_values.map((value) => [value.id, value.text ?? ""]));
+  const answered = briefMarkdown(form.questions.filter((question) => question.visible), answers);
+  if (!answered) return;
+  const markdown = withSubmitter(answered, answers.get(requester));
 
   // set_item_description_content answers a bare 500 on this account (tested on 2026-07 from the hub and by hand), so
   // the brief goes in an update pinned to the top: it stays first however many comments follow.
