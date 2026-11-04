@@ -30,8 +30,11 @@ describe("createdOnFormBoard", () => {
 });
 
 describe("withSubmitter", () => {
-  it("opens the brief with the requester, and leaves it alone when the form has no name", () => {
-    expect(withSubmitter("**Area:** Web", " Thomas Corona ")).toBe("**Submitted by Thomas Corona through the request form.**\n\n**Area:** Web");
-    expect(withSubmitter("**Area:** Web", "")).toBe("**Area:** Web");
+  it("names the account that submitted, not what was typed, and notes a different typed name as who it is for", () => {
+    expect(withSubmitter("**Area:** Web", "Thomas Corona", "thomas corona")).toBe("**Submitted by Thomas Corona through the request form.**\n\n**Area:** Web");
+    expect(withSubmitter("**Area:** Web", "Federico Pereira", "Claudia Ruiz")).toBe(
+      "**Submitted by Federico Pereira for Claudia Ruiz through the request form.**\n\n**Area:** Web",
+    );
+    expect(withSubmitter("**Area:** Web", undefined, "Claudia Ruiz")).toBe("**Area:** Web");
   });
 });
