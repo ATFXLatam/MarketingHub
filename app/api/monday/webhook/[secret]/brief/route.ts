@@ -28,7 +28,7 @@ export async function POST(request: Request, context: RouteContext<"/api/monday/
   if (created) {
     after(async () => {
       try {
-        await writeBrief(created.itemId, created.formToken);
+        await writeBrief(created.itemId, created);
       } catch (error) {
         console.error("form brief description", created, error);
       }
